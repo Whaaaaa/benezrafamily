@@ -1,5 +1,5 @@
-import BudgetUpload from '@/components/BudgetUpload'
+import BudgetDashboard from '@/components/BudgetDashboard'
 
 export default function BudgetPage() {
-  return <BudgetUpload />
+  return <BudgetDashboard />
 }
