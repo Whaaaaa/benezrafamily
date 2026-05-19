@@ -1,1 +1,311 @@
-{"data":"J3VzZSBjbGllbnQnCgppbXBvcnQgeyB1c2VTdGF0ZSwgdXNlUmVmIH0gZnJvbSAncmVhY3QnCgp0eXBlIFRyYW5zYWN0aW9uID0gewogIGRhdGU6IHN0cmluZwogIGRlc2NyaXB0aW9uOiBzdHJpbmcKICBhbW91bnQ6IG51bWJlcgp9CgpmdW5jdGlvbiBwYXJzZUNTVih0ZXh0OiBzdHJpbmcpOiB7IHRyYW5zYWN0aW9uczogVHJhbnNhY3Rpb25bXTsgZXJyb3I6IHN0cmluZyB9IHsKICBjb25zdCBsaW5lcyA9IHRleHQudHJpbSgpLnNwbGl0KC9ccj9cbi8pCiAgaWYgKGxpbmVzLmxlbmd0aCA8IDIpIHJldHVybiB7IHRyYW5zYWN0aW9uczogW10sIGVycm9yOiAnRmlsZSBhcHBlYXJzIGVtcHR5LicgfQoKICBjb25zdCByYXcgPSBsaW5lc1swXS5zcGxpdCgnLCcpLm1hcChoID0+IGgudHJpbSgpLnJlcGxhY2UoLyIvZywgJycpLnRvTG93ZXJDYXNlKCkpCgogIGNvbnN0IGRhdGVJZHggPSByYXcuZmluZEluZGV4KGggPT4gaC5pbmNsdWRlcygnZGF0ZScpKQogIGNvbnN0IGRlc2NJZHggPSByYXcuZmluZEluZGV4KAogICAgaCA9PiBoLmluY2x1ZGVzKCdkZXNjcmlwdGlvbicpIHx8IGguaW5jbHVkZXMoJ21lcmNoYW50JykgfHwgaC5pbmNsdWRlcygnbmFtZScpIHx8IGguaW5jbHVkZXMoJ21lbW8nKSwKICApCiAgY29uc3QgYW1vdW50SWR4ID0gcmF3LmZpbmRJbmRleChoID0+IGggPT09ICdhbW91bnQnIHx8IGggPT09ICdkZWJpdCcgfHwgaCA9PT0gJ2NoYXJnZSBhbW91bnQnKQogIGNvbnN0IGNyZWRpdElkeCA9IHJhdy5maW5kSW5kZXgoaCA9PiBoID09PSAnY3JlZGl0JykKCiAgaWYgKGRhdGVJZHggPT09IC0xIHx8IGRlc2NJZHggPT09IC0xIHx8IChhbW91bnRJZHggPT09IC0xICYmIGNyZWRpdElkeCA9PT0gLTEpKSB7CiAgICByZXR1cm4gewogICAgICB0cmFuc2FjdGlvbnM6IFtdLAogICAgICBlcnJvcjogYENvdWxkIG5vdCBmaW5kIHJlcXVpcmVkIGNvbHVtbnMuIEZvdW5kOiAke3Jhdy5qb2luKCcsICcpfS4gRXhwZWN0ZWQ6IERhdGUsIERlc2NyaXB0aW9uLCBhbmQgQW1vdW50IChvciBEZWJpdC9DcmVkaXQpLmAsCiAgICB9CiAgfQoKICBjb25zdCB0cmFuc2FjdGlvbnM6IFRyYW5zYWN0aW9uW10gPSBbXQogIGZvciAobGV0IGkgPSAxOyBpIDwgbGluZXMubGVuZ3RoOyBpKyspIHsKICAgIGNvbnN0IGxpbmUgPSBsaW5lc1tpXS50cmltKCkKICAgIGlmICghbGluZSkgY29udGludWUKICAgIGNvbnN0IGNvbHMgPSBsaW5lLnNwbGl0KCcsJykubWFwKGMgPT4gYy50cmltKCkucmVwbGFjZSgvXiJ8IiQvZywgJycpKQogICAgY29uc3QgZGF0ZSA9IGNvbHNbZGF0ZUlkeF0gPz8gJycKICAgIGNvbnN0IGRlc2NyaXB0aW9uID0gY29sc1tkZXNjSWR4XSA/PyAnJwogICAgY29uc3QgcmF3QW1vdW50ID0gYW1vdW50SWR4ICE9PSAtMSA/IGNvbHNbYW1vdW50SWR4XSA6IGNvbHNbY3JlZGl0SWR4XQogICAgY29uc3QgYW1vdW50ID0gcGFyc2VGbG9hdCgocmF3QW1vdW50ID8/ICcnKS5yZXBsYWNlKC9bJCxcc10vZywgJycpKQogICAgaWYgKCFkYXRlIHx8ICFkZXNjcmlwdGlvbikgY29udGludWUKICAgIHRyYW5zYWN0aW9ucy5wdXNoKHsgZGF0ZSwgZGVzY3JpcHRpb24sIGFtb3VudDogaXNOYU4oYW1vdW50KSA/IDAgOiBhbW91bnQgfSkKICB9CgogIGlmICh0cmFuc2FjdGlvbnMubGVuZ3RoID09PSAwKSB7CiAgICByZXR1cm4geyB0cmFuc2FjdGlvbnM6IFtdLCBlcnJvcjogJ05vIHRyYW5zYWN0aW9ucyBmb3VuZCBhZnRlciBwYXJzaW5nLicgfQogIH0KCiAgcmV0dXJuIHsgdHJhbnNhY3Rpb25zLCBlcnJvcjogJycgfQp9CgpleHBvcnQgZGVmYXVsdCBmdW5jdGlvbiBCdWRnZXRVcGxvYWQoKSB7CiAgY29uc3QgW3RyYW5zYWN0aW9ucywgc2V0VHJhbnNhY3Rpb25zXSA9IHVzZVN0YXRlPFRyYW5zYWN0aW9uW10+KFtdKQogIGNvbnN0IFtlcnJvciwgc2V0RXJyb3JdID0gdXNlU3RhdGUoJycpCiAgY29uc3QgW2ZpbGVOYW1lLCBzZXRGaWxlTmFtZV0gPSB1c2VTdGF0ZSgnJykKICBjb25zdCBbc29ydEZpZWxkLCBzZXRTb3J0RmllbGRdID0gdXNlU3RhdGU8a2V5b2YgVHJhbnNhY3Rpb24+KCdkYXRlJykKICBjb25zdCBbc29ydEFzYywgc2V0U29ydEFzY10gPSB1c2VTdGF0ZSh0cnVlKQogIGNvbnN0IGlucHV0UmVmID0gdXNlUmVmPEhUTUxJbnB1dEVsZW1lbnQ+KG51bGwpCgogIGNvbnN0IGhhbmRsZUZpbGUgPSAoZmlsZTogRmlsZSkgPT4gewogICAgaWYgKCFmaWxlLm5hbWUudG9Mb3dlckNhc2UoKS5lbmRzV2l0aCgnLmNzdicpKSB7CiAgICAgIHNldEVycm9yKCdQbGVhc2UgdXBsb2FkIGEgLmNzdiBmaWxlLicpCiAgICAgIHJldHVybgogICAgfQogICAgc2V0RmlsZU5hbWUoZmlsZS5uYW1lKQogICAgc2V0RXJyb3IoJycpCiAgICBjb25zdCByZWFkZXIgPSBuZXcgRmlsZVJlYWRlcigpCiAgICByZWFkZXIub25sb2FkID0gZSA9PiB7CiAgICAgIGNvbnN0IHsgdHJhbnNhY3Rpb25zOiBwYXJzZWQsIGVycm9yOiBwYXJzZUVycm9yIH0gPSBwYXJzZUNTVihlLnRhcmdldD8ucmVzdWx0IGFzIHN0cmluZykKICAgICAgaWYgKHBhcnNlRXJyb3IpIHsKICAgICAgICBzZXRFcnJvcihwYXJzZUVycm9yKQogICAgICAgIHNldFRyYW5zYWN0aW9ucyhbXSkKICAgICAgfSBlbHNlIHsKICAgICAgICBzZXRUcmFuc2FjdGlvbnMocGFyc2VkKQogICAgICB9CiAgICB9CiAgICByZWFkZXIucmVhZEFzVGV4dChmaWxlKQogIH0KCiAgY29uc3QgaGFuZGxlQ2hhbmdlID0gKGU6IFJlYWN0LkNoYW5nZUV2ZW50PEhUTUxJbnB1dEVsZW1lbnQ+KSA9PiB7CiAgICBjb25zdCBmaWxlID0gZS50YXJnZXQuZmlsZXM/LlswXQogICAgaWYgKGZpbGUpIGhhbmRsZUZpbGUoZmlsZSkKICB9CgogIGNvbnN0IGhhbmRsZURyb3AgPSAoZTogUmVhY3QuRHJhZ0V2ZW50KSA9PiB7CiAgICBlLnByZXZlbnREZWZhdWx0KCkKICAgIGNvbnN0IGZpbGUgPSBlLmRhdGFUcmFuc2Zlci5maWxlcz8uWzBdCiAgICBpZiAoZmlsZSkgaGFuZGxlRmlsZShmaWxlKQogIH0KCiAgY29uc3Qgc29ydEJ5ID0gKGZpZWxkOiBrZXlvZiBUcmFuc2FjdGlvbikgPT4gewogICAgaWYgKHNvcnRGaWVsZCA9PT0gZmllbGQpIHNldFNvcnRBc2MoYSA9PiAhYSkKICAgIGVsc2UgeyBzZXRTb3J0RmllbGQoZmllbGQpOyBzZXRTb3J0QXNjKHRydWUpIH0KICB9CgogIGNvbnN0IHNvcnRlZCA9IFsuLi50cmFuc2FjdGlvbnNdLnNvcnQoKGEsIGIpID0+IHsKICAgIGNvbnN0IGF2ID0gYVtzb3J0RmllbGRdCiAgICBjb25zdCBidiA9IGJbc29ydEZpZWxkXQogICAgY29uc3QgY21wID0gdHlwZW9mIGF2ID09PSAnbnVtYmVyJyA/IChhdiBhcyBudW1iZXIpIC0gKGJ2IGFzIG51bWJlcikgOiBTdHJpbmcoYXYpLmxvY2FsZUNvbXBhcmUoU3RyaW5nKGJ2KSkKICAgIHJldHVybiBzb3J0QXNjID8gY21wIDogLWNtcAogIH0pCgogIGNvbnN0IGNoYXJnZXMgPSB0cmFuc2FjdGlvbnMuZmlsdGVyKHQgPT4gdC5hbW91bnQgPiAwKQogIGNvbnN0IGNyZWRpdHMgPSB0cmFuc2FjdGlvbnMuZmlsdGVyKHQgPT4gdC5hbW91bnQgPCAwKQogIGNvbnN0IHRvdGFsQ2hhcmdlZCA9IGNoYXJnZXMucmVkdWNlKChzLCB0KSA9PiBzICsgdC5hbW91bnQsIDApCiAgY29uc3QgdG90YWxDcmVkaXRlZCA9IE1hdGguYWJzKGNyZWRpdHMucmVkdWNlKChzLCB0KSA9PiBzICsgdC5hbW91bnQsIDApKQoKICBjb25zdCBTb3J0SWNvbiA9ICh7IGZpZWxkIH06IHsgZmllbGQ6IGtleW9mIFRyYW5zYWN0aW9uIH0pID0+CiAgICBzb3J0RmllbGQgPT09IGZpZWxkID8gKHNvcnRBc2MgPyAnIOKGkScgOiAnIOKGkycpIDogJycKCiAgcmV0dXJuICgKICAgIDxkaXYgY2xhc3NOYW1lPSJwLTYgbWF4LXctNHhsIG14LWF1dG8iPgogICAgICA8aDIgY2xhc3NOYW1lPSJ0ZXh0LTJ4bCBmb250LWJvbGQgbWItNiB0ZXh0LWdyYXktOTAwIj5CdWRnZXQ8L2gyPgoKICAgICAgPGRpdgogICAgICAgIG9uRHJvcD17aGFuZGxlRHJvcH0KICAgICAgICBvbkRyYWdPdmVyPXtlID0+IGUucHJldmVudERlZmF1bHQoKX0KICAgICAgICBvbkNsaWNrPXsoKSA9PiBpbnB1dFJlZi5jdXJyZW50Py5jbGljaygpfQogICAgICAgIGNsYXNzTmFtZT0iYm9yZGVyLTIgYm9yZGVyLWRhc2hlZCBib3JkZXItZ3JheS0zMDAgcm91bmRlZC14bCBwLTEwIHRleHQtY2VudGVyIGN1cnNvci1wb2ludGVyIGhvdmVyOmJvcmRlci1ibHVlLTQwMCBob3ZlcjpiZy1ibHVlLTUwIHRyYW5zaXRpb24tY29sb3JzIG1iLTYiCiAgICAgID4KICAgICAgICA8aW5wdXQgcmVmPXtpbnB1dFJlZn0gdHlwZT0iZmlsZSIgYWNjZXB0PSIuY3N2IiBvbkNoYW5nZT17aGFuZGxlQ2hhbmdlfSBjbGFzc05hbWU9ImhpZGRlbiIgLz4KICAgICAgICA8ZGl2IGNsYXNzTmFtZT0idGV4dC01eGwgbWItMyI+8J+ThDwvZGl2PgogICAgICAgIHtmaWxlTmFtZSA/ICgKICAgICAgICAgIDxwIGNsYXNzTmFtZT0iZm9udC1tZWRpdW0gdGV4dC1ncmF5LTgwMCI+e2ZpbGVOYW1lfTwvcD4KICAgICAgICApIDogKAogICAgICAgICAgPD4KICAgICAgICAgICAgPHAgY2xhc3NOYW1lPSJmb250LXNlbWlib2xkIHRleHQtZ3JheS03MDAiPkRyb3AgYSBDU1YgZmlsZSBoZXJlIG9yIGNsaWNrIHRvIGJyb3dzZTwvcD4KICAgICAgICAgICAgPHAgY2xhc3NOYW1lPSJ0ZXh0LXNtIHRleHQtZ3JheS00MDAgbXQtMSI+CiAgICAgICAgICAgICAgU3VwcG9ydHMgbW9zdCBjcmVkaXQgY2FyZCBzdGF0ZW1lbnQgZXhwb3J0cyAoQ2hhc2UsIENpdGksIEFtZXgsIGV0Yy4pCiAgICAgICAgICAgIDwvcD4KICAgICAgICAgIDwvPgogICAgICAgICl9CiAgICAgIDwvZGl2PgoKICAgICAge2Vycm9yICYmICgKICAgICAgICA8ZGl2IGNsYXNzTmFtZT0ibWItNSBwLTMgYmctcmVkLTUwIGJvcmRlciBib3JkZXItcmVkLTIwMCByb3VuZGVkLWxnIHRleHQtc20gdGV4dC1yZWQtNzAwIj4KICAgICAgICAgIHtlcnJvcn0KICAgICAgICA8L2Rpdj4KICAgICAgKX0KCiAgICAgIHt0cmFuc2FjdGlvbnMubGVuZ3RoID4gMCAmJiAoCiAgICAgICAgPD4KICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPSJncmlkIGdyaWQtY29scy0zIGdhcC00IG1iLTYiPgogICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT0iYmctd2hpdGUgYm9yZGVyIGJvcmRlci1ncmF5LTIwMCByb3VuZGVkLWxnIHAtNCBzaGFkb3ctc20iPgogICAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPSJ0ZXh0LXhzIHRleHQtZ3JheS01MDAgdXBwZXJjYXNlIGZvbnQtbWVkaXVtIG1iLTEiPlRyYW5zYWN0aW9uczwvZGl2PgogICAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPSJ0ZXh0LTJ4bCBmb250LWJvbGQgdGV4dC1ncmF5LTkwMCI+e3RyYW5zYWN0aW9ucy5sZW5ndGh9PC9kaXY+CiAgICAgICAgICAgIDwvZGl2PgogICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT0iYmctd2hpdGUgYm9yZGVyIGJvcmRlci1ncmF5LTIwMCByb3VuZGVkLWxnIHAtNCBzaGFkb3ctc20iPgogICAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPSJ0ZXh0LXhzIHRleHQtZ3JheS01MDAgdXBwZXJjYXNlIGZvbnQtbWVkaXVtIG1iLTEiPlRvdGFsIENoYXJnZWQ8L2Rpdj4KICAgICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT0idGV4dC0yeGwgZm9udC1ib2xkIHRleHQtcmVkLTUwMCI+JHt0b3RhbENoYXJnZWQudG9GaXhlZCgyKX08L2Rpdj4KICAgICAgICAgICAgPC9kaXY+CiAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPSJiZy13aGl0ZSBib3JkZXIgYm9yZGVyLWdyYXktMjAwIHJvdW5kZWQtbGcgcC00IHNoYWRvdy1zbSI+CiAgICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9InRleHQteHMgdGV4dC1ncmF5LTUwMCB1cHBlcmNhc2UgZm9udC1tZWRpdW0gbWItMSI+VG90YWwgQ3JlZGl0czwvZGl2PgogICAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPSJ0ZXh0LTJ4bCBmb250LWJvbGQgdGV4dC1lbWVyYWxkLTYwMCI+JHt0b3RhbENyZWRpdGVkLnRvRml4ZWQoMil9PC9kaXY+CiAgICAgICAgICAgIDwvZGl2PgogICAgICAgICAgPC9kaXY+CgogICAgICAgICAgPGRpdiBjbGFzc05hbWU9Im92ZXJmbG93LWF1dG8gcm91bmRlZC1sZyBib3JkZXIgYm9yZGVyLWdyYXktMjAwIHNoYWRvdy1zbSI+CiAgICAgICAgICAgIDx0YWJsZSBjbGFzc05hbWU9InctZnVsbCB0ZXh0LXNtIj4KICAgICAgICAgICAgICA8dGhlYWQgY2xhc3NOYW1lPSJiZy1ncmF5LTUwIGJvcmRlci1iIGJvcmRlci1ncmF5LTIwMCI+CiAgICAgICAgICAgICAgICA8dHI+CiAgICAgICAgICAgICAgICAgIHsoWydkYXRlJywgJ2Rlc2NyaXB0aW9uJywgJ2Ftb3VudCddIGFzIGNvbnN0KS5tYXAoY29sID0+ICgKICAgICAgICAgICAgICAgICAgICA8dGgKICAgICAgICAgICAgICAgICAgICAgIGtleT17Y29sfQogICAgICAgICAgICAgICAgICAgICAgb25DbGljaz17KCkgPT4gc29ydEJ5KGNvbCl9CiAgICAgICAgICAgICAgICAgICAgICBjbGFzc05hbWU9e2BweC00IHB5LTMgZm9udC1zZW1pYm9sZCB0ZXh0LWdyYXktNjAwIGN1cnNvci1wb2ludGVyIHNlbGVjdC1ub25lIGhvdmVyOnRleHQtZ3JheS05MDAgJHtjb2wgPT09ICdhbW91bnQnID8gJ3RleHQtcmlnaHQnIDogJ3RleHQtbGVmdCd9YH0KICAgICAgICAgICAgICAgICAgICA+CiAgICAgICAgICAgICAgICAgICAgICB7Y29sLmNoYXJBdCgwKS50b1VwcGVyQ2FzZSgpICsgY29sLnNsaWNlKDEpfQogICAgICAgICAgICAgICAgICAgICAgPFNvcnRJY29uIGZpZWxkPXtjb2x9IC8+CiAgICAgICAgICAgICAgICAgICAgPC90aD4KICAgICAgICAgICAgICAgICAgKSl9CiAgICAgICAgICAgICAgICA8L3RyPgogICAgICAgICAgICAgIDwvdGhlYWQ+CiAgICAgICAgICAgICAgPHRib2R5IGNsYXNzTmFtZT0iZGl2aWRlLXkgZGl2aWRlLWdyYXktMTAwIj4KICAgICAgICAgICAgICAgIHtzb3J0ZWQubWFwKCh0LCBpKSA9PiAoCiAgICAgICAgICAgICAgICAgIDx0ciBrZXk9e2l9IGNsYXNzTmFtZT0iaG92ZXI6YmctZ3JheS01MCI+CiAgICAgICAgICAgICAgICAgICAgPHRkIGNsYXNzTmFtZT0icHgtNCBweS0yLjUgdGV4dC1ncmF5LTUwMCB3aGl0ZXNwYWNlLW5vd3JhcCI+e3QuZGF0ZX08L3RkPgogICAgICAgICAgICAgICAgICAgIDx0ZCBjbGFzc05hbWU9InB4LTQgcHktMi41IHRleHQtZ3JheS04MDAiPnt0LmRlc2NyaXB0aW9ufTwvdGQ+CiAgICAgICAgICAgICAgICAgICAgPHRkCiAgICAgICAgICAgICAgICAgICAgICBjbGFzc05hbWU9e2BweC00IHB5LTIuNSB0ZXh0LXJpZ2h0IGZvbnQtbWVkaXVtIHRhYnVsYXItbnVtcyAkewogICAgICAgICAgICAgICAgICAgICAgICB0LmFtb3VudCA+IDAgPyAndGV4dC1yZWQtNTAwJyA6ICd0ZXh0LWVtZXJhbGQtNjAwJwogICAgICAgICAgICAgICAgICAgICAgfWB9CiAgICAgICAgICAgICAgICAgICAgPgogICAgICAgICAgICAgICAgICAgICAge3QuYW1vdW50ID4gMCA/ICfiiJInIDogJysnfSR7TWF0aC5hYnModC5hbW91bnQpLnRvRml4ZWQoMil9CiAgICAgICAgICAgICAgICAgICAgPC90ZD4KICAgICAgICAgICAgICAgICAgPC90cj4KICAgICAgICAgICAgICAgICkpfQogICAgICAgICAgICAgIDwvdGJvZHk+CiAgICAgICAgICAgIDwvdGFibGU+CiAgICAgICAgICA8L2Rpdj4KICAgICAgICA8Lz4KICAgICAgKX0KICAgIDwvZGl2PgogICkKfQo="}
+'use client'
+
+import { useState, useRef } from 'react'
+
+type Transaction = {
+  date: string
+  description: string
+  amount: number
+}
+
+function parseCSV(text: string): { transactions: Transaction[]; error: string } {
+  const lines = text.trim().split(/\r?\n/)
+  if (lines.length < 2) return { transactions: [], error: 'File appears empty.' }
+
+  const raw = lines[0].split(',').map(h => h.trim().replace(/"/g, '').toLowerCase())
+
+  const dateIdx = raw.findIndex(h => h.includes('date'))
+  const descIdx = raw.findIndex(
+    h => h.includes('description') || h.includes('merchant') || h.includes('name') || h.includes('memo'),
+  )
+  const amountIdx = raw.findIndex(h => h === 'amount' || h === 'debit' || h === 'charge amount')
+  const creditIdx = raw.findIndex(h => h === 'credit')
+
+  if (dateIdx === -1 || descIdx === -1 || (amountIdx === -1 && creditIdx === -1)) {
+    return {
+      transactions: [],
+      error: `Could not find required columns. Found: ${raw.join(', ')}. Expected: Date, Description, and Amount (or Debit/Credit).`,
+    }
+  }
+
+  const transactions: Transaction[] = []
+  for (let i = 1; i < lines.length; i++) {
+    const line = lines[i].trim()
+    if (!line) continue
+    const cols = line.split(',').map(c => c.trim().replace(/^"|"$/g, ''))
+    const date = cols[dateIdx] ?? ''
+    const description = cols[descIdx] ?? ''
+    const rawAmount = amountIdx !== -1 ? cols[amountIdx] : cols[creditIdx]
+    const amount = parseFloat((rawAmount ?? '').replace(/[$,\s]/g, ''))
+    if (!date || !description) continue
+    transactions.push({ date, description, amount: isNaN(amount) ? 0 : amount })
+  }
+
+  if (transactions.length === 0) {
+    return { transactions: [], error: 'No transactions found after parsing.' }
+  }
+
+  return { transactions, error: '' }
+}
+
+function parseLeumiLine(text: string): Transaction | null {
+  const dateMatch = text.match(/(\d{2}\/\d{2}\/\d{2})/)
+  if (!dateMatch) return null
+
+  // Skip non-transaction lines
+  if (/סה.?כ|לחשבון\s+\d|שיעורי ריבית|מסגרת|תוקף|התחייבויות/.test(text)) return null
+  if (/תאריך\s+העסקה|שם בית העסק|סוג\s+העסקה|הערות/.test(text)) return null
+  if (/מידע ובירורים|אובדן גניבה|לפרטים/.test(text)) return null
+  if (/עמלת\s+מט|המרה למטבע|מטבע המקור|שעורי ריבית/.test(text)) return null
+  if (/חשבונית מס|עוסק מורשה|סך העמלות/.test(text)) return null
+
+  const date = dateMatch[1]
+
+  // Foreign transactions have ₪-prefixed amounts
+  const shekelAmounts = [...text.matchAll(/₪\s*([\d,]+\.\d{2})(?!\d)/g)]
+    .map(m => parseFloat(m[1].replace(/,/g, '')))
+    .filter(a => a >= 1)
+
+  let chargeAmount: number
+
+  if (shekelAmounts.length > 0) {
+    // Foreign: largest ₪ amount includes the forex fee — that's the charge
+    chargeAmount = Math.max(...shekelAmounts)
+  } else {
+    // Domestic: two decimal numbers appear — original price and charge amount.
+    // The charge is always the smaller-or-equal value (installments < original; regular = same).
+    const cleanText = text.replace(/תשלום\s+\d+\s+מתוך\s+\d+/, '')
+    const amounts = [...cleanText.matchAll(/(?<![.\d])([\d,]+\.\d{2})(?!\d)/g)]
+      .map(m => parseFloat(m[1].replace(/,/g, '')))
+      .filter(a => a >= 1)
+    if (amounts.length === 0) return null
+    chargeAmount = Math.min(...amounts)
+  }
+
+  // Build description by stripping amounts, dates, and keywords
+  let desc = text
+    .replace(/₪\s*[\d,]+\.\d{2}/g, '')
+    .replace(/\$\s*[\d,]+\.\d{2}/g, '')
+    .replace(/\d+\.\d{4,}/g, '')
+    .replace(/(?<![.\d])[\d,]+\.\d{2}(?!\d)/g, '')
+    .replace(/\d{2}\/\d{2}\/\d{2}/g, '')
+    .replace(/(?:רגילה|תשלומים|שוטף(?:\s+רגילה)?)/g, '')
+    .replace(/תשלום\s+\d+\s+מתוך\s+\d+/g, '')
+    .replace(/הוראת קבע/g, '')
+    .replace(/הועבר ל:[^\n]*/g, '')
+    .replace(/\bILS\b\s*/g, '')
+    .replace(/\s{2,}/g, ' ')
+    .trim()
+
+  // Remove lone digit footnote markers (7, 8 etc.)
+  desc = desc.replace(/(?:^|\s)\d{1,2}(?=\s|$)/g, ' ').trim()
+  desc = desc.replace(/^[.,;:\s₪$]+|[.,;:\s₪$]+$/g, '').trim()
+
+  if (!desc || desc.length < 2) return null
+  return { date, description: desc, amount: chargeAmount }
+}
+
+async function parsePDF(buffer: ArrayBuffer): Promise<{ transactions: Transaction[]; error: string }> {
+  try {
+    const pdfjsLib = await import('pdfjs-dist')
+    pdfjsLib.GlobalWorkerOptions.workerSrc = '/pdf.worker.mjs'
+
+    const pdf = await pdfjsLib.getDocument({ data: new Uint8Array(buffer) }).promise
+    const lines: string[] = []
+
+    for (let p = 1; p <= pdf.numPages; p++) {
+      const page = await pdf.getPage(p)
+      const content = await page.getTextContent()
+
+      let currentLine: string[] = []
+      let currentY: number | null = null
+
+      for (const item of content.items) {
+        if (!('str' in item) || !(item as { str: string }).str.trim()) continue
+        const str = (item as { str: string; transform: number[] }).str.trim()
+        const y = Math.round((item as { transform: number[] }).transform[5])
+
+        if (currentY === null || Math.abs(y - currentY) > 3) {
+          if (currentLine.length) lines.push(currentLine.join(' '))
+          currentLine = [str]
+          currentY = y
+        } else {
+          currentLine.push(str)
+        }
+      }
+      if (currentLine.length) lines.push(currentLine.join(' '))
+    }
+
+    const transactions: Transaction[] = []
+    for (const line of lines) {
+      const tx = parseLeumiLine(line)
+      if (tx) transactions.push(tx)
+    }
+
+    if (transactions.length === 0) {
+      return { transactions: [], error: 'No transactions found. Make sure this is a Bank Leumi credit card statement.' }
+    }
+
+    return { transactions, error: '' }
+  } catch (err) {
+    return { transactions: [], error: `PDF parsing failed: ${err}` }
+  }
+}
+
+export default function BudgetUpload() {
+  const [transactions, setTransactions] = useState<Transaction[]>([])
+  const [error, setError] = useState('')
+  const [fileName, setFileName] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [sortField, setSortField] = useState<keyof Transaction>('date')
+  const [sortAsc, setSortAsc] = useState(true)
+  const inputRef = useRef<HTMLInputElement>(null)
+
+  const handleFile = (file: File) => {
+    const name = file.name.toLowerCase()
+    if (!name.endsWith('.csv') && !name.endsWith('.pdf')) {
+      setError('Please upload a .csv or .pdf file.')
+      return
+    }
+    setFileName(file.name)
+    setError('')
+
+    const reader = new FileReader()
+
+    if (name.endsWith('.csv')) {
+      reader.onload = e => {
+        const { transactions: parsed, error: parseError } = parseCSV(e.target?.result as string)
+        if (parseError) { setError(parseError); setTransactions([]) }
+        else setTransactions(parsed)
+      }
+      reader.readAsText(file)
+    } else {
+      setLoading(true)
+      reader.onload = async e => {
+        const { transactions: parsed, error: parseError } = await parsePDF(e.target?.result as ArrayBuffer)
+        setLoading(false)
+        if (parseError) { setError(parseError); setTransactions([]) }
+        else setTransactions(parsed)
+      }
+      reader.readAsArrayBuffer(file)
+    }
+  }
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (file) handleFile(file)
+  }
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault()
+    const file = e.dataTransfer.files?.[0]
+    if (file) handleFile(file)
+  }
+
+  const sortBy = (field: keyof Transaction) => {
+    if (sortField === field) setSortAsc(a => !a)
+    else { setSortField(field); setSortAsc(true) }
+  }
+
+  const sorted = [...transactions].sort((a, b) => {
+    const av = a[sortField]
+    const bv = b[sortField]
+    const cmp = typeof av === 'number' ? (av as number) - (bv as number) : String(av).localeCompare(String(bv))
+    return sortAsc ? cmp : -cmp
+  })
+
+  const charges = transactions.filter(t => t.amount > 0)
+  const credits = transactions.filter(t => t.amount < 0)
+  const totalCharged = charges.reduce((s, t) => s + t.amount, 0)
+  const totalCredited = Math.abs(credits.reduce((s, t) => s + t.amount, 0))
+
+  const SortIcon = ({ field }: { field: keyof Transaction }) =>
+    sortField === field ? (sortAsc ? ' ↑' : ' ↓') : ''
+
+  return (
+    <div className="p-6 max-w-4xl mx-auto">
+      <h2 className="text-2xl font-bold mb-6 text-gray-900">Budget</h2>
+
+      <div
+        onDrop={handleDrop}
+        onDragOver={e => e.preventDefault()}
+        onClick={() => inputRef.current?.click()}
+        className="border-2 border-dashed border-gray-300 rounded-xl p-10 text-center cursor-pointer hover:border-blue-400 hover:bg-blue-50 transition-colors mb-6"
+      >
+        <input ref={inputRef} type="file" accept=".csv,.pdf" onChange={handleChange} className="hidden" />
+        <div className="text-5xl mb-3">{loading ? '⏳' : '📄'}</div>
+        {loading ? (
+          <p className="font-medium text-gray-600">Parsing PDF...</p>
+        ) : fileName ? (
+          <p className="font-medium text-gray-800">{fileName}</p>
+        ) : (
+          <>
+            <p className="font-semibold text-gray-700">Drop a file here or click to browse</p>
+            <p className="text-sm text-gray-400 mt-1">
+              Supports Bank Leumi PDF statements and CSV exports
+            </p>
+          </>
+        )}
+      </div>
+
+      {error && (
+        <div className="mb-5 p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">
+          {error}
+        </div>
+      )}
+
+      {transactions.length > 0 && (
+        <>
+          <div className="grid grid-cols-3 gap-4 mb-6">
+            <div className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
+              <div className="text-xs text-gray-500 uppercase font-medium mb-1">Transactions</div>
+              <div className="text-2xl font-bold text-gray-900">{transactions.length}</div>
+            </div>
+            <div className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
+              <div className="text-xs text-gray-500 uppercase font-medium mb-1">Total Charged</div>
+              <div className="text-2xl font-bold text-red-500">₪{totalCharged.toFixed(2)}</div>
+            </div>
+            <div className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
+              <div className="text-xs text-gray-500 uppercase font-medium mb-1">Total Credits</div>
+              <div className="text-2xl font-bold text-emerald-600">₪{totalCredited.toFixed(2)}</div>
+            </div>
+          </div>
+
+          <div className="overflow-auto rounded-lg border border-gray-200 shadow-sm">
+            <table className="w-full text-sm">
+              <thead className="bg-gray-50 border-b border-gray-200">
+                <tr>
+                  {(['date', 'description', 'amount'] as const).map(col => (
+                    <th
+                      key={col}
+                      onClick={() => sortBy(col)}
+                      className={`px-4 py-3 font-semibold text-gray-600 cursor-pointer select-none hover:text-gray-900 ${col === 'amount' ? 'text-right' : 'text-left'}`}
+                    >
+                      {col.charAt(0).toUpperCase() + col.slice(1)}
+                      <SortIcon field={col} />
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {sorted.map((t, i) => (
+                  <tr key={i} className="hover:bg-gray-50">
+                    <td className="px-4 py-2.5 text-gray-500 whitespace-nowrap">{t.date}</td>
+                    <td className="px-4 py-2.5 text-gray-800">{t.description}</td>
+                    <td
+                      className={`px-4 py-2.5 text-right font-medium tabular-nums ${
+                        t.amount > 0 ? 'text-red-500' : 'text-emerald-600'
+                      }`}
+                    >
+                      {t.amount > 0 ? '−' : '+'}₪{Math.abs(t.amount).toFixed(2)}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </>
+      )}
+    </div>
+  )
+}

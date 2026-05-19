@@ -1,1 +1,5 @@
-{"data":"aW1wb3J0IEJ1ZGdldFVwbG9hZCBmcm9tICdAL2NvbXBvbmVudHMvQnVkZ2V0VXBsb2FkJwoKZXhwb3J0IGRlZmF1bHQgZnVuY3Rpb24gQnVkZ2V0UGFnZSgpIHsKICByZXR1cm4gPEJ1ZGdldFVwbG9hZCAvPgp9Cg=="}
+import BudgetUpload from '@/components/BudgetUpload'
+
+export default function BudgetPage() {
+  return <BudgetUpload />
+}

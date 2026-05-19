@@ -1,1 +1,5 @@
-{"data":"aW1wb3J0IE1lYWxDYWxlbmRhciBmcm9tICdAL2NvbXBvbmVudHMvTWVhbENhbGVuZGFyJwoKZXhwb3J0IGRlZmF1bHQgZnVuY3Rpb24gTWVhbHNQYWdlKCkgewogIHJldHVybiA8TWVhbENhbGVuZGFyIC8+Cn0K"}
+import MealCalendar from '@/components/MealCalendar'
+
+export default function MealsPage() {
+  return <MealCalendar />
+}

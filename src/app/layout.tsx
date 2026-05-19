@@ -1,1 +1,38 @@
-{"data":"aW1wb3J0IHR5cGUgeyBNZXRhZGF0YSB9IGZyb20gIm5leHQiOwppbXBvcnQgeyBHZWlzdCB9IGZyb20gIm5leHQvZm9udC9nb29nbGUiOwppbXBvcnQgIi4vZ2xvYmFscy5jc3MiOwppbXBvcnQgVGFiTmF2IGZyb20gIkAvY29tcG9uZW50cy9UYWJOYXYiOwoKY29uc3QgZ2Vpc3RTYW5zID0gR2Vpc3QoewogIHZhcmlhYmxlOiAiLS1mb250LWdlaXN0LXNhbnMiLAogIHN1YnNldHM6IFsibGF0aW4iXSwKfSk7CgpleHBvcnQgY29uc3QgbWV0YWRhdGE6IE1ldGFkYXRhID0gewogIHRpdGxlOiAiQmVuRXpyYSBGYW1pbHkiLAogIGRlc2NyaXB0aW9uOiAiRmFtaWx5IG1lYWxzLCBzaG9wcGluZywgYW5kIGJ1ZGdldCIsCn07CgpleHBvcnQgZGVmYXVsdCBmdW5jdGlvbiBSb290TGF5b3V0KHsKICBjaGlsZHJlbiwKfTogUmVhZG9ubHk8ewogIGNoaWxkcmVuOiBSZWFjdC5SZWFjdE5vZGU7Cn0+KSB7CiAgcmV0dXJuICgKICAgIDxodG1sIGxhbmc9ImVuIiBjbGFzc05hbWU9e2Ake2dlaXN0U2Fucy52YXJpYWJsZX0gaC1mdWxsIGFudGlhbGlhc2VkYH0+CiAgICAgIDxib2R5IGNsYXNzTmFtZT0ibWluLWgtZnVsbCBmbGV4IGZsZXgtY29sIGJnLWdyYXktNTAiPgogICAgICAgIDxoZWFkZXIgY2xhc3NOYW1lPSJiZy13aGl0ZSBib3JkZXItYiBib3JkZXItZ3JheS0yMDAgc3RpY2t5IHRvcC0wIHotMTAgc2hhZG93LXNtIj4KICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPSJtYXgtdy01eGwgbXgtYXV0byBweC02Ij4KICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9ImZsZXggaXRlbXMtY2VudGVyIGp1c3RpZnktYmV0d2VlbiBwdC00IHBiLTEiPgogICAgICAgICAgICAgIDxoMSBjbGFzc05hbWU9InRleHQtbGcgZm9udC1ib2xkIHRleHQtZ3JheS05MDAgdHJhY2tpbmctdGlnaHQiPgogICAgICAgICAgICAgICAgQmVuRXpyYSBGYW1pbHkKICAgICAgICAgICAgICA8L2gxPgogICAgICAgICAgICA8L2Rpdj4KICAgICAgICAgICAgPFRhYk5hdiAvPgogICAgICAgICAgPC9kaXY+CiAgICAgICAgPC9oZWFkZXI+CiAgICAgICAgPG1haW4gY2xhc3NOYW1lPSJmbGV4LTEiPntjaGlsZHJlbn08L21haW4+CiAgICAgIDwvYm9keT4KICAgIDwvaHRtbD4KICApOwp9Cg=="}
+import type { Metadata } from "next";
+import { Geist } from "next/font/google";
+import "./globals.css";
+import TabNav from "@/components/TabNav";
+
+const geistSans = Geist({
+  variable: "--font-geist-sans",
+  subsets: ["latin"],
+});
+
+export const metadata: Metadata = {
+  title: "BenEzra Family",
+  description: "Family meals, shopping, and budget",
+};
+
+export default function RootLayout({
+  children,
+}: Readonly<{
+  children: React.ReactNode;
+}>) {
+  return (
+    <html lang="en" className={`${geistSans.variable} h-full antialiased`}>
+      <body className="min-h-full flex flex-col bg-gray-50">
+        <header className="bg-white border-b border-gray-200 sticky top-0 z-10 shadow-sm">
+          <div className="max-w-5xl mx-auto px-6">
+            <div className="flex items-center justify-between pt-4 pb-1">
+              <h1 className="text-lg font-bold text-gray-900 tracking-tight">
+                BenEzra Family
+              </h1>
+            </div>
+            <TabNav />
+          </div>
+        </header>
+        <main className="flex-1">{children}</main>
+      </body>
+    </html>
+  );
+}

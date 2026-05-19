@@ -1,1 +1,26 @@
-{"data":"QGltcG9ydCAidGFpbHdpbmRjc3MiOwoKOnJvb3QgewogIC0tYmFja2dyb3VuZDogI2ZmZmZmZjsKICAtLWZvcmVncm91bmQ6ICMxNzE3MTc7Cn0KCkB0aGVtZSBpbmxpbmUgewogIC0tY29sb3ItYmFja2dyb3VuZDogdmFyKC0tYmFja2dyb3VuZCk7CiAgLS1jb2xvci1mb3JlZ3JvdW5kOiB2YXIoLS1mb3JlZ3JvdW5kKTsKICAtLWZvbnQtc2FuczogdmFyKC0tZm9udC1nZWlzdC1zYW5zKTsKICAtLWZvbnQtbW9ubzogdmFyKC0tZm9udC1nZWlzdC1tb25vKTsKfQoKQG1lZGlhIChwcmVmZXJzLWNvbG9yLXNjaGVtZTogZGFyaykgewogIDpyb290IHsKICAgIC0tYmFja2dyb3VuZDogIzBhMGEwYTsKICAgIC0tZm9yZWdyb3VuZDogI2VkZWRlZDsKICB9Cn0KCmJvZHkgewogIGJhY2tncm91bmQ6IHZhcigtLWJhY2tncm91bmQpOwogIGNvbG9yOiB2YXIoLS1mb3JlZ3JvdW5kKTsKICBmb250LWZhbWlseTogQXJpYWwsIEhlbHZldGljYSwgc2Fucy1zZXJpZjsKfQo="}
+@import "tailwindcss";
+
+:root {
+  --background: #ffffff;
+  --foreground: #171717;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0a0a0a;
+    --foreground: #ededed;
+  }
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: Arial, Helvetica, sans-serif;
+}

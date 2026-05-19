@@ -1,1 +1,159 @@
-{"data":"J3VzZSBjbGllbnQnCgppbXBvcnQgeyB1c2VTdGF0ZSwgdXNlRWZmZWN0IH0gZnJvbSAncmVhY3QnCgp0eXBlIE1lYWwgPSB7CiAgaWQ6IHN0cmluZwogIGRhdGU6IHN0cmluZwogIG5hbWU6IHN0cmluZwp9Cgpjb25zdCBNT05USFMgPSBbCiAgJ0phbnVhcnknLCAnRmVicnVhcnknLCAnTWFyY2gnLCAnQXByaWwnLCAnTWF5JywgJ0p1bmUnLAogICdKdWx5JywgJ0F1Z3VzdCcsICdTZXB0ZW1iZXInLCAnT2N0b2JlcicsICdOb3ZlbWJlcicsICdEZWNlbWJlcicsCl0KY29uc3QgREFZUyA9IFsnU3VuJywgJ01vbicsICdUdWUnLCAnV2VkJywgJ1RodScsICdGcmknLCAnU2F0J10KCmZ1bmN0aW9uIHRvRGF0ZVN0cih5ZWFyOiBudW1iZXIsIG1vbnRoOiBudW1iZXIsIGRheTogbnVtYmVyKSB7CiAgcmV0dXJuIGAke3llYXJ9LSR7U3RyaW5nKG1vbnRoICsgMSkucGFkU3RhcnQoMiwgJzAnKX0tJHtTdHJpbmcoZGF5KS5wYWRTdGFydCgyLCAnMCcpfWAKfQoKZXhwb3J0IGRlZmF1bHQgZnVuY3Rpb24gTWVhbENhbGVuZGFyKCkgewogIGNvbnN0IHRvZGF5ID0gbmV3IERhdGUoKQogIGNvbnN0IFt5ZWFyLCBzZXRZZWFyXSA9IHVzZVN0YXRlKHRvZGF5LmdldEZ1bGxZZWFyKCkpCiAgY29uc3QgW21vbnRoLCBzZXRNb250aF0gPSB1c2VTdGF0ZSh0b2RheS5nZXRNb250aCgpKQogIGNvbnN0IFttZWFscywgc2V0TWVhbHNdID0gdXNlU3RhdGU8TWVhbFtdPihbXSkKICBjb25zdCBbc2VsZWN0ZWREYXRlLCBzZXRTZWxlY3RlZERhdGVdID0gdXNlU3RhdGU8c3RyaW5nIHwgbnVsbD4obnVsbCkKICBjb25zdCBbaW5wdXQsIHNldElucHV0XSA9IHVzZVN0YXRlKCcnKQoKICB1c2VFZmZlY3QoKCkgPT4gewogICAgY29uc3Qgc3RvcmVkID0gbG9jYWxTdG9yYWdlLmdldEl0ZW0oJ21lYWxzJykKICAgIGlmIChzdG9yZWQpIHNldE1lYWxzKEpTT04ucGFyc2Uoc3RvcmVkKSkKICB9LCBbXSkKCiAgdXNlRWZmZWN0KCgpID0+IHsKICAgIGxvY2FsU3RvcmFnZS5zZXRJdGVtKCdtZWFscycsIEpTT04uc3RyaW5naWZ5KG1lYWxzKSkKICB9LCBbbWVhbHNdKQoKICBjb25zdCBwcmV2TW9udGggPSAoKSA9PiB7CiAgICBpZiAobW9udGggPT09IDApIHsgc2V0WWVhcih5ID0+IHkgLSAxKTsgc2V0TW9udGgoMTEpIH0KICAgIGVsc2Ugc2V0TW9udGgobSA9PiBtIC0gMSkKICB9CiAgY29uc3QgbmV4dE1vbnRoID0gKCkgPT4gewogICAgaWYgKG1vbnRoID09PSAxMSkgeyBzZXRZZWFyKHkgPT4geSArIDEpOyBzZXRNb250aCgwKSB9CiAgICBlbHNlIHNldE1vbnRoKG0gPT4gbSArIDEpCiAgfQoKICBjb25zdCBhZGRNZWFsID0gKCkgPT4gewogICAgaWYgKCFzZWxlY3RlZERhdGUgfHwgIWlucHV0LnRyaW0oKSkgcmV0dXJuCiAgICBzZXRNZWFscyhwcmV2ID0+IFsuLi5wcmV2LCB7IGlkOiBgJHtEYXRlLm5vdygpfWAsIGRhdGU6IHNlbGVjdGVkRGF0ZSwgbmFtZTogaW5wdXQudHJpbSgpIH1dKQogICAgc2V0SW5wdXQoJycpCiAgfQoKICBjb25zdCByZW1vdmVNZWFsID0gKGlkOiBzdHJpbmcpID0+IHNldE1lYWxzKHByZXYgPT4gcHJldi5maWx0ZXIobSA9PiBtLmlkICE9PSBpZCkpCgogIGNvbnN0IGRheXNJbk1vbnRoID0gbmV3IERhdGUoeWVhciwgbW9udGggKyAxLCAwKS5nZXREYXRlKCkKICBjb25zdCBmaXJzdERheSA9IG5ldyBEYXRlKHllYXIsIG1vbnRoLCAxKS5nZXREYXkoKQogIGNvbnN0IHRvZGF5U3RyID0gdG9EYXRlU3RyKHRvZGF5LmdldEZ1bGxZZWFyKCksIHRvZGF5LmdldE1vbnRoKCksIHRvZGF5LmdldERhdGUoKSkKCiAgcmV0dXJuICgKICAgIDxkaXYgY2xhc3NOYW1lPSJwLTYgbWF4LXctNHhsIG14LWF1dG8iPgogICAgICA8ZGl2IGNsYXNzTmFtZT0iZmxleCBpdGVtcy1jZW50ZXIganVzdGlmeS1iZXR3ZWVuIG1iLTYiPgogICAgICAgIDxidXR0b24KICAgICAgICAgIG9uQ2xpY2s9e3ByZXZNb250aH0KICAgICAgICAgIGNsYXNzTmFtZT0icHgtMyBweS0xLjUgcm91bmRlZCBib3JkZXIgYm9yZGVyLWdyYXktMjAwIGhvdmVyOmJnLWdyYXktMTAwIHRleHQtZ3JheS02MDAiCiAgICAgICAgPgogICAgICAgICAg4oC5IFByZXYKICAgICAgICA8L2J1dHRvbj4KICAgICAgICA8aDIgY2xhc3NOYW1lPSJ0ZXh0LXhsIGZvbnQtc2VtaWJvbGQiPntNT05USFNbbW9udGhdfSB7eWVhcn08L2gyPgogICAgICAgIDxidXR0b24KICAgICAgICAgIG9uQ2xpY2s9e25leHRNb250aH0KICAgICAgICAgIGNsYXNzTmFtZT0icHgtMyBweS0xLjUgcm91bmRlZCBib3JkZXIgYm9yZGVyLWdyYXktMjAwIGhvdmVyOmJnLWdyYXktMTAwIHRleHQtZ3JheS02MDAiCiAgICAgICAgPgogICAgICAgICAgTmV4dCDigLoKICAgICAgICA8L2J1dHRvbj4KICAgICAgPC9kaXY+CgogICAgICA8ZGl2IGNsYXNzTmFtZT0iZ3JpZCBncmlkLWNvbHMtNyBnYXAtcHggYmctZ3JheS0yMDAgcm91bmRlZC1sZyBvdmVyZmxvdy1oaWRkZW4gYm9yZGVyIGJvcmRlci1ncmF5LTIwMCI+CiAgICAgICAge0RBWVMubWFwKGQgPT4gKAogICAgICAgICAgPGRpdiBrZXk9e2R9IGNsYXNzTmFtZT0iYmctZ3JheS01MCB0ZXh0LWNlbnRlciB0ZXh0LXhzIGZvbnQtc2VtaWJvbGQgdGV4dC1ncmF5LTUwMCB1cHBlcmNhc2UgcHktMiI+CiAgICAgICAgICAgIHtkfQogICAgICAgICAgPC9kaXY+CiAgICAgICAgKSl9CgogICAgICAgIHtBcnJheS5mcm9tKHsgbGVuZ3RoOiBmaXJzdERheSB9KS5tYXAoKF8sIGkpID0+ICgKICAgICAgICAgIDxkaXYga2V5PXtgYmxhbmstJHtpfWB9IGNsYXNzTmFtZT0iYmctd2hpdGUgbWluLWgtWzkwcHhdIiAvPgogICAgICAgICkpfQoKICAgICAgICB7QXJyYXkuZnJvbSh7IGxlbmd0aDogZGF5c0luTW9udGggfSwgKF8sIGkpID0+IGkgKyAxKS5tYXAoZGF5ID0+IHsKICAgICAgICAgIGNvbnN0IGRhdGVTdHIgPSB0b0RhdGVTdHIoeWVhciwgbW9udGgsIGRheSkKICAgICAgICAgIGNvbnN0IGRheU1lYWxzID0gbWVhbHMuZmlsdGVyKG0gPT4gbS5kYXRlID09PSBkYXRlU3RyKQogICAgICAgICAgY29uc3QgaXNUb2RheSA9IGRhdGVTdHIgPT09IHRvZGF5U3RyCiAgICAgICAgICBjb25zdCBpc1NlbGVjdGVkID0gZGF0ZVN0ciA9PT0gc2VsZWN0ZWREYXRlCgogICAgICAgICAgcmV0dXJuICgKICAgICAgICAgICAgPGRpdgogICAgICAgICAgICAgIGtleT17ZGF5fQogICAgICAgICAgICAgIG9uQ2xpY2s9eygpID0+IHNldFNlbGVjdGVkRGF0ZShpc1NlbGVjdGVkID8gbnVsbCA6IGRhdGVTdHIpfQogICAgICAgICAgICAgIGNsYXNzTmFtZT17YGJnLXdoaXRlIG1pbi1oLVs5MHB4XSBwLTEuNSBjdXJzb3ItcG9pbnRlciB0cmFuc2l0aW9uLWNvbG9ycyAkewogICAgICAgICAgICAgICAgaXNTZWxlY3RlZCA/ICdyaW5nLTIgcmluZy1pbnNldCByaW5nLWJsdWUtNTAwJyA6ICdob3ZlcjpiZy1ibHVlLTUwJwogICAgICAgICAgICAgIH1gfQogICAgICAgICAgICA+CiAgICAgICAgICAgICAgPHNwYW4KICAgICAgICAgICAgICAgIGNsYXNzTmFtZT17YGlubGluZS1mbGV4IGl0ZW1zLWNlbnRlciBqdXN0aWZ5LWNlbnRlciB3LTYgaC02IHJvdW5kZWQtZnVsbCB0ZXh0LXNtIG1iLTEgJHsKICAgICAgICAgICAgICAgICAgaXNUb2RheSA/ICdiZy1ibHVlLTYwMCB0ZXh0LXdoaXRlIGZvbnQtYm9sZCcgOiAndGV4dC1ncmF5LTcwMCcKICAgICAgICAgICAgICAgIH1gfQogICAgICAgICAgICAgID4KICAgICAgICAgICAgICAgIHtkYXl9CiAgICAgICAgICAgICAgPC9zcGFuPgogICAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPSJzcGFjZS15LTAuNSI+CiAgICAgICAgICAgICAgICB7ZGF5TWVhbHMubWFwKG1lYWwgPT4gKAogICAgICAgICAgICAgICAgICA8ZGl2CiAgICAgICAgICAgICAgICAgICAga2V5PXttZWFsLmlkfQogICAgICAgICAgICAgICAgICAgIGNsYXNzTmFtZT0iZmxleCBpdGVtcy1jZW50ZXIganVzdGlmeS1iZXR3ZWVuIHRleHQteHMgYmctZW1lcmFsZC0xMDAgdGV4dC1lbWVyYWxkLTgwMCByb3VuZGVkIHB4LTEgcHktMC41IgogICAgICAgICAgICAgICAgICA+CiAgICAgICAgICAgICAgICAgICAgPHNwYW4gY2xhc3NOYW1lPSJ0cnVuY2F0ZSI+e21lYWwubmFtZX08L3NwYW4+CiAgICAgICAgICAgICAgICAgICAgPGJ1dHRvbgogICAgICAgICAgICAgICAgICAgICAgb25DbGljaz17ZSA9PiB7IGUuc3RvcFByb3BhZ2F0aW9uKCk7IHJlbW92ZU1lYWwobWVhbC5pZCkgfX0KICAgICAgICAgICAgICAgICAgICAgIGNsYXNzTmFtZT0ibWwtMSB0ZXh0LWVtZXJhbGQtNTAwIGhvdmVyOnRleHQtZW1lcmFsZC04MDAgZmxleC1zaHJpbmstMCIKICAgICAgICAgICAgICAgICAgICA+CiAgICAgICAgICAgICAgICAgICAgICDDlwogICAgICAgICAgICAgICAgICAgIDwvYnV0dG9uPgogICAgICAgICAgICAgICAgICA8L2Rpdj4KICAgICAgICAgICAgICAgICkpfQogICAgICAgICAgICAgIDwvZGl2PgogICAgICAgICAgICA8L2Rpdj4KICAgICAgICAgICkKICAgICAgICB9KX0KICAgICAgPC9kaXY+CgogICAgICB7c2VsZWN0ZWREYXRlICYmICgKICAgICAgICA8ZGl2IGNsYXNzTmFtZT0ibXQtNSBwLTQgYmctd2hpdGUgYm9yZGVyIGJvcmRlci1ibHVlLTIwMCByb3VuZGVkLWxnIHNoYWRvdy1zbSI+CiAgICAgICAgICA8cCBjbGFzc05hbWU9InRleHQtc20gZm9udC1tZWRpdW0gdGV4dC1ncmF5LTcwMCBtYi0zIj4KICAgICAgICAgICAgQWRkIG1lYWwgZm9yIDxzcGFuIGNsYXNzTmFtZT0idGV4dC1ibHVlLTYwMCI+e3NlbGVjdGVkRGF0ZX08L3NwYW4+CiAgICAgICAgICA8L3A+CiAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT0iZmxleCBnYXAtMiI+CiAgICAgICAgICAgIDxpbnB1dAogICAgICAgICAgICAgIGF1dG9Gb2N1cwogICAgICAgICAgICAgIHZhbHVlPXtpbnB1dH0KICAgICAgICAgICAgICBvbkNoYW5nZT17ZSA9PiBzZXRJbnB1dChlLnRhcmdldC52YWx1ZSl9CiAgICAgICAgICAgICAgb25LZXlEb3duPXtlID0+IGUua2V5ID09PSAnRW50ZXInICYmIGFkZE1lYWwoKX0KICAgICAgICAgICAgICBwbGFjZWhvbGRlcj0iZS5nLiBDaGlja2VuIHN0aXIgZnJ5IgogICAgICAgICAgICAgIGNsYXNzTmFtZT0iZmxleC0xIHB4LTMgcHktMiBib3JkZXIgYm9yZGVyLWdyYXktMzAwIHJvdW5kZWQtbWQgdGV4dC1zbSBmb2N1czpvdXRsaW5lLW5vbmUgZm9jdXM6cmluZy0yIGZvY3VzOnJpbmctYmx1ZS01MDAiCiAgICAgICAgICAgIC8+CiAgICAgICAgICAgIDxidXR0b24KICAgICAgICAgICAgICBvbkNsaWNrPXthZGRNZWFsfQogICAgICAgICAgICAgIGNsYXNzTmFtZT0icHgtNCBweS0yIGJnLWJsdWUtNjAwIHRleHQtd2hpdGUgdGV4dC1zbSBmb250LW1lZGl1bSByb3VuZGVkLW1kIGhvdmVyOmJnLWJsdWUtNzAwIgogICAgICAgICAgICA+CiAgICAgICAgICAgICAgQWRkCiAgICAgICAgICAgIDwvYnV0dG9uPgogICAgICAgICAgPC9kaXY+CiAgICAgICAgPC9kaXY+CiAgICAgICl9CiAgICA8L2Rpdj4KICApCn0K"}
+'use client'
+
+import { useState, useEffect } from 'react'
+
+type Meal = {
+  id: string
+  date: string
+  name: string
+}
+
+const MONTHS = [
+  'January', 'February', 'March', 'April', 'May', 'June',
+  'July', 'August', 'September', 'October', 'November', 'December',
+]
+const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+
+function toDateStr(year: number, month: number, day: number) {
+  return `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`
+}
+
+export default function MealCalendar() {
+  const today = new Date()
+  const [year, setYear] = useState(today.getFullYear())
+  const [month, setMonth] = useState(today.getMonth())
+  const [meals, setMeals] = useState<Meal[]>([])
+  const [selectedDate, setSelectedDate] = useState<string | null>(null)
+  const [input, setInput] = useState('')
+
+  useEffect(() => {
+    fetch('/api/meals').then(r => r.json()).then(setMeals)
+  }, [])
+
+  const prevMonth = () => {
+    if (month === 0) { setYear(y => y - 1); setMonth(11) }
+    else setMonth(m => m - 1)
+  }
+  const nextMonth = () => {
+    if (month === 11) { setYear(y => y + 1); setMonth(0) }
+    else setMonth(m => m + 1)
+  }
+
+  const addMeal = async () => {
+    if (!selectedDate || !input.trim()) return
+    const meal: Meal = { id: `${Date.now()}`, date: selectedDate, name: input.trim() }
+    setMeals(prev => [...prev, meal])
+    setInput('')
+    await fetch('/api/meals', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(meal),
+    })
+  }
+
+  const removeMeal = async (id: string) => {
+    setMeals(prev => prev.filter(m => m.id !== id))
+    await fetch(`/api/meals/${id}`, { method: 'DELETE' })
+  }
+
+  const daysInMonth = new Date(year, month + 1, 0).getDate()
+  const firstDay = new Date(year, month, 1).getDay()
+  const todayStr = toDateStr(today.getFullYear(), today.getMonth(), today.getDate())
+
+  return (
+    <div className="p-6 max-w-4xl mx-auto">
+      <div className="flex items-center justify-between mb-6">
+        <button
+          onClick={prevMonth}
+          className="px-3 py-1.5 rounded border border-gray-200 hover:bg-gray-100 text-gray-600"
+        >
+          ‹ Prev
+        </button>
+        <h2 className="text-xl font-semibold">{MONTHS[month]} {year}</h2>
+        <button
+          onClick={nextMonth}
+          className="px-3 py-1.5 rounded border border-gray-200 hover:bg-gray-100 text-gray-600"
+        >
+          Next ›
+        </button>
+      </div>
+
+      <div className="grid grid-cols-7 gap-px bg-gray-200 rounded-lg overflow-hidden border border-gray-200">
+        {DAYS.map(d => (
+          <div key={d} className="bg-gray-50 text-center text-xs font-semibold text-gray-500 uppercase py-2">
+            {d}
+          </div>
+        ))}
+
+        {Array.from({ length: firstDay }).map((_, i) => (
+          <div key={`blank-${i}`} className="bg-white min-h-[90px]" />
+        ))}
+
+        {Array.from({ length: daysInMonth }, (_, i) => i + 1).map(day => {
+          const dateStr = toDateStr(year, month, day)
+          const dayMeals = meals.filter(m => m.date === dateStr)
+          const isToday = dateStr === todayStr
+          const isSelected = dateStr === selectedDate
+
+          return (
+            <div
+              key={day}
+              onClick={() => setSelectedDate(isSelected ? null : dateStr)}
+              className={`bg-white min-h-[90px] p-1.5 cursor-pointer transition-colors ${
+                isSelected ? 'ring-2 ring-inset ring-blue-500' : 'hover:bg-blue-50'
+              }`}
+            >
+              <span
+                className={`inline-flex items-center justify-center w-6 h-6 rounded-full text-sm mb-1 ${
+                  isToday ? 'bg-blue-600 text-white font-bold' : 'text-gray-700'
+                }`}
+              >
+                {day}
+              </span>
+              <div className="space-y-0.5">
+                {dayMeals.map(meal => (
+                  <div
+                    key={meal.id}
+                    className="flex items-center justify-between text-xs bg-emerald-100 text-emerald-800 rounded px-1 py-0.5"
+                  >
+                    <span className="truncate">{meal.name}</span>
+                    <button
+                      onClick={e => { e.stopPropagation(); removeMeal(meal.id) }}
+                      className="ml-1 text-emerald-500 hover:text-emerald-800 flex-shrink-0"
+                    >
+                      ×
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )
+        })}
+      </div>
+
+      {selectedDate && (
+        <div className="mt-5 p-4 bg-white border border-blue-200 rounded-lg shadow-sm">
+          <p className="text-sm font-medium text-gray-700 mb-3">
+            Add meal for <span className="text-blue-600">{selectedDate}</span>
+          </p>
+          <div className="flex gap-2">
+            <input
+              autoFocus
+              value={input}
+              onChange={e => setInput(e.target.value)}
+              onKeyDown={e => e.key === 'Enter' && addMeal()}
+              placeholder="e.g. Chicken stir fry"
+              className="flex-1 px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+            <button
+              onClick={addMeal}
+              className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700"
+            >
+              Add
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}

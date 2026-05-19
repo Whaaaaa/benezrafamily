@@ -1,1 +1,195 @@
-{"data":"J3VzZSBjbGllbnQnCgppbXBvcnQgeyB1c2VTdGF0ZSwgdXNlRWZmZWN0IH0gZnJvbSAncmVhY3QnCgp0eXBlIE1lYWwgPSB7IGlkOiBzdHJpbmc7IGRhdGU6IHN0cmluZzsgbmFtZTogc3RyaW5nIH0KdHlwZSBTaG9wcGluZ0l0ZW0gPSB7CiAgaWQ6IHN0cmluZwogIG5hbWU6IHN0cmluZwogIHF1YW50aXR5OiBzdHJpbmcKICBjaGVja2VkOiBib29sZWFuCiAgbWVhbElkOiBzdHJpbmcKfQoKZXhwb3J0IGRlZmF1bHQgZnVuY3Rpb24gU2hvcHBpbmdMaXN0KCkgewogIGNvbnN0IFtpdGVtcywgc2V0SXRlbXNdID0gdXNlU3RhdGU8U2hvcHBpbmdJdGVtW10+KFtdKQogIGNvbnN0IFttZWFscywgc2V0TWVhbHNdID0gdXNlU3RhdGU8TWVhbFtdPihbXSkKICBjb25zdCBbbmFtZSwgc2V0TmFtZV0gPSB1c2VTdGF0ZSgnJykKICBjb25zdCBbcXR5LCBzZXRRdHldID0gdXNlU3RhdGUoJycpCiAgY29uc3QgW21lYWxJZCwgc2V0TWVhbElkXSA9IHVzZVN0YXRlKCcnKQoKICB1c2VFZmZlY3QoKCkgPT4gewogICAgY29uc3Qgc3RvcmVkSXRlbXMgPSBsb2NhbFN0b3JhZ2UuZ2V0SXRlbSgnc2hvcHBpbmdJdGVtcycpCiAgICBpZiAoc3RvcmVkSXRlbXMpIHNldEl0ZW1zKEpTT04ucGFyc2Uoc3RvcmVkSXRlbXMpKQogICAgY29uc3Qgc3RvcmVkTWVhbHMgPSBsb2NhbFN0b3JhZ2UuZ2V0SXRlbSgnbWVhbHMnKQogICAgaWYgKHN0b3JlZE1lYWxzKSBzZXRNZWFscyhKU09OLnBhcnNlKHN0b3JlZE1lYWxzKSkKICB9LCBbXSkKCiAgdXNlRWZmZWN0KCgpID0+IHsKICAgIGxvY2FsU3RvcmFnZS5zZXRJdGVtKCdzaG9wcGluZ0l0ZW1zJywgSlNPTi5zdHJpbmdpZnkoaXRlbXMpKQogIH0sIFtpdGVtc10pCgogIGNvbnN0IGFkZEl0ZW0gPSAoKSA9PiB7CiAgICBpZiAoIW5hbWUudHJpbSgpKSByZXR1cm4KICAgIHNldEl0ZW1zKHByZXYgPT4gWwogICAgICAuLi5wcmV2LAogICAgICB7IGlkOiBgJHtEYXRlLm5vdygpfWAsIG5hbWU6IG5hbWUudHJpbSgpLCBxdWFudGl0eTogcXR5LnRyaW0oKSwgY2hlY2tlZDogZmFsc2UsIG1lYWxJZCB9LAogICAgXSkKICAgIHNldE5hbWUoJycpCiAgICBzZXRRdHkoJycpCiAgICBzZXRNZWFsSWQoJycpCiAgfQoKICBjb25zdCB0b2dnbGUgPSAoaWQ6IHN0cmluZykgPT4KICAgIHNldEl0ZW1zKHByZXYgPT4gcHJldi5tYXAoaSA9PiAoaS5pZCA9PT0gaWQgPyB7IC4uLmksIGNoZWNrZWQ6ICFpLmNoZWNrZWQgfSA6IGkpKSkKCiAgY29uc3QgcmVtb3ZlID0gKGlkOiBzdHJpbmcpID0+IHNldEl0ZW1zKHByZXYgPT4gcHJldi5maWx0ZXIoaSA9PiBpLmlkICE9PSBpZCkpCgogIGNvbnN0IGNsZWFyQ2hlY2tlZCA9ICgpID0+IHNldEl0ZW1zKHByZXYgPT4gcHJldi5maWx0ZXIoaSA9PiAhaS5jaGVja2VkKSkKCiAgY29uc3QgdW5jaGVja2VkID0gaXRlbXMuZmlsdGVyKGkgPT4gIWkuY2hlY2tlZCkKICBjb25zdCBjaGVja2VkID0gaXRlbXMuZmlsdGVyKGkgPT4gaS5jaGVja2VkKQoKICBjb25zdCBtZWFsTGFiZWwgPSAoaWQ6IHN0cmluZykgPT4gbWVhbHMuZmluZChtID0+IG0uaWQgPT09IGlkKT8ubmFtZSA/PyAnJwoKICBjb25zdCBtZWFsT3B0aW9ucyA9IG1lYWxzCiAgICAuc2xpY2UoKQogICAgLnNvcnQoKGEsIGIpID0+IGEuZGF0ZS5sb2NhbGVDb21wYXJlKGIuZGF0ZSkpCgogIHJldHVybiAoCiAgICA8ZGl2IGNsYXNzTmFtZT0icC02IG1heC13LTJ4bCBteC1hdXRvIj4KICAgICAgPGgyIGNsYXNzTmFtZT0idGV4dC0yeGwgZm9udC1ib2xkIG1iLTYgdGV4dC1ncmF5LTkwMCI+U2hvcHBpbmcgTGlzdDwvaDI+CgogICAgICA8ZGl2IGNsYXNzTmFtZT0iYmctd2hpdGUgYm9yZGVyIGJvcmRlci1ncmF5LTIwMCByb3VuZGVkLWxnIHAtNCBtYi02IHNoYWRvdy1zbSI+CiAgICAgICAgPGRpdiBjbGFzc05hbWU9ImZsZXggZ2FwLTIgbWItMyI+CiAgICAgICAgICA8aW5wdXQKICAgICAgICAgICAgYXV0b0ZvY3VzCiAgICAgICAgICAgIHZhbHVlPXtuYW1lfQogICAgICAgICAgICBvbkNoYW5nZT17ZSA9PiBzZXROYW1lKGUudGFyZ2V0LnZhbHVlKX0KICAgICAgICAgICAgb25LZXlEb3duPXtlID0+IGUua2V5ID09PSAnRW50ZXInICYmIGFkZEl0ZW0oKX0KICAgICAgICAgICAgcGxhY2Vob2xkZXI9Ikl0ZW0gbmFtZS4uLiIKICAgICAgICAgICAgY2xhc3NOYW1lPSJmbGV4LTEgcHgtMyBweS0yIGJvcmRlciBib3JkZXItZ3JheS0zMDAgcm91bmRlZC1tZCB0ZXh0LXNtIGZvY3VzOm91dGxpbmUtbm9uZSBmb2N1czpyaW5nLTIgZm9jdXM6cmluZy1ibHVlLTUwMCIKICAgICAgICAgIC8+CiAgICAgICAgICA8aW5wdXQKICAgICAgICAgICAgdmFsdWU9e3F0eX0KICAgICAgICAgICAgb25DaGFuZ2U9e2UgPT4gc2V0UXR5KGUudGFyZ2V0LnZhbHVlKX0KICAgICAgICAgICAgb25LZXlEb3duPXtlID0+IGUua2V5ID09PSAnRW50ZXInICYmIGFkZEl0ZW0oKX0KICAgICAgICAgICAgcGxhY2Vob2xkZXI9IlF0eSIKICAgICAgICAgICAgY2xhc3NOYW1lPSJ3LTIwIHB4LTMgcHktMiBib3JkZXIgYm9yZGVyLWdyYXktMzAwIHJvdW5kZWQtbWQgdGV4dC1zbSBmb2N1czpvdXRsaW5lLW5vbmUgZm9jdXM6cmluZy0yIGZvY3VzOnJpbmctYmx1ZS01MDAiCiAgICAgICAgICAvPgogICAgICAgIDwvZGl2PgogICAgICAgIDxkaXYgY2xhc3NOYW1lPSJmbGV4IGdhcC0yIj4KICAgICAgICAgIDxzZWxlY3QKICAgICAgICAgICAgdmFsdWU9e21lYWxJZH0KICAgICAgICAgICAgb25DaGFuZ2U9e2UgPT4gc2V0TWVhbElkKGUudGFyZ2V0LnZhbHVlKX0KICAgICAgICAgICAgY2xhc3NOYW1lPSJmbGV4LTEgcHgtMyBweS0yIGJvcmRlciBib3JkZXItZ3JheS0zMDAgcm91bmRlZC1tZCB0ZXh0LXNtIHRleHQtZ3JheS02MDAgZm9jdXM6b3V0bGluZS1ub25lIGZvY3VzOnJpbmctMiBmb2N1czpyaW5nLWJsdWUtNTAwIgogICAgICAgICAgPgogICAgICAgICAgICA8b3B0aW9uIHZhbHVlPSIiPk5vIG1lYWw8L29wdGlvbj4KICAgICAgICAgICAge21lYWxPcHRpb25zLm1hcChtID0+ICgKICAgICAgICAgICAgICA8b3B0aW9uIGtleT17bS5pZH0gdmFsdWU9e20uaWR9PgogICAgICAgICAgICAgICAge20uZGF0ZX0g4oCUIHttLm5hbWV9CiAgICAgICAgICAgICAgPC9vcHRpb24+CiAgICAgICAgICAgICkpfQogICAgICAgICAgPC9zZWxlY3Q+CiAgICAgICAgICA8YnV0dG9uCiAgICAgICAgICAgIG9uQ2xpY2s9e2FkZEl0ZW19CiAgICAgICAgICAgIGNsYXNzTmFtZT0icHgtNCBweS0yIGJnLWJsdWUtNjAwIHRleHQtd2hpdGUgdGV4dC1zbSBmb250LW1lZGl1bSByb3VuZGVkLW1kIGhvdmVyOmJnLWJsdWUtNzAwIgogICAgICAgICAgPgogICAgICAgICAgICBBZGQKICAgICAgICAgIDwvYnV0dG9uPgogICAgICAgIDwvZGl2PgogICAgICA8L2Rpdj4KCiAgICAgIHtpdGVtcy5sZW5ndGggPT09IDAgJiYgKAogICAgICAgIDxwIGNsYXNzTmFtZT0idGV4dC1jZW50ZXIgdGV4dC1ncmF5LTQwMCBweS0xMCI+WW91ciBzaG9wcGluZyBsaXN0IGlzIGVtcHR5LjwvcD4KICAgICAgKX0KCiAgICAgIDx1bCBjbGFzc05hbWU9InNwYWNlLXktMiI+CiAgICAgICAge3VuY2hlY2tlZC5tYXAoaXRlbSA9PiAoCiAgICAgICAgICA8bGkKICAgICAgICAgICAga2V5PXtpdGVtLmlkfQogICAgICAgICAgICBjbGFzc05hbWU9ImZsZXggaXRlbXMtY2VudGVyIGdhcC0zIHB4LTQgcHktMyBiZy13aGl0ZSBib3JkZXIgYm9yZGVyLWdyYXktMjAwIHJvdW5kZWQtbGcgc2hhZG93LXNtIgogICAgICAgICAgPgogICAgICAgICAgICA8aW5wdXQKICAgICAgICAgICAgICB0eXBlPSJjaGVja2JveCIKICAgICAgICAgICAgICBjaGVja2VkPXtmYWxzZX0KICAgICAgICAgICAgICBvbkNoYW5nZT17KCkgPT4gdG9nZ2xlKGl0ZW0uaWQpfQogICAgICAgICAgICAgIGNsYXNzTmFtZT0idy01IGgtNSBhY2NlbnQtYmx1ZS02MDAgY3Vyc29yLXBvaW50ZXIiCiAgICAgICAgICAgIC8+CiAgICAgICAgICAgIDxzcGFuIGNsYXNzTmFtZT0iZmxleC0xIHRleHQtZ3JheS04MDAiPntpdGVtLm5hbWV9PC9zcGFuPgogICAgICAgICAgICB7aXRlbS5xdWFudGl0eSAmJiAoCiAgICAgICAgICAgICAgPHNwYW4gY2xhc3NOYW1lPSJ0ZXh0LXNtIHRleHQtZ3JheS00MDAgYmctZ3JheS0xMDAgcHgtMiBweS0wLjUgcm91bmRlZCI+CiAgICAgICAgICAgICAgICB7aXRlbS5xdWFudGl0eX0KICAgICAgICAgICAgICA8L3NwYW4+CiAgICAgICAgICAgICl9CiAgICAgICAgICAgIHtpdGVtLm1lYWxJZCAmJiAoCiAgICAgICAgICAgICAgPHNwYW4gY2xhc3NOYW1lPSJ0ZXh0LXhzIHRleHQtZW1lcmFsZC03MDAgYmctZW1lcmFsZC0xMDAgcHgtMiBweS0wLjUgcm91bmRlZCB0cnVuY2F0ZSBtYXgtdy1bMTIwcHhdIj4KICAgICAgICAgICAgICAgIHttZWFsTGFiZWwoaXRlbS5tZWFsSWQpfQogICAgICAgICAgICAgIDwvc3Bhbj4KICAgICAgICAgICAgKX0KICAgICAgICAgICAgPGJ1dHRvbiBvbkNsaWNrPXsoKSA9PiByZW1vdmUoaXRlbS5pZCl9IGNsYXNzTmFtZT0idGV4dC1ncmF5LTMwMCBob3Zlcjp0ZXh0LXJlZC01MDAgdGV4dC1sZyBsZWFkaW5nLW5vbmUiPgogICAgICAgICAgICAgIMOXCiAgICAgICAgICAgIDwvYnV0dG9uPgogICAgICAgICAgPC9saT4KICAgICAgICApKX0KICAgICAgPC91bD4KCiAgICAgIHtjaGVja2VkLmxlbmd0aCA+IDAgJiYgKAogICAgICAgIDxkaXYgY2xhc3NOYW1lPSJtdC02Ij4KICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPSJmbGV4IGp1c3RpZnktYmV0d2VlbiBpdGVtcy1jZW50ZXIgbWItMiI+CiAgICAgICAgICAgIDxzcGFuIGNsYXNzTmFtZT0idGV4dC1zbSBmb250LW1lZGl1bSB0ZXh0LWdyYXktNDAwIj4KICAgICAgICAgICAgICBEb25lICh7Y2hlY2tlZC5sZW5ndGh9KQogICAgICAgICAgICA8L3NwYW4+CiAgICAgICAgICAgIDxidXR0b24KICAgICAgICAgICAgICBvbkNsaWNrPXtjbGVhckNoZWNrZWR9CiAgICAgICAgICAgICAgY2xhc3NOYW1lPSJ0ZXh0LXhzIHRleHQtcmVkLTQwMCBob3Zlcjp0ZXh0LXJlZC02MDAiCiAgICAgICAgICAgID4KICAgICAgICAgICAgICBDbGVhciBhbGwKICAgICAgICAgICAgPC9idXR0b24+CiAgICAgICAgICA8L2Rpdj4KICAgICAgICAgIDx1bCBjbGFzc05hbWU9InNwYWNlLXktMS41Ij4KICAgICAgICAgICAge2NoZWNrZWQubWFwKGl0ZW0gPT4gKAogICAgICAgICAgICAgIDxsaQogICAgICAgICAgICAgICAga2V5PXtpdGVtLmlkfQogICAgICAgICAgICAgICAgY2xhc3NOYW1lPSJmbGV4IGl0ZW1zLWNlbnRlciBnYXAtMyBweC00IHB5LTMgYmctZ3JheS01MCBib3JkZXIgYm9yZGVyLWdyYXktMTAwIHJvdW5kZWQtbGcgb3BhY2l0eS02MCIKICAgICAgICAgICAgICA+CiAgICAgICAgICAgICAgICA8aW5wdXQKICAgICAgICAgICAgICAgICAgdHlwZT0iY2hlY2tib3giCiAgICAgICAgICAgICAgICAgIGNoZWNrZWQ9e3RydWV9CiAgICAgICAgICAgICAgICAgIG9uQ2hhbmdlPXsoKSA9PiB0b2dnbGUoaXRlbS5pZCl9CiAgICAgICAgICAgICAgICAgIGNsYXNzTmFtZT0idy01IGgtNSBhY2NlbnQtYmx1ZS02MDAgY3Vyc29yLXBvaW50ZXIiCiAgICAgICAgICAgICAgICAvPgogICAgICAgICAgICAgICAgPHNwYW4gY2xhc3NOYW1lPSJmbGV4LTEgbGluZS10aHJvdWdoIHRleHQtZ3JheS00MDAiPntpdGVtLm5hbWV9PC9zcGFuPgogICAgICAgICAgICAgICAge2l0ZW0ucXVhbnRpdHkgJiYgKAogICAgICAgICAgICAgICAgICA8c3BhbiBjbGFzc05hbWU9InRleHQtc20gdGV4dC1ncmF5LTMwMCBiZy1ncmF5LTEwMCBweC0yIHB5LTAuNSByb3VuZGVkIj4KICAgICAgICAgICAgICAgICAgICB7aXRlbS5xdWFudGl0eX0KICAgICAgICAgICAgICAgICAgPC9zcGFuPgogICAgICAgICAgICAgICAgKX0KICAgICAgICAgICAgICAgIDxidXR0b24gb25DbGljaz17KCkgPT4gcmVtb3ZlKGl0ZW0uaWQpfSBjbGFzc05hbWU9InRleHQtZ3JheS0zMDAgaG92ZXI6dGV4dC1yZWQtNTAwIHRleHQtbGcgbGVhZGluZy1ub25lIj4KICAgICAgICAgICAgICAgICAgw5cKICAgICAgICAgICAgICAgIDwvYnV0dG9uPgogICAgICAgICAgICAgIDwvbGk+CiAgICAgICAgICAgICkpfQogICAgICAgICAgPC91bD4KICAgICAgICA8L2Rpdj4KICAgICAgKX0KICAgIDwvZGl2PgogICkKfQo="}
+'use client'
+
+import { useState, useEffect } from 'react'
+
+type Meal = { id: string; date: string; name: string }
+type ShoppingItem = {
+  id: string
+  name: string
+  quantity: string
+  checked: boolean
+  mealId: string
+}
+
+export default function ShoppingList() {
+  const [items, setItems] = useState<ShoppingItem[]>([])
+  const [meals, setMeals] = useState<Meal[]>([])
+  const [name, setName] = useState('')
+  const [qty, setQty] = useState('')
+  const [mealId, setMealId] = useState('')
+
+  useEffect(() => {
+    fetch('/api/shopping').then(r => r.json()).then(setItems)
+    fetch('/api/meals').then(r => r.json()).then(setMeals)
+  }, [])
+
+  const addItem = async () => {
+    if (!name.trim()) return
+    const item: ShoppingItem = {
+      id: `${Date.now()}`,
+      name: name.trim(),
+      quantity: qty.trim(),
+      checked: false,
+      mealId,
+    }
+    setItems(prev => [...prev, item])
+    setName('')
+    setQty('')
+    setMealId('')
+    await fetch('/api/shopping', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(item),
+    })
+  }
+
+  const toggle = async (id: string) => {
+    const item = items.find(i => i.id === id)
+    if (!item) return
+    const checked = !item.checked
+    setItems(prev => prev.map(i => (i.id === id ? { ...i, checked } : i)))
+    await fetch(`/api/shopping/${id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ checked }),
+    })
+  }
+
+  const remove = async (id: string) => {
+    setItems(prev => prev.filter(i => i.id !== id))
+    await fetch(`/api/shopping/${id}`, { method: 'DELETE' })
+  }
+
+  const clearChecked = async () => {
+    const toDelete = items.filter(i => i.checked)
+    setItems(prev => prev.filter(i => !i.checked))
+    await Promise.all(toDelete.map(i => fetch(`/api/shopping/${i.id}`, { method: 'DELETE' })))
+  }
+
+  const unchecked = items.filter(i => !i.checked)
+  const checked = items.filter(i => i.checked)
+
+  const mealLabel = (id: string) => meals.find(m => m.id === id)?.name ?? ''
+
+  const mealOptions = meals.slice().sort((a, b) => a.date.localeCompare(b.date))
+
+  return (
+    <div className="p-6 max-w-2xl mx-auto">
+      <h2 className="text-2xl font-bold mb-6 text-gray-900">Shopping List</h2>
+
+      <div className="bg-white border border-gray-200 rounded-lg p-4 mb-6 shadow-sm">
+        <div className="flex gap-2 mb-3">
+          <input
+            autoFocus
+            value={name}
+            onChange={e => setName(e.target.value)}
+            onKeyDown={e => e.key === 'Enter' && addItem()}
+            placeholder="Item name..."
+            className="flex-1 px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+          <input
+            value={qty}
+            onChange={e => setQty(e.target.value)}
+            onKeyDown={e => e.key === 'Enter' && addItem()}
+            placeholder="Qty"
+            className="w-20 px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+        </div>
+        <div className="flex gap-2">
+          <select
+            value={mealId}
+            onChange={e => setMealId(e.target.value)}
+            className="flex-1 px-3 py-2 border border-gray-300 rounded-md text-sm text-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            <option value="">No meal</option>
+            {mealOptions.map(m => (
+              <option key={m.id} value={m.id}>
+                {m.date} — {m.name}
+              </option>
+            ))}
+          </select>
+          <button
+            onClick={addItem}
+            className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700"
+          >
+            Add
+          </button>
+        </div>
+      </div>
+
+      {items.length === 0 && (
+        <p className="text-center text-gray-400 py-10">Your shopping list is empty.</p>
+      )}
+
+      <ul className="space-y-2">
+        {unchecked.map(item => (
+          <li
+            key={item.id}
+            className="flex items-center gap-3 px-4 py-3 bg-white border border-gray-200 rounded-lg shadow-sm"
+          >
+            <input
+              type="checkbox"
+              checked={false}
+              onChange={() => toggle(item.id)}
+              className="w-5 h-5 accent-blue-600 cursor-pointer"
+            />
+            <span className="flex-1 text-gray-800">{item.name}</span>
+            {item.quantity && (
+              <span className="text-sm text-gray-400 bg-gray-100 px-2 py-0.5 rounded">
+                {item.quantity}
+              </span>
+            )}
+            {item.mealId && (
+              <span className="text-xs text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded truncate max-w-[120px]">
+                {mealLabel(item.mealId)}
+              </span>
+            )}
+            <button onClick={() => remove(item.id)} className="text-gray-300 hover:text-red-500 text-lg leading-none">
+              ×
+            </button>
+          </li>
+        ))}
+      </ul>
+
+      {checked.length > 0 && (
+        <div className="mt-6">
+          <div className="flex justify-between items-center mb-2">
+            <span className="text-sm font-medium text-gray-400">
+              Done ({checked.length})
+            </span>
+            <button
+              onClick={clearChecked}
+              className="text-xs text-red-400 hover:text-red-600"
+            >
+              Clear all
+            </button>
+          </div>
+          <ul className="space-y-1.5">
+            {checked.map(item => (
+              <li
+                key={item.id}
+                className="flex items-center gap-3 px-4 py-3 bg-gray-50 border border-gray-100 rounded-lg opacity-60"
+              >
+                <input
+                  type="checkbox"
+                  checked={true}
+                  onChange={() => toggle(item.id)}
+                  className="w-5 h-5 accent-blue-600 cursor-pointer"
+                />
+                <span className="flex-1 line-through text-gray-400">{item.name}</span>
+                {item.quantity && (
+                  <span className="text-sm text-gray-300 bg-gray-100 px-2 py-0.5 rounded">
+                    {item.quantity}
+                  </span>
+                )}
+                <button onClick={() => remove(item.id)} className="text-gray-300 hover:text-red-500 text-lg leading-none">
+                  ×
+                </button>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </div>
+  )
+}
