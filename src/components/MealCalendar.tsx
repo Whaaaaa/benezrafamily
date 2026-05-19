@@ -37,7 +37,7 @@ function toDateStr(year: number, month: number, day: number) {
   return `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`
 }
 
-export default function MealCalendar() {
+export default function MealCalendar({ periodDates = [] }: { periodDates?: string[] }) {
   const today = new Date()
   const [year, setYear] = useState(today.getFullYear())
   const [month, setMonth] = useState(today.getMonth())
@@ -138,6 +138,7 @@ export default function MealCalendar() {
             const dayMeals = meals.filter(m => m.date === dateStr)
             const isToday = dateStr === todayStr
             const isSelected = dateStr === selectedDate
+            const isPeriod = periodDates.includes(dateStr)
 
             return (
               <div
@@ -149,18 +150,23 @@ export default function MealCalendar() {
                     : 'hover:bg-gradient-to-br hover:from-purple-50 hover:to-pink-50'
                 }`}
               >
-                {isToday ? (
-                  <span
-                    className="inline-flex items-center justify-center w-7 h-7 rounded-full text-xs font-black text-white shadow-md mb-1"
-                    style={{ background: 'linear-gradient(135deg, #7C3AED, #EC4899)' }}
-                  >
-                    {day}
-                  </span>
-                ) : (
-                  <span className="inline-flex items-center justify-center w-7 h-7 text-sm font-bold text-gray-600 mb-1">
-                    {day}
-                  </span>
-                )}
+                <div className="flex items-center gap-1 mb-1">
+                  {isToday ? (
+                    <span
+                      className="inline-flex items-center justify-center w-7 h-7 rounded-full text-xs font-black text-white shadow-md"
+                      style={{ background: 'linear-gradient(135deg, #7C3AED, #EC4899)' }}
+                    >
+                      {day}
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center justify-center w-7 h-7 text-sm font-bold text-gray-600">
+                      {day}
+                    </span>
+                  )}
+                  {isPeriod && (
+                    <span className="w-1.5 h-1.5 rounded-full bg-rose-400 opacity-70 flex-shrink-0" />
+                  )}
+                </div>
                 <div className="space-y-0.5">
                   {dayMeals.map((meal, mi) => (
                     <div

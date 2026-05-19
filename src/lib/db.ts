@@ -55,6 +55,27 @@ export async function initDb() {
       recurring_day INTEGER
     )
   `
+  await sql`
+    CREATE TABLE IF NOT EXISTS period_dates (
+      date TEXT PRIMARY KEY
+    )
+  `
+  await sql`
+    CREATE TABLE IF NOT EXISTS cc_transactions (
+      id TEXT PRIMARY KEY,
+      date TEXT NOT NULL,
+      description TEXT NOT NULL,
+      amount NUMERIC NOT NULL,
+      category_id TEXT NOT NULL DEFAULT '',
+      month TEXT NOT NULL
+    )
+  `
+  await sql`
+    CREATE TABLE IF NOT EXISTS description_mappings (
+      description TEXT PRIMARY KEY,
+      category_id TEXT NOT NULL
+    )
+  `
   for (const cat of DEFAULT_CATEGORIES) {
     await sql`
       INSERT INTO budget_categories (id, name, budget_amount, sort_order)

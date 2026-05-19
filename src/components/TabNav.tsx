@@ -4,10 +4,10 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 
 const tabs = [
-  { label: '🏠', title: 'Home',     href: '/',         exact: true },
-  { label: '🍽️', title: 'Meals',    href: '/meals',    exact: false },
-  { label: '🛒', title: 'Shopping', href: '/shopping', exact: false },
-  { label: '💰', title: 'Budget',   href: '/budget',   exact: false },
+  { label: '🏠', title: 'Home',     href: '/',          exact: true },
+  { label: '🗓️', title: 'Calendar', href: '/calendar',  exact: false },
+  { label: '🛒', title: 'Shopping', href: '/shopping',  exact: false },
+  { label: '💰', title: 'Budget',   href: '/budget',    exact: false },
 ]
 
 const GRADIENTS = [
