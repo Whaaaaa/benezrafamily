@@ -3,20 +3,20 @@ import { neon } from '@neondatabase/serverless'
 const sql = neon(process.env.DATABASE_URL!)
 
 const DEFAULT_CATEGORIES = [
-  { id: 'rent',         name: 'Rent + arnona + vaad',            budget_amount: 8000, sort_order: 0  },
-  { id: 'childcare',    name: 'Childcare',                        budget_amount: 3700, sort_order: 1  },
-  { id: 'car',          name: 'Total car expenses',               budget_amount: 4400, sort_order: 2  },
-  { id: 'electric',     name: 'Electric',                         budget_amount: 750,  sort_order: 3  },
-  { id: 'water_gas',    name: 'Water + gas',                      budget_amount: 350,  sort_order: 4  },
-  { id: 'groceries',    name: 'Groceries + household',            budget_amount: 5000, sort_order: 5  },
-  { id: 'kids_school',  name: 'Kids/school/chugim',               budget_amount: 2000, sort_order: 6  },
-  { id: 'health',       name: 'Health/pharmacy',                  budget_amount: 800,  sort_order: 7  },
-  { id: 'phones',       name: 'Phones/internet/subscriptions',    budget_amount: 1000, sort_order: 8  },
-  { id: 'eating_out',   name: 'Eating out/fun',                   budget_amount: 1500, sort_order: 9  },
-  { id: 'clothing',     name: 'Clothing/random spending',         budget_amount: 1500, sort_order: 10 },
-  { id: 'holidays',     name: 'Holidays/gifts/Jewish life',       budget_amount: 1200, sort_order: 11 },
-  { id: 'emergency',    name: 'Emergency/misc buffer',            budget_amount: 1200, sort_order: 12 },
-  { id: 'house_savings',name: 'House savings',                    budget_amount: 5250, sort_order: 13 },
+  { id: 'rent',         name: 'Rent & Arnona',              budget_amount: 8000, sort_order: 0  },
+  { id: 'childcare',    name: 'Childcare',                  budget_amount: 3700, sort_order: 1  },
+  { id: 'car',          name: 'Car & Transportation',       budget_amount: 4400, sort_order: 2  },
+  { id: 'electric',     name: 'Electricity',                budget_amount: 750,  sort_order: 3  },
+  { id: 'water_gas',    name: 'Water & Gas',                budget_amount: 350,  sort_order: 4  },
+  { id: 'groceries',    name: 'Groceries & Household',      budget_amount: 5000, sort_order: 5  },
+  { id: 'kids_school',  name: 'Kids / School / Chugim',     budget_amount: 2000, sort_order: 6  },
+  { id: 'health',       name: 'Health & Pharmacy',          budget_amount: 800,  sort_order: 7  },
+  { id: 'phones',       name: 'Phones & Subscriptions',     budget_amount: 1000, sort_order: 8  },
+  { id: 'eating_out',   name: 'Eating Out & Fun',           budget_amount: 1500, sort_order: 9  },
+  { id: 'clothing',     name: 'Clothing & Personal',        budget_amount: 1500, sort_order: 10 },
+  { id: 'holidays',     name: 'Holidays & Gifts',           budget_amount: 1200, sort_order: 11 },
+  { id: 'emergency',    name: 'Emergency Fund',             budget_amount: 1200, sort_order: 12 },
+  { id: 'house_savings',name: 'Home Savings',               budget_amount: 5250, sort_order: 13 },
 ]
 
 export async function initDb() {
@@ -76,11 +76,22 @@ export async function initDb() {
       category_id TEXT NOT NULL
     )
   `
+  await sql`
+    CREATE TABLE IF NOT EXISTS chugim (
+      id TEXT PRIMARY KEY,
+      name TEXT NOT NULL,
+      child TEXT NOT NULL,
+      days TEXT NOT NULL DEFAULT '[]',
+      time TEXT NOT NULL DEFAULT '',
+      monthly_cost NUMERIC NOT NULL DEFAULT 0
+    )
+  `
+  await sql`ALTER TABLE manual_transactions ADD COLUMN IF NOT EXISTS chug_id TEXT`
   for (const cat of DEFAULT_CATEGORIES) {
     await sql`
       INSERT INTO budget_categories (id, name, budget_amount, sort_order)
       VALUES (${cat.id}, ${cat.name}, ${cat.budget_amount}, ${cat.sort_order})
-      ON CONFLICT (id) DO NOTHING
+      ON CONFLICT (id) DO UPDATE SET name = EXCLUDED.name, sort_order = EXCLUDED.sort_order
     `
   }
 }

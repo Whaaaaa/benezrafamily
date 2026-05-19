@@ -6,7 +6,7 @@ export async function GET() {
     SELECT id, name, budget_amount as "budgetAmount", sort_order as "sortOrder"
     FROM budget_categories ORDER BY sort_order
   `
-  return Response.json(rows)
+  return Response.json(rows.map(r => ({ ...r, budgetAmount: Number(r.budgetAmount) })))
 }
 
 export async function PUT(req: Request) {

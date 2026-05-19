@@ -8,6 +8,23 @@ type Meal = {
   name: string
 }
 
+type Chug = {
+  id: string
+  name: string
+  child: string
+  days: string[]
+  time: string
+  monthlyCost: number
+}
+
+const CHUG_DOW = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+
+const CHILD_CHUG_COLORS: Record<string, string> = {
+  Moony: 'bg-emerald-100 text-emerald-800',
+  Moshe: 'bg-sky-100 text-sky-800',
+  Pooki: 'bg-pink-100 text-pink-800',
+}
+
 const MONTHS = [
   'January', 'February', 'March', 'April', 'May', 'June',
   'July', 'August', 'September', 'October', 'November', 'December',
@@ -37,7 +54,7 @@ function toDateStr(year: number, month: number, day: number) {
   return `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`
 }
 
-export default function MealCalendar({ periodDates = [] }: { periodDates?: string[] }) {
+export default function MealCalendar({ periodDates = [], chugim = [] }: { periodDates?: string[]; chugim?: Chug[] }) {
   const today = new Date()
   const [year, setYear] = useState(today.getFullYear())
   const [month, setMonth] = useState(today.getMonth())
@@ -139,6 +156,8 @@ export default function MealCalendar({ periodDates = [] }: { periodDates?: strin
             const isToday = dateStr === todayStr
             const isSelected = dateStr === selectedDate
             const isPeriod = periodDates.includes(dateStr)
+            const dayOfWeek = CHUG_DOW[new Date(year, month, day).getDay()]
+            const dayChugim = chugim.filter(c => c.days.includes(dayOfWeek))
 
             return (
               <div
@@ -182,6 +201,18 @@ export default function MealCalendar({ periodDates = [] }: { periodDates?: strin
                       >
                         ×
                       </button>
+                    </div>
+                  ))}
+                  {dayChugim.map(chug => (
+                    <div
+                      key={chug.id}
+                      className={`flex items-center gap-0.5 text-xs rounded-md px-1.5 py-0.5 font-semibold ${
+                        CHILD_CHUG_COLORS[chug.child] ?? 'bg-violet-100 text-violet-800'
+                      }`}
+                    >
+                      <span className="text-[10px]">🎽</span>
+                      <span className="truncate">{chug.name}</span>
+                      {chug.time && <span className="opacity-60 shrink-0 ml-0.5">{chug.time}</span>}
                     </div>
                   ))}
                 </div>

@@ -157,12 +157,23 @@ function PeriodTracker({ periodDates, onChange }: {
   )
 }
 
+type Chug = {
+  id: string
+  name: string
+  child: string
+  days: string[]
+  time: string
+  monthlyCost: number
+}
+
 export default function CalendarPage() {
   const [tab, setTab] = useState<'meals' | 'period'>('meals')
   const [periodDates, setPeriodDates] = useState<string[]>([])
+  const [chugim, setChugim] = useState<Chug[]>([])
 
   useEffect(() => {
     fetch('/api/period').then(r => r.json()).then(setPeriodDates)
+    fetch('/api/budget/chugim').then(r => r.json()).then(setChugim)
   }, [])
 
   return (
@@ -193,7 +204,7 @@ export default function CalendarPage() {
         </button>
       </div>
 
-      {tab === 'meals' && <MealCalendar periodDates={periodDates} />}
+      {tab === 'meals' && <MealCalendar periodDates={periodDates} chugim={chugim} />}
       {tab === 'period' && <PeriodTracker periodDates={periodDates} onChange={setPeriodDates} />}
     </div>
   )

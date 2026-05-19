@@ -1,6 +1,8 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
+import ChugimTab from './ChugimTab'
+import TransactionsTab from './TransactionsTab'
 
 type BudgetCategory = {
   id: string
@@ -297,6 +299,7 @@ function SpendingChart({ data, budget }: { data: { month: string; total: number 
 // ── Component ─────────────────────────────────────────────────────────────────
 
 export default function BudgetDashboard() {
+  const [activeTab, setActiveTab] = useState<'overview' | 'chugim' | 'transactions'>('overview')
   const [categories, setCategories] = useState<BudgetCategory[]>([])
   const [manualTxns, setManualTxns] = useState<ManualTransaction[]>([])
   const [ccTxns, setCcTxns] = useState<CategorizedTransaction[]>([])
@@ -545,7 +548,7 @@ export default function BudgetDashboard() {
     <div className="p-4 sm:p-6 max-w-5xl mx-auto animate-slide-up">
 
       <h2
-        className="text-3xl font-black mb-6"
+        className="text-3xl font-black mb-4"
         style={{
           background: 'linear-gradient(135deg, #F59E0B, #EF4444)',
           WebkitBackgroundClip: 'text',
@@ -555,6 +558,33 @@ export default function BudgetDashboard() {
       >
         💰 Budget
       </h2>
+
+      {/* ── Tab bar ── */}
+      <div className="flex gap-2 mb-6">
+        {([
+          { key: 'overview',      label: '📊 Overview',     gradient: 'linear-gradient(135deg, #F59E0B, #EF4444)' },
+          { key: 'chugim',        label: '🎽 Chugim',       gradient: 'linear-gradient(135deg, #7C3AED, #EC4899)' },
+          { key: 'transactions',  label: '📋 Transactions', gradient: 'linear-gradient(135deg, #0EA5E9, #6366F1)' },
+        ] as const).map(tab => (
+          <button
+            key={tab.key}
+            onClick={() => setActiveTab(tab.key)}
+            className={`flex items-center gap-1.5 px-4 py-1.5 text-sm font-bold rounded-full transition-all duration-200 ${
+              activeTab === tab.key
+                ? 'text-white shadow-lg scale-105'
+                : 'text-gray-500 hover:text-gray-800 hover:bg-white/70 hover:scale-105'
+            }`}
+            style={activeTab === tab.key ? { background: tab.gradient, boxShadow: '0 4px 15px rgba(0,0,0,0.15)' } : {}}
+          >
+            {tab.label}
+          </button>
+        ))}
+      </div>
+
+      {activeTab === 'chugim' && <ChugimTab />}
+      {activeTab === 'transactions' && <TransactionsTab categories={categories} />}
+
+      {activeTab === 'overview' && <>
 
       {/* ── Month selector + Overview ── */}
       <section className="mb-10">
@@ -970,6 +1000,8 @@ export default function BudgetDashboard() {
           </div>
         )}
       </section>
+
+      </>}
 
       {/* ── Analytics Modal ── */}
       {analyticsModal && (

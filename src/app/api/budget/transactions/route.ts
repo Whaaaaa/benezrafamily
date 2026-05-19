@@ -4,7 +4,7 @@ export async function GET() {
   await initDb()
   const rows = await sql`
     SELECT id, date, description, amount, category_id as "categoryId",
-           is_recurring as "isRecurring", recurring_day as "recurringDay"
+           is_recurring as "isRecurring", recurring_day as "recurringDay", chug_id as "chugId"
     FROM manual_transactions ORDER BY date DESC, id
   `
   return Response.json(rows)
