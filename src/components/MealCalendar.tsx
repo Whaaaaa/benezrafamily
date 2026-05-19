@@ -14,6 +14,25 @@ const MONTHS = [
 ]
 const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 
+const DAY_COLORS = [
+  'text-purple-600  bg-purple-50',
+  'text-blue-600    bg-blue-50',
+  'text-teal-600    bg-teal-50',
+  'text-emerald-600 bg-emerald-50',
+  'text-amber-600   bg-amber-50',
+  'text-orange-600  bg-orange-50',
+  'text-pink-600    bg-pink-50',
+]
+
+const MEAL_PILL_COLORS = [
+  'bg-violet-100 text-violet-800',
+  'bg-pink-100   text-pink-800',
+  'bg-amber-100  text-amber-800',
+  'bg-teal-100   text-teal-800',
+  'bg-sky-100    text-sky-800',
+  'bg-rose-100   text-rose-800',
+]
+
 function toDateStr(year: number, month: number, day: number) {
   return `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`
 }
@@ -61,80 +80,129 @@ export default function MealCalendar() {
   const todayStr = toDateStr(today.getFullYear(), today.getMonth(), today.getDate())
 
   return (
-    <div className="p-6 max-w-4xl mx-auto">
+    <div className="p-4 sm:p-6 max-w-4xl mx-auto animate-slide-up">
+
+      {/* Month navigation */}
       <div className="flex items-center justify-between mb-6">
         <button
           onClick={prevMonth}
-          className="px-3 py-1.5 rounded border border-gray-200 hover:bg-gray-100 text-gray-600"
+          className="px-4 py-2 rounded-full font-bold text-white text-sm transition-all duration-200 hover:scale-105 active:scale-95 shadow-md"
+          style={{ background: 'linear-gradient(135deg, #7C3AED, #A855F7)' }}
         >
           ‹ Prev
         </button>
-        <h2 className="text-xl font-semibold">{MONTHS[month]} {year}</h2>
+
+        <h2
+          className="text-2xl font-black"
+          style={{
+            background: 'linear-gradient(135deg, #7C3AED, #EC4899)',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
+            backgroundClip: 'text',
+          }}
+        >
+          {MONTHS[month]} {year}
+        </h2>
+
         <button
           onClick={nextMonth}
-          className="px-3 py-1.5 rounded border border-gray-200 hover:bg-gray-100 text-gray-600"
+          className="px-4 py-2 rounded-full font-bold text-white text-sm transition-all duration-200 hover:scale-105 active:scale-95 shadow-md"
+          style={{ background: 'linear-gradient(135deg, #EC4899, #F43F5E)' }}
         >
           Next ›
         </button>
       </div>
 
-      <div className="grid grid-cols-7 gap-px bg-gray-200 rounded-lg overflow-hidden border border-gray-200">
-        {DAYS.map(d => (
-          <div key={d} className="bg-gray-50 text-center text-xs font-semibold text-gray-500 uppercase py-2">
-            {d}
-          </div>
-        ))}
-
-        {Array.from({ length: firstDay }).map((_, i) => (
-          <div key={`blank-${i}`} className="bg-white min-h-[90px]" />
-        ))}
-
-        {Array.from({ length: daysInMonth }, (_, i) => i + 1).map(day => {
-          const dateStr = toDateStr(year, month, day)
-          const dayMeals = meals.filter(m => m.date === dateStr)
-          const isToday = dateStr === todayStr
-          const isSelected = dateStr === selectedDate
-
-          return (
+      {/* Calendar grid */}
+      <div className="rounded-2xl overflow-hidden shadow-xl border border-white/60 bg-white/60 backdrop-blur-sm">
+        {/* Day headers */}
+        <div className="grid grid-cols-7">
+          {DAYS.map((d, i) => (
             <div
-              key={day}
-              onClick={() => setSelectedDate(isSelected ? null : dateStr)}
-              className={`bg-white min-h-[90px] p-1.5 cursor-pointer transition-colors ${
-                isSelected ? 'ring-2 ring-inset ring-blue-500' : 'hover:bg-blue-50'
-              }`}
+              key={d}
+              className={`text-center text-xs font-black py-2.5 uppercase tracking-wide ${DAY_COLORS[i]}`}
             >
-              <span
-                className={`inline-flex items-center justify-center w-6 h-6 rounded-full text-sm mb-1 ${
-                  isToday ? 'bg-blue-600 text-white font-bold' : 'text-gray-700'
+              {d}
+            </div>
+          ))}
+        </div>
+
+        {/* Calendar cells */}
+        <div className="grid grid-cols-7 gap-px bg-purple-100/40">
+          {Array.from({ length: firstDay }).map((_, i) => (
+            <div key={`blank-${i}`} className="bg-white/40 min-h-[80px] sm:min-h-[100px]" />
+          ))}
+
+          {Array.from({ length: daysInMonth }, (_, i) => i + 1).map(day => {
+            const dateStr = toDateStr(year, month, day)
+            const dayMeals = meals.filter(m => m.date === dateStr)
+            const isToday = dateStr === todayStr
+            const isSelected = dateStr === selectedDate
+
+            return (
+              <div
+                key={day}
+                onClick={() => setSelectedDate(isSelected ? null : dateStr)}
+                className={`bg-white min-h-[80px] sm:min-h-[100px] p-1.5 cursor-pointer transition-all duration-150 ${
+                  isSelected
+                    ? 'ring-2 ring-inset ring-violet-400 bg-violet-50'
+                    : 'hover:bg-gradient-to-br hover:from-purple-50 hover:to-pink-50'
                 }`}
               >
-                {day}
-              </span>
-              <div className="space-y-0.5">
-                {dayMeals.map(meal => (
-                  <div
-                    key={meal.id}
-                    className="flex items-center justify-between text-xs bg-emerald-100 text-emerald-800 rounded px-1 py-0.5"
+                {isToday ? (
+                  <span
+                    className="inline-flex items-center justify-center w-7 h-7 rounded-full text-xs font-black text-white shadow-md mb-1"
+                    style={{ background: 'linear-gradient(135deg, #7C3AED, #EC4899)' }}
                   >
-                    <span className="truncate">{meal.name}</span>
-                    <button
-                      onClick={e => { e.stopPropagation(); removeMeal(meal.id) }}
-                      className="ml-1 text-emerald-500 hover:text-emerald-800 flex-shrink-0"
+                    {day}
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center justify-center w-7 h-7 text-sm font-bold text-gray-600 mb-1">
+                    {day}
+                  </span>
+                )}
+                <div className="space-y-0.5">
+                  {dayMeals.map((meal, mi) => (
+                    <div
+                      key={meal.id}
+                      className={`flex items-center justify-between text-xs rounded-md px-1.5 py-0.5 font-semibold ${
+                        MEAL_PILL_COLORS[mi % MEAL_PILL_COLORS.length]
+                      }`}
                     >
-                      ×
-                    </button>
-                  </div>
-                ))}
+                      <span className="truncate">{meal.name}</span>
+                      <button
+                        onClick={e => { e.stopPropagation(); removeMeal(meal.id) }}
+                        className="ml-1 opacity-50 hover:opacity-100 flex-shrink-0 leading-none"
+                      >
+                        ×
+                      </button>
+                    </div>
+                  ))}
+                </div>
               </div>
-            </div>
-          )
-        })}
+            )
+          })}
+        </div>
       </div>
 
+      {/* Add meal panel */}
       {selectedDate && (
-        <div className="mt-5 p-4 bg-white border border-blue-200 rounded-lg shadow-sm">
-          <p className="text-sm font-medium text-gray-700 mb-3">
-            Add meal for <span className="text-blue-600">{selectedDate}</span>
+        <div
+          className="mt-5 p-4 rounded-2xl shadow-lg border border-violet-100 animate-bounce-in"
+          style={{ background: 'linear-gradient(135deg, #faf5ff, #fdf2f8)' }}
+        >
+          <p className="text-sm font-bold text-gray-700 mb-3">
+            🍴 Add meal for{' '}
+            <span
+              style={{
+                background: 'linear-gradient(135deg, #7C3AED, #EC4899)',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                backgroundClip: 'text',
+              }}
+            >
+              {selectedDate}
+            </span>
           </p>
           <div className="flex gap-2">
             <input
@@ -143,11 +211,12 @@ export default function MealCalendar() {
               onChange={e => setInput(e.target.value)}
               onKeyDown={e => e.key === 'Enter' && addMeal()}
               placeholder="e.g. Chicken stir fry"
-              className="flex-1 px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="flex-1 px-3 py-2 border-2 border-violet-200 rounded-xl text-sm font-semibold focus:outline-none focus:border-violet-400 bg-white/80"
             />
             <button
               onClick={addMeal}
-              className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700"
+              className="px-5 py-2 text-white text-sm font-bold rounded-xl transition-all duration-200 hover:scale-105 active:scale-95 shadow-md"
+              style={{ background: 'linear-gradient(135deg, #7C3AED, #EC4899)' }}
             >
               Add
             </button>

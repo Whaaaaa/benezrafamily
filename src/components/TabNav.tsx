@@ -4,28 +4,38 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 
 const tabs = [
-  { label: 'Meals', href: '/meals' },
-  { label: 'Shopping', href: '/shopping' },
-  { label: 'Budget', href: '/budget' },
+  { label: '🏠', title: 'Home',     href: '/',         exact: true },
+  { label: '🍽️', title: 'Meals',    href: '/meals',    exact: false },
+  { label: '🛒', title: 'Shopping', href: '/shopping', exact: false },
+  { label: '💰', title: 'Budget',   href: '/budget',   exact: false },
+]
+
+const GRADIENTS = [
+  'linear-gradient(135deg, #7C3AED, #EC4899)',
+  'linear-gradient(135deg, #A855F7, #7C3AED)',
+  'linear-gradient(135deg, #EC4899, #F43F5E)',
+  'linear-gradient(135deg, #F59E0B, #EF4444)',
 ]
 
 export default function TabNav() {
   const pathname = usePathname()
   return (
-    <nav className="flex gap-1">
-      {tabs.map((tab) => {
-        const active = pathname.startsWith(tab.href)
+    <nav className="flex gap-1.5 pb-3">
+      {tabs.map((tab, i) => {
+        const active = tab.exact ? pathname === tab.href : pathname.startsWith(tab.href)
         return (
           <Link
             key={tab.href}
             href={tab.href}
-            className={`px-4 py-2.5 text-sm font-medium border-b-2 transition-colors ${
+            className={`flex items-center gap-1.5 px-3 sm:px-4 py-1.5 text-sm font-bold rounded-full transition-all duration-200 ${
               active
-                ? 'border-blue-600 text-blue-600'
-                : 'border-transparent text-gray-500 hover:text-gray-800 hover:border-gray-300'
+                ? 'text-white shadow-lg scale-105'
+                : 'text-gray-500 hover:text-gray-800 hover:bg-white/70 hover:scale-105'
             }`}
+            style={active ? { background: GRADIENTS[i], boxShadow: '0 4px 15px rgba(0,0,0,0.15)' } : {}}
           >
-            {tab.label}
+            <span>{tab.label}</span>
+            <span className="hidden sm:inline">{tab.title}</span>
           </Link>
         )
       })}
