@@ -27,6 +27,20 @@ type Transaction = {
 
 type CategorizedTransaction = Transaction & { categoryId: string }
 
+type CcTransaction = {
+  id: string
+  date: string
+  description: string
+  amount: number
+  categoryId: string
+  month: string
+}
+
+type AnalyticsData = {
+  monthlyTotals: { month: string; total: number }[]
+  topVendors: { description: string; total: number }[]
+}
+
 const CATEGORY_KEYWORDS: Record<string, string[]> = {
   rent:         ['ארנונה', 'שכ"ד', 'שכר דירה', 'ועד', 'rent', 'arnona'],
   childcare:    ['מטפלת', 'גן ילדים', 'daycare', 'childcare', 'babysit'],
@@ -44,7 +58,8 @@ const CATEGORY_KEYWORDS: Record<string, string[]> = {
   house_savings:['savings', 'investment', 'העברה', 'חסכון'],
 }
 
-function categorize(description: string): string {
+function categorize(description: string, mappings: Record<string, string> = {}): string {
+  if (mappings[description]) return mappings[description]
   const lower = description.toLowerCase()
   for (const [catId, kws] of Object.entries(CATEGORY_KEYWORDS)) {
     if (kws.length > 0 && kws.some(kw => lower.includes(kw.toLowerCase()))) return catId
@@ -200,43 +215,195 @@ const EMPTY_FORM = {
   recurringDay: '',
 }
 
+// ── Spending bar chart (SVG, no deps) ─────────────────────────────────────────
+
+function SpendingChart({ data, budget }: { data: { month: string; total: number }[]; budget: number }) {
+  const W = 360, H = 170, padL = 42, padB = 28, padT = 20, padR = 10
+  const plotW = W - padL - padR
+  const plotH = H - padT - padB
+  const maxVal = Math.max(...data.map(d => d.total), budget, 1)
+  const barW = (plotW / data.length) * 0.6
+  const gap = plotW / data.length
+  const budgetY = padT + plotH * (1 - budget / maxVal)
+
+  return (
+    <svg viewBox={`0 0 ${W} ${H}`} className="w-full">
+      <defs>
+        <linearGradient id="spendPurple" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="#A78BFA" />
+          <stop offset="100%" stopColor="#7C3AED" />
+        </linearGradient>
+        <linearGradient id="spendRed" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="#FCA5A5" />
+          <stop offset="100%" stopColor="#EF4444" />
+        </linearGradient>
+      </defs>
+
+      {/* Grid lines */}
+      {[0, 0.5, 1].map(pct => (
+        <line
+          key={pct}
+          x1={padL} y1={padT + plotH * (1 - pct)}
+          x2={W - padR} y2={padT + plotH * (1 - pct)}
+          stroke="#F3F4F6" strokeWidth="1"
+        />
+      ))}
+
+      {/* Y axis labels */}
+      {[0, 0.5, 1].map(pct => (
+        <text key={pct} x={padL - 4} y={padT + plotH * (1 - pct) + 4}
+          textAnchor="end" fontSize="9" fill="#9CA3AF" fontFamily="sans-serif">
+          {pct === 0 ? '0' : `₪${Math.round(maxVal * pct / 1000)}k`}
+        </text>
+      ))}
+
+      {/* Budget dashed line */}
+      {budget > 0 && (
+        <>
+          <line x1={padL} y1={budgetY} x2={W - padR} y2={budgetY}
+            stroke="#7C3AED" strokeWidth="1.5" strokeDasharray="5,3" opacity="0.6" />
+          <text x={W - padR - 2} y={budgetY - 4} textAnchor="end"
+            fontSize="8" fill="#7C3AED" fontFamily="sans-serif" opacity="0.8">budget</text>
+        </>
+      )}
+
+      {/* Bars */}
+      {data.map((d, i) => {
+        const barH = Math.max((d.total / maxVal) * plotH, d.total > 0 ? 2 : 0)
+        const x = padL + i * gap + (gap - barW) / 2
+        const y = padT + plotH - barH
+        const over = budget > 0 && d.total > budget
+        return (
+          <g key={d.month}>
+            <rect x={x} y={y} width={barW} height={barH} rx="3"
+              fill={over ? 'url(#spendRed)' : 'url(#spendPurple)'} opacity="0.9" />
+            {d.total > 0 && (
+              <text x={x + barW / 2} y={y - 4} textAnchor="middle"
+                fontSize="9" fill="#374151" fontFamily="sans-serif" fontWeight="600">
+                {d.total >= 1000 ? `${(d.total / 1000).toFixed(1)}k` : Math.round(d.total)}
+              </text>
+            )}
+            <text x={x + barW / 2} y={H - 6} textAnchor="middle"
+              fontSize="9" fill="#9CA3AF" fontFamily="sans-serif">
+              {d.month.slice(5)}
+            </text>
+          </g>
+        )
+      })}
+    </svg>
+  )
+}
+
 // ── Component ─────────────────────────────────────────────────────────────────
 
 export default function BudgetDashboard() {
   const [categories, setCategories] = useState<BudgetCategory[]>([])
   const [manualTxns, setManualTxns] = useState<ManualTransaction[]>([])
   const [ccTxns, setCcTxns] = useState<CategorizedTransaction[]>([])
+  const [savedCcTxns, setSavedCcTxns] = useState<CcTransaction[]>([])
+  const [descriptionMappings, setDescriptionMappings] = useState<Record<string, string>>({})
+  const mappingsRef = useRef<Record<string, string>>({})
+
+  const [selectedMonth, setSelectedMonth] = useState(() => new Date().toISOString().slice(0, 7))
+  const currentMonth = new Date().toISOString().slice(0, 7)
+  const todayDay = new Date().getDate()
+  const isCurrentMonth = selectedMonth === currentMonth
+
   const [editingBudget, setEditingBudget] = useState(false)
   const [editAmounts, setEditAmounts] = useState<Record<string, string>>({})
+
   const [uploadError, setUploadError] = useState('')
   const [fileName, setFileName] = useState('')
   const [uploadLoading, setUploadLoading] = useState(false)
+  const [savingCc, setSavingCc] = useState(false)
+
   const [showAddForm, setShowAddForm] = useState(false)
   const [saving, setSaving] = useState(false)
   const [form, setForm] = useState({ ...EMPTY_FORM, date: new Date().toISOString().split('T')[0] })
   const inputRef = useRef<HTMLInputElement>(null)
+  const addFormRef = useRef<HTMLElement>(null)
 
+  const [analyticsModal, setAnalyticsModal] = useState<string | null>(null)
+  const [analyticsData, setAnalyticsData] = useState<AnalyticsData | null>(null)
+  const [analyticsLoading, setAnalyticsLoading] = useState(false)
+
+  // Keep mappings ref in sync to avoid stale closures in file handlers
+  useEffect(() => { mappingsRef.current = descriptionMappings }, [descriptionMappings])
+
+  // Initial load
   useEffect(() => {
     Promise.all([
       fetch('/api/budget/categories').then(r => r.json()),
       fetch('/api/budget/transactions').then(r => r.json()),
-    ]).then(([cats, txns]) => {
+      fetch('/api/budget/description-mappings').then(r => r.json()),
+    ]).then(([cats, txns, mappingRows]) => {
       setCategories(cats)
       setManualTxns(txns)
+      const m: Record<string, string> = {}
+      for (const row of mappingRows) m[row.description] = row.categoryId
+      setDescriptionMappings(m)
     })
   }, [])
 
-  const todayDay = new Date().getDate()
+  // Reload CC transactions whenever month changes
+  useEffect(() => {
+    fetch(`/api/budget/cc-transactions?month=${selectedMonth}`)
+      .then(r => r.json())
+      .then(setSavedCcTxns)
+  }, [selectedMonth])
+
+  // Load analytics when modal opens
+  useEffect(() => {
+    if (!analyticsModal) { setAnalyticsData(null); return }
+    setAnalyticsLoading(true)
+    fetch(`/api/budget/analytics/${analyticsModal}`)
+      .then(r => r.json())
+      .then(data => { setAnalyticsData(data); setAnalyticsLoading(false) })
+      .catch(() => setAnalyticsLoading(false))
+  }, [analyticsModal])
+
+  // Close analytics modal on Escape
+  useEffect(() => {
+    if (!analyticsModal) return
+    const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') setAnalyticsModal(null) }
+    window.addEventListener('keydown', handler)
+    return () => window.removeEventListener('keydown', handler)
+  }, [analyticsModal])
+
+  function navigateMonth(dir: 1 | -1) {
+    const [y, m] = selectedMonth.split('-').map(Number)
+    const d = new Date(y, m - 1 + dir, 1)
+    const next = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
+    setSelectedMonth(next)
+    setCcTxns([])
+    setFileName('')
+    setUploadError('')
+  }
+
+  function formatMonth(month: string): string {
+    const [y, m] = month.split('-').map(Number)
+    return new Date(y, m - 1).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
+  }
 
   function getSpent(catId: string): number {
-    const fromManual = manualTxns
-      .filter(t => t.categoryId === catId)
-      .filter(t => !t.isRecurring || (t.recurringDay !== null && t.recurringDay <= todayDay))
+    const fromManualOneOff = manualTxns
+      .filter(t => !t.isRecurring && t.date.startsWith(selectedMonth) && t.categoryId === catId)
       .reduce((sum, t) => sum + Number(t.amount), 0)
-    const fromCC = ccTxns
+
+    const fromManualRecurring = manualTxns
+      .filter(t => t.isRecurring && t.categoryId === catId)
+      .filter(t => !isCurrentMonth || (t.recurringDay !== null && t.recurringDay <= todayDay))
+      .reduce((sum, t) => sum + Number(t.amount), 0)
+
+    const fromSavedCC = savedCcTxns
+      .filter(t => t.categoryId === catId && Number(t.amount) > 0)
+      .reduce((sum, t) => sum + Number(t.amount), 0)
+
+    const fromUploadedCC = ccTxns
       .filter(t => t.categoryId === catId && t.amount > 0)
       .reduce((sum, t) => sum + t.amount, 0)
-    return fromManual + fromCC
+
+    return fromManualOneOff + fromManualRecurring + fromSavedCC + fromUploadedCC
   }
 
   const handleFile = (file: File) => {
@@ -252,7 +419,7 @@ export default function BudgetDashboard() {
       reader.onload = e => {
         const { transactions: parsed, error } = parseCSV(e.target?.result as string)
         if (error) { setUploadError(error); setCcTxns([]) }
-        else setCcTxns(parsed.map(t => ({ ...t, categoryId: categorize(t.description) })))
+        else setCcTxns(parsed.map(t => ({ ...t, categoryId: categorize(t.description, mappingsRef.current) })))
       }
       reader.readAsText(file)
     } else {
@@ -261,10 +428,53 @@ export default function BudgetDashboard() {
         const { transactions: parsed, error } = await parsePDF(e.target?.result as ArrayBuffer)
         setUploadLoading(false)
         if (error) { setUploadError(error); setCcTxns([]) }
-        else setCcTxns(parsed.map(t => ({ ...t, categoryId: categorize(t.description) })))
+        else setCcTxns(parsed.map(t => ({ ...t, categoryId: categorize(t.description, mappingsRef.current) })))
       }
       reader.readAsArrayBuffer(file)
     }
+  }
+
+  async function handleCategoryChange(idx: number, newCategoryId: string) {
+    const description = ccTxns[idx].description
+    setCcTxns(prev => prev.map((t, j) => j === idx ? { ...t, categoryId: newCategoryId } : t))
+    if (newCategoryId) {
+      setDescriptionMappings(prev => ({ ...prev, [description]: newCategoryId }))
+      await fetch('/api/budget/description-mappings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ description, categoryId: newCategoryId }),
+      })
+    }
+  }
+
+  async function saveCcTransactions() {
+    if (ccTxns.length === 0) return
+    setSavingCc(true)
+    const transactions = ccTxns.map(t => ({
+      id: crypto.randomUUID(),
+      date: t.date,
+      description: t.description,
+      amount: t.amount,
+      categoryId: t.categoryId,
+    }))
+    await fetch('/api/budget/cc-transactions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ month: selectedMonth, transactions }),
+    })
+    setSavedCcTxns(transactions.map(t => ({ ...t, month: selectedMonth })))
+    setCcTxns([])
+    setFileName('')
+    setSavingCc(false)
+  }
+
+  function openAddFormWithCategory(categoryId: string) {
+    const defaultDate = isCurrentMonth
+      ? new Date().toISOString().split('T')[0]
+      : `${selectedMonth}-01`
+    setForm(f => ({ ...f, categoryId, date: defaultDate }))
+    setShowAddForm(true)
+    setTimeout(() => addFormRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100)
   }
 
   async function saveTransaction() {
@@ -320,7 +530,16 @@ export default function BudgetDashboard() {
   const totalSpent  = categories.reduce((s, c) => s + getSpent(c.id), 0)
   const totalLeft   = totalBudget - totalSpent
 
+  const analyticsCategory = analyticsModal ? categories.find(c => c.id === analyticsModal) : null
+  const analyticsCatIdx   = analyticsModal ? categories.findIndex(c => c.id === analyticsModal) : 0
+  const analyticsStyle    = CAT_STYLES[analyticsCatIdx % CAT_STYLES.length]
+
   const inputCls = "w-full border-2 border-violet-200 rounded-xl px-3 py-2 text-sm font-semibold focus:outline-none focus:border-violet-400 bg-white/80"
+
+  // Filtered manual transactions for the selected month view
+  const visibleManualTxns = manualTxns.filter(t =>
+    t.isRecurring || t.date.startsWith(selectedMonth)
+  )
 
   return (
     <div className="p-4 sm:p-6 max-w-5xl mx-auto animate-slide-up">
@@ -337,10 +556,23 @@ export default function BudgetDashboard() {
         💰 Budget
       </h2>
 
-      {/* ── Budget Overview ── */}
+      {/* ── Month selector + Overview ── */}
       <section className="mb-10">
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-black text-gray-700">📊 Monthly Overview</h3>
+          <div className="flex items-center gap-1">
+            <button
+              onClick={() => navigateMonth(-1)}
+              className="w-8 h-8 flex items-center justify-center rounded-full text-violet-500 hover:bg-violet-100 font-black text-lg transition-colors"
+            >‹</button>
+            <span className="text-base font-black text-gray-700 min-w-[160px] text-center">
+              {formatMonth(selectedMonth)}
+            </span>
+            <button
+              onClick={() => navigateMonth(1)}
+              disabled={selectedMonth >= currentMonth}
+              className="w-8 h-8 flex items-center justify-center rounded-full text-violet-500 hover:bg-violet-100 font-black text-lg transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+            >›</button>
+          </div>
           {!editingBudget && (
             <button
               onClick={startEditBudget}
@@ -369,7 +601,8 @@ export default function BudgetDashboard() {
             return (
               <div
                 key={cat.id}
-                className={`bg-gradient-to-br ${style.card} border ${style.border} rounded-2xl p-3 shadow-sm transition-all hover:shadow-md hover:-translate-y-0.5`}
+                onClick={() => !editingBudget && setAnalyticsModal(cat.id)}
+                className={`bg-gradient-to-br ${style.card} border ${style.border} rounded-2xl p-3 shadow-sm transition-all hover:shadow-md hover:-translate-y-0.5 ${!editingBudget ? 'cursor-pointer' : ''}`}
               >
                 <div className={`text-xs font-black mb-2 leading-tight ${style.label}`}>
                   {cat.name}
@@ -400,8 +633,17 @@ export default function BudgetDashboard() {
                         style={{ width: `${pct}%`, background: barGradient }}
                       />
                     </div>
-                    <div className="text-xs text-gray-400 mt-1.5 font-semibold">
-                      of ₪{cat.budgetAmount.toLocaleString()}
+                    <div className="flex items-center justify-between mt-1.5">
+                      <div className="text-xs text-gray-400 font-semibold">
+                        of ₪{cat.budgetAmount.toLocaleString()}
+                      </div>
+                      <button
+                        onClick={e => { e.stopPropagation(); openAddFormWithCategory(cat.id) }}
+                        className={`text-xs font-black px-1.5 py-0.5 rounded-lg transition-colors ${style.label} hover:bg-white/60`}
+                        title="Add transaction"
+                      >
+                        + Add
+                      </button>
                     </div>
                   </>
                 )}
@@ -427,25 +669,39 @@ export default function BudgetDashboard() {
             </button>
           </div>
         ) : (
+          /* ── Monthly Summary Card ── */
           <div
-            className="flex items-center justify-between rounded-2xl px-5 py-4 text-sm shadow-sm"
+            className="rounded-2xl px-5 py-4 shadow-sm"
             style={{ background: 'linear-gradient(135deg, #faf5ff, #fdf2f8)' }}
           >
-            <div className="text-center">
-              <div className="text-xs font-black text-gray-400 uppercase tracking-wide mb-0.5">Budget</div>
-              <div className="font-black text-gray-800 text-base">₪{totalBudget.toLocaleString()}</div>
-            </div>
-            <div className="w-px h-8 bg-pink-200" />
-            <div className="text-center">
-              <div className="text-xs font-black text-gray-400 uppercase tracking-wide mb-0.5">Spent</div>
-              <div className="font-black text-amber-600 text-base">₪{totalSpent.toLocaleString()}</div>
-            </div>
-            <div className="w-px h-8 bg-pink-200" />
-            <div className="text-center">
-              <div className="text-xs font-black text-gray-400 uppercase tracking-wide mb-0.5">Remaining</div>
-              <div className={`font-black text-base ${totalLeft < 0 ? 'text-red-500' : 'text-emerald-600'}`}>
-                ₪{totalLeft.toLocaleString()}
+            <div className="flex items-center justify-between">
+              <div className="text-center">
+                <div className="text-xs font-black text-gray-400 uppercase tracking-wide mb-0.5">Budget</div>
+                <div className="font-black text-gray-800 text-base">₪{totalBudget.toLocaleString()}</div>
               </div>
+              <div className="w-px h-8 bg-pink-200" />
+              <div className="text-center">
+                <div className="text-xs font-black text-gray-400 uppercase tracking-wide mb-0.5">Spent</div>
+                <div className="font-black text-amber-600 text-base">₪{totalSpent.toLocaleString()}</div>
+              </div>
+              <div className="w-px h-8 bg-pink-200" />
+              <div className="text-center">
+                <div className="text-xs font-black text-gray-400 uppercase tracking-wide mb-0.5">
+                  {totalLeft < 0 ? 'Over Budget' : 'Remaining'}
+                </div>
+                <div className={`font-black text-base ${totalLeft < 0 ? 'text-red-500' : 'text-emerald-600'}`}>
+                  {totalLeft < 0 ? `−₪${Math.abs(totalLeft).toLocaleString()}` : `₪${totalLeft.toLocaleString()}`}
+                </div>
+              </div>
+            </div>
+            {/* Big difference indicator */}
+            <div className={`mt-3 pt-3 border-t ${totalLeft < 0 ? 'border-red-100' : 'border-emerald-100'} text-center`}>
+              <span className={`text-2xl font-black ${totalLeft < 0 ? 'text-red-500' : 'text-emerald-600'}`}>
+                {totalLeft < 0 ? `−₪${Math.abs(totalLeft).toLocaleString()}` : `+₪${totalLeft.toLocaleString()}`}
+              </span>
+              <span className="text-xs font-semibold text-gray-400 ml-2">
+                {totalLeft < 0 ? 'over budget this month' : 'under budget this month'}
+              </span>
             </div>
           </div>
         )}
@@ -490,51 +746,75 @@ export default function BudgetDashboard() {
           </div>
         )}
 
-        {ccTxns.length > 0 && (
-          <div className="overflow-auto rounded-2xl border border-violet-100 shadow-md">
-            <table className="w-full text-sm">
-              <thead>
-                <tr style={{ background: 'linear-gradient(135deg, #7C3AED, #A855F7)' }}>
-                  <th className="px-3 py-3 text-left font-black text-white">Date</th>
-                  <th className="px-3 py-3 text-left font-black text-white">Description</th>
-                  <th className="px-3 py-3 text-right font-black text-white">Amount</th>
-                  <th className="px-3 py-3 text-left font-black text-white">Category</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-violet-50">
-                {ccTxns.map((t, i) => (
-                  <tr key={i} className={`transition-colors ${!t.categoryId ? 'bg-amber-50' : 'hover:bg-violet-50/40'}`}>
-                    <td className="px-3 py-2.5 text-gray-500 whitespace-nowrap font-semibold">{t.date}</td>
-                    <td className="px-3 py-2.5 text-gray-700 font-semibold">{t.description}</td>
-                    <td className={`px-3 py-2.5 text-right font-black tabular-nums ${t.amount > 0 ? 'text-red-500' : 'text-emerald-600'}`}>
-                      {t.amount > 0 ? '−' : '+'}₪{Math.abs(t.amount).toFixed(2)}
-                    </td>
-                    <td className="px-3 py-2.5">
-                      <select
-                        value={t.categoryId}
-                        onChange={e => setCcTxns(prev => prev.map((tx, j) => j === i ? { ...tx, categoryId: e.target.value } : tx))}
-                        className="text-xs border-2 border-violet-200 rounded-lg px-1.5 py-0.5 font-semibold text-gray-700 bg-white focus:outline-none focus:border-violet-400"
-                      >
-                        <option value="">— Uncategorized —</option>
-                        {categories.map(c => (
-                          <option key={c.id} value={c.id}>{c.name}</option>
-                        ))}
-                      </select>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+        {savedCcTxns.length > 0 && ccTxns.length === 0 && (
+          <div className="mb-3 px-4 py-2 bg-violet-50 border border-violet-200 rounded-xl text-xs font-semibold text-violet-600">
+            {savedCcTxns.length} transactions saved for {formatMonth(selectedMonth)}
           </div>
+        )}
+
+        {ccTxns.length > 0 && (
+          <>
+            <div className="overflow-auto rounded-2xl border border-violet-100 shadow-md mb-3">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr style={{ background: 'linear-gradient(135deg, #7C3AED, #A855F7)' }}>
+                    <th className="px-3 py-3 text-left font-black text-white">Date</th>
+                    <th className="px-3 py-3 text-left font-black text-white">Description</th>
+                    <th className="px-3 py-3 text-right font-black text-white">Amount</th>
+                    <th className="px-3 py-3 text-left font-black text-white">Category</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-violet-50">
+                  {ccTxns.map((t, i) => (
+                    <tr key={i} className={`transition-colors ${!t.categoryId ? 'bg-amber-50' : 'hover:bg-violet-50/40'}`}>
+                      <td className="px-3 py-2.5 text-gray-500 whitespace-nowrap font-semibold">{t.date}</td>
+                      <td className="px-3 py-2.5 text-gray-700 font-semibold">{t.description}</td>
+                      <td className={`px-3 py-2.5 text-right font-black tabular-nums ${t.amount > 0 ? 'text-red-500' : 'text-emerald-600'}`}>
+                        {t.amount > 0 ? '−' : '+'}₪{Math.abs(t.amount).toFixed(2)}
+                      </td>
+                      <td className="px-3 py-2.5">
+                        <select
+                          value={t.categoryId}
+                          onChange={e => handleCategoryChange(i, e.target.value)}
+                          className="text-xs border-2 border-violet-200 rounded-lg px-1.5 py-0.5 font-semibold text-gray-700 bg-white focus:outline-none focus:border-violet-400"
+                        >
+                          <option value="">— Uncategorized —</option>
+                          {categories.map(c => (
+                            <option key={c.id} value={c.id}>{c.name}</option>
+                          ))}
+                        </select>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <div className="flex justify-end">
+              <button
+                onClick={saveCcTransactions}
+                disabled={savingCc}
+                className="px-5 py-2 text-sm font-bold text-white rounded-xl transition-all hover:scale-105 active:scale-95 shadow-md disabled:opacity-50 disabled:scale-100"
+                style={{ background: 'linear-gradient(135deg, #7C3AED, #A855F7)' }}
+              >
+                {savingCc ? 'Saving…' : `💾 Save to ${formatMonth(selectedMonth)}`}
+              </button>
+            </div>
+          </>
         )}
       </section>
 
       {/* ── Manual Transactions ── */}
-      <section>
+      <section ref={addFormRef}>
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-black text-gray-700">📝 Manual Transactions</h3>
           <button
-            onClick={() => setShowAddForm(f => !f)}
+            onClick={() => {
+              const defaultDate = isCurrentMonth
+                ? new Date().toISOString().split('T')[0]
+                : `${selectedMonth}-01`
+              setForm(f => ({ ...f, date: defaultDate }))
+              setShowAddForm(f => !f)
+            }}
             className="px-4 py-2 text-sm font-bold text-white rounded-xl transition-all hover:scale-105 active:scale-95 shadow-md"
             style={{ background: 'linear-gradient(135deg, #F59E0B, #EF4444)' }}
           >
@@ -633,13 +913,13 @@ export default function BudgetDashboard() {
           </div>
         )}
 
-        {manualTxns.length === 0 && !showAddForm ? (
+        {visibleManualTxns.length === 0 && !showAddForm ? (
           <div className="text-center py-12">
             <div className="text-5xl mb-3 animate-float">📝</div>
             <p className="text-sm font-bold text-gray-400">No manual transactions yet.</p>
             <p className="text-xs text-gray-300 mt-1">Add recurring payments like rent or one-off expenses.</p>
           </div>
-        ) : manualTxns.length > 0 && (
+        ) : visibleManualTxns.length > 0 && (
           <div className="overflow-auto rounded-2xl border border-amber-100 shadow-md">
             <table className="w-full text-sm">
               <thead>
@@ -652,9 +932,9 @@ export default function BudgetDashboard() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-amber-50">
-                {manualTxns.map(t => {
+                {visibleManualTxns.map(t => {
                   const catName = categories.find(c => c.id === t.categoryId)?.name ?? t.categoryId
-                  const isActiveRecurring = t.isRecurring && t.recurringDay !== null && t.recurringDay <= todayDay
+                  const isActiveRecurring = t.isRecurring && t.recurringDay !== null && (!isCurrentMonth || t.recurringDay <= todayDay)
                   return (
                     <tr key={t.id} className="hover:bg-amber-50/50 transition-colors">
                       <td className="px-3 py-2.5 text-gray-500 whitespace-nowrap font-semibold">
@@ -690,6 +970,110 @@ export default function BudgetDashboard() {
           </div>
         )}
       </section>
+
+      {/* ── Analytics Modal ── */}
+      {analyticsModal && (
+        <div
+          className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+          onClick={() => setAnalyticsModal(null)}
+        >
+          <div
+            className="bg-white rounded-3xl w-full max-w-lg shadow-2xl max-h-[85vh] overflow-y-auto"
+            onClick={e => e.stopPropagation()}
+          >
+            {/* Modal header */}
+            <div className={`rounded-t-3xl px-6 py-5 bg-gradient-to-br ${analyticsStyle.card} border-b ${analyticsStyle.border}`}>
+              <div className="flex justify-between items-center">
+                <div>
+                  <div className={`text-xs font-black uppercase tracking-wide ${analyticsStyle.label} opacity-60`}>
+                    Category Trends
+                  </div>
+                  <div className="text-xl font-black text-gray-800 mt-0.5">
+                    {analyticsCategory?.name}
+                  </div>
+                </div>
+                <button
+                  onClick={() => setAnalyticsModal(null)}
+                  className="text-gray-400 hover:text-gray-600 transition-colors w-8 h-8 flex items-center justify-center rounded-full hover:bg-white/60 text-xl leading-none"
+                >
+                  ✕
+                </button>
+              </div>
+            </div>
+
+            {/* Modal body */}
+            <div className="p-6">
+              {analyticsLoading ? (
+                <div className="text-center py-12 text-gray-400 font-semibold">
+                  <div className="text-4xl mb-3">📊</div>
+                  Loading trends…
+                </div>
+              ) : analyticsData ? (
+                <>
+                  {/* Bar chart */}
+                  <div className="mb-6">
+                    <div className="text-xs font-black text-gray-400 uppercase tracking-wide mb-3">
+                      6-Month Spending Trend
+                    </div>
+                    <SpendingChart
+                      data={analyticsData.monthlyTotals}
+                      budget={analyticsCategory?.budgetAmount ?? 0}
+                    />
+                    <div className="flex items-center gap-4 mt-2 text-xs text-gray-400">
+                      <span className="flex items-center gap-1.5">
+                        <span className="inline-block w-4 border-t-2 border-dashed border-violet-500 opacity-70" />
+                        Budget
+                      </span>
+                      <span className="flex items-center gap-1.5">
+                        <span className="inline-block w-3 h-3 rounded bg-red-400 opacity-80" />
+                        Over budget
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Top vendors */}
+                  {analyticsData.topVendors.length > 0 ? (
+                    <div>
+                      <div className="text-xs font-black text-gray-400 uppercase tracking-wide mb-3">
+                        Top Companies / Expenses
+                      </div>
+                      <div className="space-y-2.5">
+                        {analyticsData.topVendors.map((v, i) => {
+                          const maxV = analyticsData.topVendors[0].total
+                          const pct = maxV > 0 ? (v.total / maxV) * 100 : 0
+                          return (
+                            <div key={v.description} className="flex items-center gap-2">
+                              <div className="w-5 text-xs font-black text-gray-300 text-right shrink-0">{i + 1}</div>
+                              <div className="flex-1 min-w-0">
+                                <div className="flex justify-between mb-1">
+                                  <span className="text-xs font-semibold text-gray-700 truncate mr-2">{v.description}</span>
+                                  <span className="text-xs font-black text-red-500 shrink-0">
+                                    ₪{v.total.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                                  </span>
+                                </div>
+                                <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                                  <div
+                                    className="h-full rounded-full transition-all duration-500"
+                                    style={{ width: `${pct}%`, background: analyticsStyle.bar }}
+                                  />
+                                </div>
+                              </div>
+                            </div>
+                          )
+                        })}
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="text-center py-6 text-gray-400 font-semibold text-sm">
+                      No transaction data yet for this category.
+                    </div>
+                  )}
+                </>
+              ) : null}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
