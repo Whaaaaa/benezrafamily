@@ -297,10 +297,6 @@ export default function BudgetDashboard() {
     setEditAmounts({})
   }
 
-  const totalBudget = categories.reduce((s, c) => s + c.budgetAmount, 0)
-  const totalSpent  = categories.reduce((s, c) => s + getSpent(c.id), 0)
-  const totalLeft   = totalBudget - totalSpent
-
   return (
     <div className="p-6 max-w-5xl mx-auto">
       <h2 className="text-2xl font-bold mb-6 text-gray-900">Budget</h2>
@@ -363,7 +359,7 @@ export default function BudgetDashboard() {
           })}
         </div>
 
-        {editingBudget ? (
+        {editingBudget && (
           <div className="flex gap-2 justify-end">
             <button
               onClick={() => { setEditingBudget(false); setEditAmounts({}) }}
@@ -377,25 +373,6 @@ export default function BudgetDashboard() {
             >
               Save Amounts
             </button>
-          </div>
-        ) : (
-          <div className="flex items-center justify-between bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 text-sm">
-            <div>
-              <span className="text-gray-500">Budget </span>
-              <span className="font-semibold text-gray-900">₪{totalBudget.toLocaleString()}</span>
-            </div>
-            <div className="w-px h-4 bg-gray-300" />
-            <div>
-              <span className="text-gray-500">Spent </span>
-              <span className="font-semibold text-gray-900">₪{totalSpent.toLocaleString()}</span>
-            </div>
-            <div className="w-px h-4 bg-gray-300" />
-            <div>
-              <span className="text-gray-500">Remaining </span>
-              <span className={`font-semibold ${totalLeft < 0 ? 'text-red-600' : 'text-emerald-600'}`}>
-                ₪{totalLeft.toLocaleString()}
-              </span>
-            </div>
           </div>
         )}
       </section>
