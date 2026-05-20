@@ -436,10 +436,24 @@ export default function ShoppingList() {
 
   const addItem = async () => {
     if (!name.trim()) return
-    const item: ShoppingItem = { id: `${Date.now()}`, name: name.trim(), quantity: qty.trim(), checked: false, mealId }
-    setItems(prev => [...prev, item])
-    setName(''); setQty(''); setMealId('')
-    await fetch('/api/shopping', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(item) })
+    const trimmedName = name.trim()
+    const trimmedQty = qty.trim()
+    const existing = items.find(i => i.name.toLowerCase() === trimmedName.toLowerCase())
+    if (existing) {
+      const existingNum = parseFloat(existing.quantity)
+      const newNum = parseFloat(trimmedQty)
+      const mergedQty = !isNaN(existingNum) && !isNaN(newNum) && trimmedQty
+        ? String(existingNum + newNum)
+        : trimmedQty || existing.quantity
+      setItems(prev => prev.map(i => i.id === existing.id ? { ...i, quantity: mergedQty } : i))
+      setName(''); setQty(''); setMealId('')
+      await fetch(`/api/shopping/${existing.id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ quantity: mergedQty }) })
+    } else {
+      const item: ShoppingItem = { id: `${Date.now()}`, name: trimmedName, quantity: trimmedQty, checked: false, mealId }
+      setItems(prev => [...prev, item])
+      setName(''); setQty(''); setMealId('')
+      await fetch('/api/shopping', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(item) })
+    }
   }
 
   const toggle = async (id: string) => {

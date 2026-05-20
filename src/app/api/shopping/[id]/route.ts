@@ -3,8 +3,12 @@ import type { NextRequest } from 'next/server'
 
 export async function PATCH(req: NextRequest, ctx: RouteContext<'/api/shopping/[id]'>) {
   const { id } = await ctx.params
-  const { checked } = await req.json()
-  await sql`UPDATE shopping_items SET checked = ${checked} WHERE id = ${id}`
+  const body = await req.json()
+  if ('quantity' in body) {
+    await sql`UPDATE shopping_items SET quantity = ${body.quantity} WHERE id = ${id}`
+  } else {
+    await sql`UPDATE shopping_items SET checked = ${body.checked} WHERE id = ${id}`
+  }
   return Response.json({ ok: true })
 }
 
