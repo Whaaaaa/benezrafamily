@@ -101,6 +101,21 @@ export async function initDb() {
       balance NUMERIC NOT NULL DEFAULT 0
     )
   `
+  await sql`
+    CREATE TABLE IF NOT EXISTS meal_templates (
+      id TEXT PRIMARY KEY,
+      name TEXT NOT NULL UNIQUE
+    )
+  `
+  await sql`
+    CREATE TABLE IF NOT EXISTS meal_template_ingredients (
+      id TEXT PRIMARY KEY,
+      template_id TEXT NOT NULL,
+      name TEXT NOT NULL,
+      quantity TEXT NOT NULL DEFAULT ''
+    )
+  `
+  await sql`ALTER TABLE meals ADD COLUMN IF NOT EXISTS template_id TEXT NOT NULL DEFAULT ''`
   await sql`ALTER TABLE savings_accounts ADD COLUMN IF NOT EXISTS currency TEXT NOT NULL DEFAULT 'ILS'`
   await sql`ALTER TABLE manual_transactions ADD COLUMN IF NOT EXISTS chug_id TEXT`
   await sql`ALTER TABLE manual_transactions ADD COLUMN IF NOT EXISTS recurring_interval TEXT DEFAULT 'monthly'`

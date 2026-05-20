@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 
 type Meal = { id: string; date: string; name: string }
 type ShoppingItem = {
@@ -26,11 +26,33 @@ export default function ShoppingList() {
   const [name, setName] = useState('')
   const [qty, setQty] = useState('')
   const [mealId, setMealId] = useState('')
+  const [filterFrom, setFilterFrom] = useState('')
+  const [filterTo, setFilterTo] = useState('')
+  const [combineMode, setCombineMode] = useState(false)
+
+  const loadItems = (from?: string, to?: string) => {
+    const params = from && to ? `?from=${from}&to=${to}` : ''
+    fetch(`/api/shopping${params}`).then(r => r.json()).then(setItems)
+  }
 
   useEffect(() => {
-    fetch('/api/shopping').then(r => r.json()).then(setItems)
+    loadItems()
     fetch('/api/meals').then(r => r.json()).then(setMeals)
   }, [])
+
+  const applyFilter = () => {
+    if (filterFrom && filterTo) {
+      loadItems(filterFrom, filterTo)
+    } else {
+      loadItems()
+    }
+  }
+
+  const clearFilter = () => {
+    setFilterFrom('')
+    setFilterTo('')
+    loadItems()
+  }
 
   const addItem = async () => {
     if (!name.trim()) return
@@ -75,10 +97,47 @@ export default function ShoppingList() {
     await Promise.all(toDelete.map(i => fetch(`/api/shopping/${i.id}`, { method: 'DELETE' })))
   }
 
+  const mealLabel = (id: string) => {
+    const m = meals.find(m => m.id === id)
+    return m ? `${m.date} — ${m.name}` : ''
+  }
+  const mealOptions = meals.slice().sort((a, b) => a.date.localeCompare(b.date))
+
+  // Combine duplicate items: group unchecked items by name (case-insensitive)
+  const combinedUnchecked = useMemo(() => {
+    const unchecked = items.filter(i => !i.checked)
+    if (!combineMode) return null
+
+    const map = new Map<string, { ids: string[]; quantity: string; mealIds: string[]; count: number }>()
+    for (const item of unchecked) {
+      const key = item.name.toLowerCase().trim()
+      if (map.has(key)) {
+        const existing = map.get(key)!
+        existing.ids.push(item.id)
+        existing.count++
+        if (item.mealId) existing.mealIds.push(item.mealId)
+        // Keep first non-empty quantity
+        if (!existing.quantity && item.quantity) existing.quantity = item.quantity
+      } else {
+        map.set(key, {
+          ids: [item.id],
+          quantity: item.quantity,
+          mealIds: item.mealId ? [item.mealId] : [],
+          count: 1,
+        })
+      }
+    }
+
+    return Array.from(map.entries()).map(([key, val]) => ({
+      key,
+      displayName: unchecked.find(i => i.name.toLowerCase().trim() === key)?.name ?? key,
+      ...val,
+    }))
+  }, [items, combineMode])
+
   const unchecked = items.filter(i => !i.checked)
   const checked = items.filter(i => i.checked)
-  const mealLabel = (id: string) => meals.find(m => m.id === id)?.name ?? ''
-  const mealOptions = meals.slice().sort((a, b) => a.date.localeCompare(b.date))
+  const isFiltered = !!(filterFrom && filterTo)
 
   return (
     <div className="p-4 sm:p-6 max-w-2xl mx-auto animate-slide-up">
@@ -95,6 +154,65 @@ export default function ShoppingList() {
       >
         🛒 Shopping List
       </h2>
+
+      {/* Date filter */}
+      <div
+        className="rounded-2xl p-4 mb-4 shadow-sm border border-violet-100"
+        style={{ background: 'linear-gradient(135deg, #faf5ff, #f5f3ff)' }}
+      >
+        <div className="flex items-center gap-2 mb-2">
+          <span className="text-xs font-black text-violet-600 uppercase tracking-wide">Filter by date</span>
+          {isFiltered && (
+            <span className="text-xs bg-violet-100 text-violet-700 font-bold px-2 py-0.5 rounded-full">
+              {filterFrom} → {filterTo}
+            </span>
+          )}
+        </div>
+        <div className="flex gap-2 flex-wrap">
+          <input
+            type="date"
+            value={filterFrom}
+            onChange={e => setFilterFrom(e.target.value)}
+            className="flex-1 min-w-[130px] px-3 py-2 border-2 border-violet-200 rounded-xl text-sm font-semibold focus:outline-none focus:border-violet-400 bg-white/80"
+          />
+          <input
+            type="date"
+            value={filterTo}
+            onChange={e => setFilterTo(e.target.value)}
+            className="flex-1 min-w-[130px] px-3 py-2 border-2 border-violet-200 rounded-xl text-sm font-semibold focus:outline-none focus:border-violet-400 bg-white/80"
+          />
+          <button
+            onClick={applyFilter}
+            disabled={!filterFrom || !filterTo}
+            className="px-4 py-2 text-white text-sm font-bold rounded-xl shadow-md hover:scale-105 active:scale-95 transition-all disabled:opacity-40"
+            style={{ background: 'linear-gradient(135deg, #7C3AED, #A855F7)' }}
+          >
+            Filter
+          </button>
+          {isFiltered && (
+            <button
+              onClick={clearFilter}
+              className="px-4 py-2 bg-white/70 text-gray-500 text-sm font-bold rounded-xl border border-gray-200 hover:scale-105 transition-all"
+            >
+              Clear
+            </button>
+          )}
+        </div>
+        <div className="mt-2 flex items-center gap-2">
+          <button
+            onClick={() => setCombineMode(m => !m)}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold transition-all ${
+              combineMode
+                ? 'text-white shadow-md'
+                : 'bg-white/70 text-gray-500 border border-gray-200'
+            }`}
+            style={combineMode ? { background: 'linear-gradient(135deg, #EC4899, #F43F5E)' } : {}}
+          >
+            <span>{combineMode ? '✓' : '○'}</span>
+            Combine duplicates
+          </button>
+        </div>
+      </div>
 
       {/* Add item form */}
       <div
@@ -150,42 +268,75 @@ export default function ShoppingList() {
         </div>
       )}
 
-      {/* Unchecked items */}
-      <ul className="space-y-2.5">
-        {unchecked.map((item, idx) => (
-          <li
-            key={item.id}
-            className={`flex items-center gap-3 px-4 py-3.5 bg-white/80 rounded-2xl shadow-sm border-l-4 transition-all duration-150 hover:shadow-md hover:-translate-y-0.5 ${
-              ITEM_ACCENTS[idx % ITEM_ACCENTS.length]
-            }`}
-          >
-            <input
-              type="checkbox"
-              checked={false}
-              onChange={() => toggle(item.id)}
-              className="w-5 h-5 cursor-pointer rounded accent-pink-500"
-              style={{ accentColor: '#EC4899' }}
-            />
-            <span className="flex-1 text-gray-800 font-semibold">{item.name}</span>
-            {item.quantity && (
-              <span className="text-xs font-bold text-pink-600 bg-pink-50 px-2 py-0.5 rounded-full border border-pink-200">
-                {item.quantity}
-              </span>
-            )}
-            {item.mealId && (
-              <span className="text-xs font-bold text-violet-700 bg-violet-50 px-2 py-0.5 rounded-full border border-violet-200 truncate max-w-[100px]">
-                {mealLabel(item.mealId)}
-              </span>
-            )}
-            <button
-              onClick={() => remove(item.id)}
-              className="text-gray-300 hover:text-red-400 text-xl leading-none transition-colors"
+      {/* Combined view */}
+      {combineMode && combinedUnchecked && combinedUnchecked.length > 0 && (
+        <ul className="space-y-2.5">
+          {combinedUnchecked.map(({ key, displayName, ids, quantity, mealIds, count }, idx) => (
+            <li
+              key={key}
+              className={`flex items-center gap-3 px-4 py-3.5 bg-white/80 rounded-2xl shadow-sm border-l-4 transition-all duration-150 hover:shadow-md hover:-translate-y-0.5 ${
+                ITEM_ACCENTS[idx % ITEM_ACCENTS.length]
+              }`}
             >
-              ×
-            </button>
-          </li>
-        ))}
-      </ul>
+              <span className="flex-1 text-gray-800 font-semibold">{displayName}</span>
+              {quantity && (
+                <span className="text-xs font-bold text-pink-600 bg-pink-50 px-2 py-0.5 rounded-full border border-pink-200">
+                  {quantity}
+                </span>
+              )}
+              {count > 1 && (
+                <span className="text-xs font-black text-white bg-violet-500 px-2 py-0.5 rounded-full">
+                  ×{count}
+                </span>
+              )}
+              {mealIds.length > 0 && (
+                <span className="text-xs font-bold text-violet-700 bg-violet-50 px-2 py-0.5 rounded-full border border-violet-200 truncate max-w-[100px]">
+                  {mealIds.length > 1 ? `${mealIds.length} meals` : mealLabel(mealIds[0])}
+                </span>
+              )}
+            </li>
+          ))}
+        </ul>
+      )}
+
+      {/* Normal (non-combined) unchecked items */}
+      {!combineMode && (
+        <ul className="space-y-2.5">
+          {unchecked.map((item, idx) => (
+            <li
+              key={item.id}
+              className={`flex items-center gap-3 px-4 py-3.5 bg-white/80 rounded-2xl shadow-sm border-l-4 transition-all duration-150 hover:shadow-md hover:-translate-y-0.5 ${
+                ITEM_ACCENTS[idx % ITEM_ACCENTS.length]
+              }`}
+            >
+              <input
+                type="checkbox"
+                checked={false}
+                onChange={() => toggle(item.id)}
+                className="w-5 h-5 cursor-pointer rounded accent-pink-500"
+                style={{ accentColor: '#EC4899' }}
+              />
+              <span className="flex-1 text-gray-800 font-semibold">{item.name}</span>
+              {item.quantity && (
+                <span className="text-xs font-bold text-pink-600 bg-pink-50 px-2 py-0.5 rounded-full border border-pink-200">
+                  {item.quantity}
+                </span>
+              )}
+              {item.mealId && (
+                <span className="text-xs font-bold text-violet-700 bg-violet-50 px-2 py-0.5 rounded-full border border-violet-200 truncate max-w-[100px]">
+                  {mealLabel(item.mealId)}
+                </span>
+              )}
+              <button
+                onClick={() => remove(item.id)}
+                className="text-gray-300 hover:text-red-400 text-xl leading-none transition-colors"
+              >
+                ×
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
 
       {/* Checked / Done items */}
       {checked.length > 0 && (
