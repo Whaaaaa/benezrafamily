@@ -8,6 +8,7 @@ const tabs = [
   { label: '🗓️', title: 'Calendar', href: '/calendar',  exact: false },
   { label: '🛒', title: 'Shopping', href: '/shopping',  exact: false },
   { label: '💰', title: 'Budget',   href: '/budget',    exact: false },
+  { label: '🎬', title: 'Videos',   href: '/videos',    exact: false },
 ]
 
 const GRADIENTS = [
@@ -15,6 +16,7 @@ const GRADIENTS = [
   'linear-gradient(135deg, #A855F7, #7C3AED)',
   'linear-gradient(135deg, #EC4899, #F43F5E)',
   'linear-gradient(135deg, #F59E0B, #EF4444)',
+  'linear-gradient(135deg, #10B981, #3B82F6)',
 ]
 
 export default function TabNav() {
