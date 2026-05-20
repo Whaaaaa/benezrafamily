@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from 'react'
 import ChugimTab from './ChugimTab'
 import TransactionsTab from './TransactionsTab'
+import SavingsTab from './SavingsTab'
 
 type BudgetCategory = {
   id: string
@@ -304,7 +305,7 @@ function SpendingChart({ data, budget }: { data: { month: string; total: number 
 // ── Component ─────────────────────────────────────────────────────────────────
 
 export default function BudgetDashboard() {
-  const [activeTab, setActiveTab] = useState<'overview' | 'chugim' | 'transactions'>('overview')
+  const [activeTab, setActiveTab] = useState<'overview' | 'chugim' | 'transactions' | 'savings'>('overview')
   const [categories, setCategories] = useState<BudgetCategory[]>([])
   const [manualTxns, setManualTxns] = useState<ManualTransaction[]>([])
   const [ccTxns, setCcTxns] = useState<CategorizedTransaction[]>([])
@@ -586,6 +587,7 @@ export default function BudgetDashboard() {
           { key: 'overview',      label: '📊 Overview',     gradient: 'linear-gradient(135deg, #F59E0B, #EF4444)' },
           { key: 'chugim',        label: '🎽 Chugim',       gradient: 'linear-gradient(135deg, #7C3AED, #EC4899)' },
           { key: 'transactions',  label: '📋 Transactions', gradient: 'linear-gradient(135deg, #0EA5E9, #6366F1)' },
+          { key: 'savings',       label: '🏠 Savings',      gradient: 'linear-gradient(135deg, #10B981, #059669)' },
         ] as const).map(tab => (
           <button
             key={tab.key}
@@ -604,6 +606,7 @@ export default function BudgetDashboard() {
 
       {activeTab === 'chugim' && <ChugimTab />}
       {activeTab === 'transactions' && <TransactionsTab categories={categories} />}
+      {activeTab === 'savings' && <SavingsTab />}
 
       {activeTab === 'overview' && <>
 

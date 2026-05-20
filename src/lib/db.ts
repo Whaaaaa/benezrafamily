@@ -94,6 +94,13 @@ export async function initDb() {
       color TEXT NOT NULL DEFAULT 'orange'
     )
   `
+  await sql`
+    CREATE TABLE IF NOT EXISTS savings_accounts (
+      id TEXT PRIMARY KEY,
+      name TEXT NOT NULL,
+      balance NUMERIC NOT NULL DEFAULT 0
+    )
+  `
   await sql`ALTER TABLE manual_transactions ADD COLUMN IF NOT EXISTS chug_id TEXT`
   await sql`ALTER TABLE manual_transactions ADD COLUMN IF NOT EXISTS recurring_interval TEXT DEFAULT 'monthly'`
   await sql`ALTER TABLE manual_transactions ADD COLUMN IF NOT EXISTS recurring_start_month TEXT`
