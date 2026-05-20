@@ -75,6 +75,7 @@ export default function MealCalendar({ periodDates = [], chugim = [] }: { period
   const [month, setMonth] = useState(today.getMonth())
   const [meals, setMeals] = useState<Meal[]>([])
   const [events, setEvents] = useState<CalendarEvent[]>([])
+  const [holidays, setHolidays] = useState<Record<string, string[]>>({})
   const [selectedDate, setSelectedDate] = useState<string | null>(null)
   const [addMode, setAddMode] = useState<'meal' | 'event'>('meal')
   const [mealInput, setMealInput] = useState('')
@@ -85,6 +86,26 @@ export default function MealCalendar({ periodDates = [], chugim = [] }: { period
     fetch('/api/meals').then(r => r.json()).then(setMeals)
     fetch('/api/events').then(r => r.json()).then(setEvents)
   }, [])
+
+  useEffect(() => {
+    fetch(
+      `https://www.hebcal.com/hebcal/?v=1&cfg=json&year=${year}&month=${month + 1}&maj=on&min=off&nx=off&mf=off&ss=off&mod=on&i=off&lg=s`
+    )
+      .then(r => r.json())
+      .then(data => {
+        const map: Record<string, string[]> = {}
+        for (const item of data.items ?? []) {
+          if (item.category === 'holiday' || item.category === 'modern') {
+            const date = item.date.slice(0, 10)
+            const title = (item.title as string).replace(/\s+\d{4}$/, '')
+            if (!map[date]) map[date] = []
+            map[date].push(title)
+          }
+        }
+        setHolidays(map)
+      })
+      .catch(() => {})
+  }, [year, month])
 
   const prevMonth = () => {
     if (month === 0) { setYear(y => y - 1); setMonth(11) }
@@ -191,6 +212,7 @@ export default function MealCalendar({ periodDates = [], chugim = [] }: { period
             const dateStr = toDateStr(year, month, day)
             const dayMeals = meals.filter(m => m.date === dateStr)
             const dayEvents = events.filter(e => e.date === dateStr)
+            const dayHolidays = holidays[dateStr] ?? []
             const isToday = dateStr === todayStr
             const isSelected = dateStr === selectedDate
             const isPeriod = periodDates.includes(dateStr)
@@ -225,6 +247,14 @@ export default function MealCalendar({ periodDates = [], chugim = [] }: { period
                   )}
                 </div>
                 <div className="space-y-0.5">
+                  {dayHolidays.map(h => (
+                    <div
+                      key={h}
+                      className="text-xs rounded-md px-1.5 py-0.5 font-bold truncate bg-amber-100 text-amber-800 border border-amber-300"
+                    >
+                      ✡ {h}
+                    </div>
+                  ))}
                   {dayEvents.map(event => {
                     const colorDef = EVENT_COLORS.find(c => c.value === event.color) ?? EVENT_COLORS[0]
                     return (
@@ -279,6 +309,10 @@ export default function MealCalendar({ periodDates = [], chugim = [] }: { period
 
       {/* Legend */}
       <div className="mt-3 flex items-center justify-center gap-4 text-xs text-gray-400 font-semibold flex-wrap">
+        <span className="flex items-center gap-1.5">
+          <span className="w-2.5 h-2.5 rounded-sm bg-amber-300 inline-block" />
+          Holidays
+        </span>
         <span className="flex items-center gap-1.5">
           <span className="w-2.5 h-2.5 rounded-sm bg-orange-500 inline-block" />
           Events
