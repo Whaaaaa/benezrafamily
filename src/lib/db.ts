@@ -101,6 +101,7 @@ export async function initDb() {
       balance NUMERIC NOT NULL DEFAULT 0
     )
   `
+  await sql`ALTER TABLE savings_accounts ADD COLUMN IF NOT EXISTS currency TEXT NOT NULL DEFAULT 'ILS'`
   await sql`ALTER TABLE manual_transactions ADD COLUMN IF NOT EXISTS chug_id TEXT`
   await sql`ALTER TABLE manual_transactions ADD COLUMN IF NOT EXISTS recurring_interval TEXT DEFAULT 'monthly'`
   await sql`ALTER TABLE manual_transactions ADD COLUMN IF NOT EXISTS recurring_start_month TEXT`
