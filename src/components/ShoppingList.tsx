@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useMemo, useRef } from 'react'
+import { useState, useEffect, useMemo, useRef, forwardRef, useCallback } from 'react'
 
 type Meal = { id: string; date: string; name: string; templateId: string }
 type Ingredient = { id: string; name: string; quantity: string }
@@ -18,6 +18,200 @@ function formatDate(dateStr: string) {
   const d = new Date(`${dateStr}T12:00:00`)
   return `${DOW[d.getDay()]}, ${dateStr}`
 }
+
+// ── IngredientCombobox ──────────────────────────────────────────────────────
+
+const IngredientCombobox = forwardRef<HTMLInputElement, {
+  value: string
+  onChange: (v: string) => void
+  onKeyDown?: (e: React.KeyboardEvent<HTMLInputElement>) => void
+  suggestions: string[]
+  placeholder?: string
+  className?: string
+}>(function IngredientCombobox({ value, onChange, onKeyDown, suggestions, placeholder, className }, ref) {
+  const [open, setOpen] = useState(false)
+  const [activeIdx, setActiveIdx] = useState(-1)
+  const containerRef = useRef<HTMLDivElement>(null)
+
+  const filtered = useMemo(() => {
+    if (!value.trim()) return []
+    const q = value.toLowerCase()
+    return suggestions.filter(s => s.toLowerCase().includes(q)).slice(0, 8)
+  }, [value, suggestions])
+
+  const isOpen = open && filtered.length > 0
+
+  useEffect(() => {
+    if (!isOpen) setActiveIdx(-1)
+  }, [isOpen])
+
+  useEffect(() => {
+    function handle(e: MouseEvent) {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+        setOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handle)
+    return () => document.removeEventListener('mousedown', handle)
+  }, [])
+
+  function handleKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
+    if (isOpen) {
+      if (e.key === 'ArrowDown') {
+        e.preventDefault()
+        setActiveIdx(i => Math.min(i + 1, filtered.length - 1))
+        return
+      }
+      if (e.key === 'ArrowUp') {
+        e.preventDefault()
+        setActiveIdx(i => Math.max(i - 1, 0))
+        return
+      }
+      if (e.key === 'Enter' && activeIdx >= 0) {
+        e.preventDefault()
+        onChange(filtered[activeIdx])
+        setOpen(false)
+        return
+      }
+      if (e.key === 'Escape') {
+        setOpen(false)
+        return
+      }
+    }
+    onKeyDown?.(e)
+  }
+
+  return (
+    <div ref={containerRef} className="relative flex-1">
+      <input
+        ref={ref}
+        value={value}
+        onChange={e => { onChange(e.target.value); setOpen(true) }}
+        onFocus={() => value.trim() && setOpen(true)}
+        onKeyDown={handleKeyDown}
+        placeholder={placeholder}
+        className={className}
+        autoComplete="off"
+      />
+      {isOpen && (
+        <ul className="absolute z-50 left-0 right-0 top-full mt-1 bg-white rounded-xl shadow-lg border border-emerald-100 overflow-hidden max-h-48 overflow-y-auto">
+          {filtered.map((s, i) => (
+            <li
+              key={s}
+              onMouseDown={e => { e.preventDefault(); onChange(s); setOpen(false) }}
+              className={`px-3 py-2 text-sm font-semibold cursor-pointer transition-colors ${
+                i === activeIdx ? 'bg-emerald-50 text-emerald-700' : 'text-gray-700 hover:bg-emerald-50'
+              }`}
+            >
+              {s}
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  )
+})
+
+// ── MealCard ────────────────────────────────────────────────────────────────
+
+function MealCard({ templateId, title, onDelete, meal, ingredients, isDirty, isSaving, ingInput, allIngredientNames, onSave, onRemoveIngredient, onIngNameChange, onIngQtyChange, onAddIngredient, inputRef }: {
+  templateId: string
+  title: string
+  onDelete: () => void
+  meal?: Meal
+  ingredients: Ingredient[]
+  isDirty: boolean
+  isSaving: boolean
+  ingInput: { name: string; qty: string }
+  allIngredientNames: string[]
+  onSave: () => void
+  onRemoveIngredient: (ingId: string) => void
+  onIngNameChange: (v: string) => void
+  onIngQtyChange: (v: string) => void
+  onAddIngredient: () => void
+  inputRef: (el: HTMLInputElement | null) => void
+}) {
+  return (
+    <div className="rounded-2xl border border-emerald-100 bg-white/80 shadow-sm overflow-hidden">
+      <div className="flex items-center justify-between px-4 py-3 border-b border-emerald-50"
+        style={{ background: 'linear-gradient(135deg, #f0fdf4, #ecfdf5)' }}>
+        <span className="font-black text-gray-800">{title}</span>
+        <div className="flex items-center gap-2">
+          {isDirty && (
+            <button
+              onClick={onSave}
+              disabled={isSaving}
+              className="px-3 py-1 text-xs font-bold text-white rounded-lg shadow hover:scale-105 transition-all disabled:opacity-50"
+              style={{ background: 'linear-gradient(135deg, #059669, #10B981)' }}
+            >
+              {isSaving ? 'Saving…' : 'Save'}
+            </button>
+          )}
+          <button
+            onClick={onDelete}
+            className="w-7 h-7 flex items-center justify-center rounded-lg text-gray-300 hover:text-red-400 hover:bg-red-50 transition-all text-base"
+            title="Delete"
+          >
+            🗑
+          </button>
+        </div>
+      </div>
+
+      <div className="px-4 pt-3 pb-3">
+        {ingredients.length === 0 && (
+          <p className="text-xs text-gray-400 italic mb-2">No ingredients yet.</p>
+        )}
+        <ul className="space-y-1 mb-3">
+          {ingredients.map(ing => (
+            <li key={ing.id} className="flex items-center gap-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 flex-shrink-0" />
+              <span className="flex-1 text-sm font-semibold text-gray-700">{ing.name}</span>
+              {ing.quantity && (
+                <span className="text-xs font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+                  {ing.quantity}
+                </span>
+              )}
+              <button
+                onClick={() => onRemoveIngredient(ing.id)}
+                className="text-gray-300 hover:text-red-400 text-lg leading-none transition-colors flex-shrink-0"
+              >
+                ×
+              </button>
+            </li>
+          ))}
+        </ul>
+
+        <div className="flex gap-1.5">
+          <IngredientCombobox
+            ref={inputRef}
+            value={ingInput.name}
+            onChange={onIngNameChange}
+            onKeyDown={e => e.key === 'Enter' && onAddIngredient()}
+            suggestions={allIngredientNames}
+            placeholder="Add ingredient…"
+            className="w-full px-3 py-1.5 border-2 border-emerald-100 rounded-xl text-sm font-semibold focus:outline-none focus:border-emerald-400 bg-white/80"
+          />
+          <input
+            value={ingInput.qty}
+            onChange={e => onIngQtyChange(e.target.value)}
+            onKeyDown={e => e.key === 'Enter' && onAddIngredient()}
+            placeholder="Qty"
+            className="w-16 px-2 py-1.5 border-2 border-emerald-100 rounded-xl text-sm font-semibold focus:outline-none focus:border-emerald-400 bg-white/80"
+          />
+          <button
+            onClick={onAddIngredient}
+            className="px-3 py-1.5 text-white text-sm font-bold rounded-xl shadow hover:scale-105 transition-all"
+            style={{ background: 'linear-gradient(135deg, #059669, #10B981)' }}
+          >
+            +
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ── ShoppingList ─────────────────────────────────────────────────────────────
 
 export default function ShoppingList() {
   const [tab, setTab] = useState<'plan' | 'list' | 'meals'>('plan')
@@ -93,13 +287,12 @@ export default function ShoppingList() {
     return new Map([...map.entries()].sort(([a], [b]) => a.localeCompare(b)))
   }, [meals])
 
-  // Templates not linked to any calendar meal
   const libraryTemplates = useMemo(() => {
     const scheduledIds = new Set(meals.map(m => m.templateId).filter(Boolean))
     return templates.filter(t => !scheduledIds.has(t.id))
   }, [meals, templates])
 
-  // ── Plan tab ────────────────────────────────────────────────────
+  // ── Plan tab ─────────────────────────────────────────────────────────────
 
   const applyDateFilter = () => {
     if (!filterFrom || !filterTo) return
@@ -150,45 +343,43 @@ export default function ShoppingList() {
     setTab('list')
   }
 
-  // ── Meals tab — editing ─────────────────────────────────────────
+  // ── Meals tab — editing ──────────────────────────────────────────────────
 
   const getIngInput = (key: string) => newIngInputs[key] ?? { name: '', qty: '' }
-  const setIngInput = (key: string, field: 'name' | 'qty', value: string) =>
-    setNewIngInputs(prev => ({ ...prev, [key]: { ...getIngInput(key), [field]: value } }))
 
-  const addIngredientToMeal = (templateId: string) => {
-    const { name: ingName, qty: ingQty } = getIngInput(templateId)
-    if (!ingName.trim()) return
-    const newIng: Ingredient = { id: `ing-${Date.now()}`, name: ingName.trim(), quantity: ingQty.trim() }
-    setTemplateEdits(prev => ({ ...prev, [templateId]: [...(prev[templateId] ?? []), newIng] }))
-    setDirtyTemplates(prev => new Set(prev).add(templateId))
-    setNewIngInputs(prev => ({ ...prev, [templateId]: { name: '', qty: '' } }))
-    setTimeout(() => newIngRefs.current[templateId]?.focus(), 0)
-  }
+  const addIngredientToMeal = useCallback((templateId: string) => {
+    setNewIngInputs(prev => {
+      const input = prev[templateId] ?? { name: '', qty: '' }
+      if (!input.name.trim()) return prev
+      const newIng: Ingredient = { id: `ing-${Date.now()}`, name: input.name.trim(), quantity: input.qty.trim() }
+      setTemplateEdits(te => ({ ...te, [templateId]: [...(te[templateId] ?? []), newIng] }))
+      setDirtyTemplates(dt => new Set(dt).add(templateId))
+      setTimeout(() => newIngRefs.current[templateId]?.focus(), 0)
+      return { ...prev, [templateId]: { name: '', qty: '' } }
+    })
+  }, [])
 
-  const removeIngredient = (templateId: string, ingId: string) => {
+  const removeIngredient = useCallback((templateId: string, ingId: string) => {
     setTemplateEdits(prev => ({ ...prev, [templateId]: (prev[templateId] ?? []).filter(i => i.id !== ingId) }))
     setDirtyTemplates(prev => new Set(prev).add(templateId))
-  }
+  }, [])
 
-  const saveTemplateById = async (templateId: string, mealForLink?: Meal) => {
+  const saveTemplateById = async (templateId: string, meal?: Meal) => {
     const ingredients = templateEdits[templateId] ?? []
     setSavingTemplates(prev => new Set(prev).add(templateId))
-
-    if (mealForLink && !mealForLink.templateId) {
-      // No template yet — create one and link to the calendar meal
+    if (meal && !meal.templateId) {
       await fetch('/api/meal-templates', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id: templateId, name: mealForLink.name, ingredients }),
+        body: JSON.stringify({ id: templateId, name: meal.name, ingredients }),
       })
-      await fetch(`/api/meals/${mealForLink.id}`, {
+      await fetch(`/api/meals/${meal.id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ templateId }),
       })
-      setMeals(prev => prev.map(m => m.id === mealForLink.id ? { ...m, templateId } : m))
-      setTemplates(prev => [...prev, { id: templateId, name: mealForLink.name, ingredients }])
+      setMeals(prev => prev.map(m => m.id === meal.id ? { ...m, templateId } : m))
+      setTemplates(prev => [...prev, { id: templateId, name: meal.name, ingredients }])
     } else {
       await fetch(`/api/meal-templates/${templateId}`, {
         method: 'PATCH',
@@ -197,7 +388,6 @@ export default function ShoppingList() {
       })
       setTemplates(prev => prev.map(t => t.id === templateId ? { ...t, ingredients } : t))
     }
-
     setDirtyTemplates(prev => { const n = new Set(prev); n.delete(templateId); return n })
     setSavingTemplates(prev => { const n = new Set(prev); n.delete(templateId); return n })
   }
@@ -213,7 +403,7 @@ export default function ShoppingList() {
     await fetch(`/api/meal-templates/${templateId}`, { method: 'DELETE' })
   }
 
-  // ── Meals tab — new unscheduled meal ────────────────────────────
+  // ── Meals tab — new unscheduled meal ──────────────────────────────────────
 
   const addNewMealIngredient = () => {
     if (!newMealIngName.trim()) return
@@ -242,7 +432,7 @@ export default function ShoppingList() {
     setSavingNewMeal(false)
   }
 
-  // ── List tab ────────────────────────────────────────────────────
+  // ── List tab ──────────────────────────────────────────────────────────────
 
   const addItem = async () => {
     if (!name.trim()) return
@@ -276,104 +466,8 @@ export default function ShoppingList() {
   const mealLabel = (id: string) => meals.find(m => m.id === id)?.name ?? ''
   const mealOptions = [...meals].sort((a, b) => a.date.localeCompare(b.date))
 
-  // ── Shared: editable meal card ──────────────────────────────────
-
-  const MealCard = ({ templateId, title, onDelete, meal }: {
-    templateId: string
-    title: string
-    onDelete: () => void
-    meal?: Meal
-  }) => {
-    const ingredients = templateEdits[templateId] ?? []
-    const isDirty = dirtyTemplates.has(templateId)
-    const isSaving = savingTemplates.has(templateId)
-    const input = getIngInput(templateId)
-
-    return (
-      <div className="rounded-2xl border border-emerald-100 bg-white/80 shadow-sm overflow-hidden">
-        <div className="flex items-center justify-between px-4 py-3 border-b border-emerald-50"
-          style={{ background: 'linear-gradient(135deg, #f0fdf4, #ecfdf5)' }}>
-          <span className="font-black text-gray-800">{title}</span>
-          <div className="flex items-center gap-2">
-            {isDirty && (
-              <button
-                onClick={() => saveTemplateById(templateId, meal)}
-                disabled={isSaving}
-                className="px-3 py-1 text-xs font-bold text-white rounded-lg shadow hover:scale-105 transition-all disabled:opacity-50"
-                style={{ background: 'linear-gradient(135deg, #059669, #10B981)' }}
-              >
-                {isSaving ? 'Saving…' : 'Save'}
-              </button>
-            )}
-            <button
-              onClick={onDelete}
-              className="w-7 h-7 flex items-center justify-center rounded-lg text-gray-300 hover:text-red-400 hover:bg-red-50 transition-all text-base"
-              title="Delete"
-            >
-              🗑
-            </button>
-          </div>
-        </div>
-
-        <div className="px-4 pt-3 pb-3">
-          {ingredients.length === 0 && (
-            <p className="text-xs text-gray-400 italic mb-2">No ingredients yet.</p>
-          )}
-          <ul className="space-y-1 mb-3">
-            {ingredients.map(ing => (
-              <li key={ing.id} className="flex items-center gap-2">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 flex-shrink-0" />
-                <span className="flex-1 text-sm font-semibold text-gray-700">{ing.name}</span>
-                {ing.quantity && (
-                  <span className="text-xs font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
-                    {ing.quantity}
-                  </span>
-                )}
-                <button
-                  onClick={() => removeIngredient(templateId, ing.id)}
-                  className="text-gray-300 hover:text-red-400 text-lg leading-none transition-colors flex-shrink-0"
-                >
-                  ×
-                </button>
-              </li>
-            ))}
-          </ul>
-
-          <div className="flex gap-1.5">
-            <input
-              ref={el => { newIngRefs.current[templateId] = el }}
-              list="sl-ingredient-names"
-              value={input.name}
-              onChange={e => setIngInput(templateId, 'name', e.target.value)}
-              onKeyDown={e => e.key === 'Enter' && addIngredientToMeal(templateId)}
-              placeholder="Add ingredient…"
-              className="flex-1 px-3 py-1.5 border-2 border-emerald-100 rounded-xl text-sm font-semibold focus:outline-none focus:border-emerald-400 bg-white/80"
-            />
-            <input
-              value={input.qty}
-              onChange={e => setIngInput(templateId, 'qty', e.target.value)}
-              onKeyDown={e => e.key === 'Enter' && addIngredientToMeal(templateId)}
-              placeholder="Qty"
-              className="w-16 px-2 py-1.5 border-2 border-emerald-100 rounded-xl text-sm font-semibold focus:outline-none focus:border-emerald-400 bg-white/80"
-            />
-            <button
-              onClick={() => addIngredientToMeal(templateId)}
-              className="px-3 py-1.5 text-white text-sm font-bold rounded-xl shadow hover:scale-105 transition-all"
-              style={{ background: 'linear-gradient(135deg, #059669, #10B981)' }}
-            >
-              +
-            </button>
-          </div>
-        </div>
-      </div>
-    )
-  }
-
   return (
     <div className="p-4 sm:p-6 max-w-2xl mx-auto animate-slide-up">
-      <datalist id="sl-ingredient-names">
-        {allIngredientNames.map(n => <option key={n} value={n} />)}
-      </datalist>
 
       {/* Tab switcher */}
       <div className="flex gap-2 mb-6">
@@ -555,14 +649,14 @@ export default function ShoppingList() {
                 )}
 
                 <div className="flex gap-1.5">
-                  <input
+                  <IngredientCombobox
                     ref={newMealIngRef}
-                    list="sl-ingredient-names"
                     value={newMealIngName}
-                    onChange={e => setNewMealIngName(e.target.value)}
+                    onChange={setNewMealIngName}
                     onKeyDown={e => e.key === 'Enter' && addNewMealIngredient()}
+                    suggestions={allIngredientNames}
                     placeholder="Add ingredient…"
-                    className="flex-1 px-3 py-1.5 border-2 border-emerald-100 rounded-xl text-sm font-semibold focus:outline-none focus:border-emerald-400 bg-white/80"
+                    className="w-full px-3 py-1.5 border-2 border-emerald-100 rounded-xl text-sm font-semibold focus:outline-none focus:border-emerald-400 bg-white/80"
                   />
                   <input
                     value={newMealIngQty}
@@ -601,12 +695,24 @@ export default function ShoppingList() {
               <div className="space-y-3">
                 {dayMeals.map(meal => {
                   const templateId = meal.templateId || `new-${meal.id}`
+                  const input = getIngInput(templateId)
                   return (
                     <MealCard
                       key={meal.id}
-                      templateId={meal.templateId || `new-${meal.id}`}
+                      templateId={templateId}
                       title={meal.name}
                       meal={!meal.templateId ? meal : undefined}
+                      ingredients={templateEdits[templateId] ?? []}
+                      isDirty={dirtyTemplates.has(templateId)}
+                      isSaving={savingTemplates.has(templateId)}
+                      ingInput={input}
+                      allIngredientNames={allIngredientNames}
+                      onSave={() => saveTemplateById(templateId, !meal.templateId ? meal : undefined)}
+                      onRemoveIngredient={ingId => removeIngredient(templateId, ingId)}
+                      onIngNameChange={v => setNewIngInputs(prev => ({ ...prev, [templateId]: { ...getIngInput(templateId), name: v } }))}
+                      onIngQtyChange={v => setNewIngInputs(prev => ({ ...prev, [templateId]: { ...getIngInput(templateId), qty: v } }))}
+                      onAddIngredient={() => addIngredientToMeal(templateId)}
+                      inputRef={el => { newIngRefs.current[templateId] = el }}
                       onDelete={() => deleteMeal(meal.id)}
                     />
                   )
@@ -620,14 +726,28 @@ export default function ShoppingList() {
             <div>
               <p className="text-xs font-black text-gray-400 uppercase tracking-widest mb-3">Meal Library</p>
               <div className="space-y-3">
-                {libraryTemplates.map(tmpl => (
-                  <MealCard
-                    key={tmpl.id}
-                    templateId={tmpl.id}
-                    title={tmpl.name}
-                    onDelete={() => deleteTemplate(tmpl.id)}
-                  />
-                ))}
+                {libraryTemplates.map(tmpl => {
+                  const input = getIngInput(tmpl.id)
+                  return (
+                    <MealCard
+                      key={tmpl.id}
+                      templateId={tmpl.id}
+                      title={tmpl.name}
+                      ingredients={templateEdits[tmpl.id] ?? []}
+                      isDirty={dirtyTemplates.has(tmpl.id)}
+                      isSaving={savingTemplates.has(tmpl.id)}
+                      ingInput={input}
+                      allIngredientNames={allIngredientNames}
+                      onSave={() => saveTemplateById(tmpl.id)}
+                      onRemoveIngredient={ingId => removeIngredient(tmpl.id, ingId)}
+                      onIngNameChange={v => setNewIngInputs(prev => ({ ...prev, [tmpl.id]: { ...getIngInput(tmpl.id), name: v } }))}
+                      onIngQtyChange={v => setNewIngInputs(prev => ({ ...prev, [tmpl.id]: { ...getIngInput(tmpl.id), qty: v } }))}
+                      onAddIngredient={() => addIngredientToMeal(tmpl.id)}
+                      inputRef={el => { newIngRefs.current[tmpl.id] = el }}
+                      onDelete={() => deleteTemplate(tmpl.id)}
+                    />
+                  )
+                })}
               </div>
             </div>
           )}

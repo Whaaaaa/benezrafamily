@@ -95,6 +95,15 @@ export async function initDb() {
     )
   `
   await sql`
+    CREATE TABLE IF NOT EXISTS savings_goals (
+      id TEXT PRIMARY KEY,
+      name TEXT NOT NULL,
+      target_amount NUMERIC NOT NULL DEFAULT 0,
+      emoji TEXT NOT NULL DEFAULT '🎯',
+      color TEXT NOT NULL DEFAULT 'emerald'
+    )
+  `
+  await sql`
     CREATE TABLE IF NOT EXISTS savings_accounts (
       id TEXT PRIMARY KEY,
       name TEXT NOT NULL,
@@ -117,6 +126,13 @@ export async function initDb() {
   `
   await sql`ALTER TABLE meals ADD COLUMN IF NOT EXISTS template_id TEXT NOT NULL DEFAULT ''`
   await sql`ALTER TABLE savings_accounts ADD COLUMN IF NOT EXISTS currency TEXT NOT NULL DEFAULT 'ILS'`
+  await sql`ALTER TABLE savings_accounts ADD COLUMN IF NOT EXISTS goal_id TEXT`
+  await sql`
+    INSERT INTO savings_goals (id, name, target_amount, emoji, color)
+    VALUES ('retirement', 'Retirement', 5000000, '🌅', 'violet'),
+           ('house', 'House', 300000, '🏠', 'emerald')
+    ON CONFLICT (id) DO NOTHING
+  `
   await sql`ALTER TABLE manual_transactions ADD COLUMN IF NOT EXISTS chug_id TEXT`
   await sql`ALTER TABLE manual_transactions ADD COLUMN IF NOT EXISTS recurring_interval TEXT DEFAULT 'monthly'`
   await sql`ALTER TABLE manual_transactions ADD COLUMN IF NOT EXISTS recurring_start_month TEXT`
