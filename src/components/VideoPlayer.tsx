@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState, useCallback } from 'react'
 
 interface Props {
-  videoId: string
+  src: string
   title: string
   onClose: () => void
 }
@@ -78,7 +78,7 @@ function SeekBar({
   )
 }
 
-export default function VideoPlayer({ videoId, title, onClose }: Props) {
+export default function VideoPlayer({ src, title, onClose }: Props) {
   const videoRef     = useRef<HTMLVideoElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
   const timerRef     = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -211,7 +211,7 @@ export default function VideoPlayer({ videoId, title, onClose }: Props) {
       {/* Video element */}
       <video
         ref={videoRef}
-        src={`/api/video?id=${videoId}`}
+        src={src}
         className="w-full h-full object-contain"
         onClick={togglePlay}
         preload="metadata"

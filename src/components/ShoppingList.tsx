@@ -492,7 +492,7 @@ export default function ShoppingList() {
     if (checked.length > 0) {
       lines.push('', '✅ Done:', ...checked.map(i => `• ${i.name}`))
     }
-    const text = `🛒 Shopping List\n\n${lines.join('\n')}`
+    const text = `Shopping List:\n\n${lines.join('\n')}`
     window.open(`https://wa.me/${phone}?text=${encodeURIComponent(text)}`, '_blank')
   }
 

@@ -7,7 +7,8 @@ interface VideoMeta {
   id: string
   title: string
   category: string
-  hasThumbnail: boolean
+  url: string
+  thumbnailUrl: string | null
   size: number
   mtime: number
 }
@@ -41,10 +42,10 @@ function VideoCard({ video, onPlay }: { video: VideoMeta; onPlay: () => void }) 
       className="relative flex-shrink-0 w-44 sm:w-52 cursor-pointer group transition-all duration-200 hover:scale-105 hover:z-10"
     >
       <div className="relative rounded-xl overflow-hidden shadow-lg" style={{ aspectRatio: '16/9' }}>
-        {video.hasThumbnail ? (
+        {video.thumbnailUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
-            src={`/api/video?id=${video.id}&thumb=1`}
+            src={video.thumbnailUrl}
             alt={video.title}
             className="w-full h-full object-cover"
             loading="lazy"
@@ -153,7 +154,7 @@ export default function VideosPage() {
     <>
       {playing && (
         <VideoPlayer
-          videoId={playing.id}
+          src={playing.url}
           title={playing.title}
           onClose={() => setPlaying(null)}
         />
@@ -222,10 +223,10 @@ export default function VideosPage() {
           <>
             {/* Hero */}
             <div className="relative w-full overflow-hidden" style={{ height: '58vh', minHeight: 300 }}>
-              {hero?.hasThumbnail ? (
+              {hero?.thumbnailUrl ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
-                  src={`/api/video?id=${hero.id}&thumb=1`}
+                  src={hero.thumbnailUrl}
                   alt={hero.title}
                   className="w-full h-full object-cover"
                 />

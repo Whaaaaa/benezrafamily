@@ -327,6 +327,12 @@ export default function BudgetDashboard() {
   const [uploadLoading, setUploadLoading] = useState(false)
   const [savingCc, setSavingCc] = useState(false)
 
+  const [showScrapeModal, setShowScrapeModal] = useState(false)
+  const [scrapeUsername, setScrapeUsername] = useState('')
+  const [scrapePassword, setScrapePassword] = useState('')
+  const [scrapeLoading, setScrapeLoading] = useState(false)
+  const [scrapeError, setScrapeError] = useState('')
+
   const [showAddForm, setShowAddForm] = useState(false)
   const [saving, setSaving] = useState(false)
   const [form, setForm] = useState({ ...EMPTY_FORM, date: new Date().toISOString().split('T')[0] })
@@ -486,6 +492,35 @@ export default function BudgetDashboard() {
     setCcTxns([])
     setFileName('')
     setSavingCc(false)
+  }
+
+  async function handleScrapeLeumi(e: React.FormEvent) {
+    e.preventDefault()
+    setScrapeLoading(true)
+    setScrapeError('')
+    try {
+      const res = await fetch('/api/budget/scrape-leumi', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ month: selectedMonth, username: scrapeUsername, password: scrapePassword }),
+      })
+      const data = await res.json()
+      if (!res.ok || data.error) {
+        setScrapeError(data.error ?? 'Scrape failed')
+        return
+      }
+      setCcTxns(data.transactions.map((t: { date: string; description: string; amount: number }) => ({
+        ...t,
+        categoryId: categorize(t.description, mappingsRef.current),
+      })))
+      setShowScrapeModal(false)
+      setScrapeUsername('')
+      setScrapePassword('')
+    } catch {
+      setScrapeError('Network error — is the server running?')
+    } finally {
+      setScrapeLoading(false)
+    }
   }
 
   function openAddFormWithCategory(categoryId: string) {
@@ -794,6 +829,67 @@ export default function BudgetDashboard() {
             </>
           )}
         </div>
+
+        {process.env.NODE_ENV === 'development' && (
+          <div className="flex justify-center mb-4">
+            <button
+              onClick={() => { setScrapeError(''); setShowScrapeModal(true) }}
+              className="flex items-center gap-2 px-5 py-2.5 rounded-xl font-black text-sm text-white transition-all hover:scale-105 active:scale-95"
+              style={{ background: 'linear-gradient(135deg, #059669, #10b981)' }}
+            >
+              🏦 Auto-sync from Bank Leumi
+            </button>
+          </div>
+        )}
+
+        {showScrapeModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+            <div className="bg-white rounded-2xl shadow-2xl p-7 w-full max-w-sm mx-4">
+              <h4 className="text-lg font-black text-gray-800 mb-1">Bank Leumi Login</h4>
+              <p className="text-xs text-gray-400 font-semibold mb-5">Credentials are sent to your local server only and never stored.</p>
+              <form onSubmit={handleScrapeLeumi} className="flex flex-col gap-4">
+                <input
+                  type="text"
+                  placeholder="Username"
+                  value={scrapeUsername}
+                  onChange={e => setScrapeUsername(e.target.value)}
+                  required
+                  className="border-2 border-gray-200 rounded-xl px-4 py-2.5 font-semibold text-gray-700 focus:outline-none focus:border-emerald-400"
+                />
+                <input
+                  type="password"
+                  placeholder="Password"
+                  value={scrapePassword}
+                  onChange={e => setScrapePassword(e.target.value)}
+                  required
+                  className="border-2 border-gray-200 rounded-xl px-4 py-2.5 font-semibold text-gray-700 focus:outline-none focus:border-emerald-400"
+                />
+                {scrapeError && (
+                  <div className="text-sm font-semibold text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
+                    {scrapeError}
+                  </div>
+                )}
+                <div className="flex gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setShowScrapeModal(false)}
+                    className="flex-1 py-2.5 rounded-xl border-2 border-gray-200 font-black text-gray-500 hover:border-gray-300 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={scrapeLoading}
+                    className="flex-1 py-2.5 rounded-xl font-black text-white transition-all disabled:opacity-60"
+                    style={{ background: 'linear-gradient(135deg, #059669, #10b981)' }}
+                  >
+                    {scrapeLoading ? '⏳ Scraping...' : 'Sync'}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
 
         {uploadError && (
           <div className="mb-4 p-3.5 bg-red-50 border-2 border-red-200 rounded-xl text-sm font-semibold text-red-600">
