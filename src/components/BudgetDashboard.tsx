@@ -492,7 +492,6 @@ export default function BudgetDashboard() {
       : `${selectedMonth}-01`
     setForm(f => ({ ...f, categoryId, date: defaultDate }))
     setShowAddForm(true)
-    setTimeout(() => addFormRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100)
   }
 
   async function saveTransaction() {
@@ -876,8 +875,13 @@ export default function BudgetDashboard() {
 
         {showAddForm && (
           <div
-            className="rounded-2xl p-5 mb-5 shadow-md border border-amber-100 animate-bounce-in"
+            className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+            onClick={() => setShowAddForm(false)}
+          >
+          <div
+            className="w-full max-w-lg rounded-2xl p-5 shadow-2xl animate-bounce-in max-h-[90vh] overflow-y-auto"
             style={{ background: 'linear-gradient(135deg, #fffbeb, #fff7ed)' }}
+            onClick={e => e.stopPropagation()}
           >
             <div className="grid grid-cols-2 gap-3 mb-3">
               <div>
@@ -984,6 +988,7 @@ export default function BudgetDashboard() {
                 {saving ? 'Saving…' : 'Save'}
               </button>
             </div>
+          </div>
           </div>
         )}
 

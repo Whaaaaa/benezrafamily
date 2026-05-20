@@ -147,8 +147,13 @@ export default function ChugimTab() {
       {/* Add / Edit Form */}
       {showForm && (
         <div
-          className="rounded-2xl p-5 mb-6 shadow-md border border-violet-100 animate-bounce-in"
+          className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+          onClick={cancelForm}
+        >
+        <div
+          className="w-full max-w-lg rounded-2xl p-5 shadow-2xl animate-bounce-in max-h-[90vh] overflow-y-auto"
           style={{ background: 'linear-gradient(135deg, #faf5ff, #fdf2f8)' }}
+          onClick={e => e.stopPropagation()}
         >
           <h4 className="text-xs font-black text-violet-600 uppercase tracking-wide mb-4">
             {editingId ? 'Edit Activity' : 'New Activity'}
@@ -239,6 +244,7 @@ export default function ChugimTab() {
               {saving ? 'Saving…' : editingId ? 'Update' : 'Add Chug'}
             </button>
           </div>
+        </div>
         </div>
       )}
 
