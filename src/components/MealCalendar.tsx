@@ -116,7 +116,7 @@ export default function MealCalendar({ periodDates = [], chugim = [] }: { period
   const [seedDone, setSeedDone] = useState(false)
 
   useEffect(() => {
-    setSeedDone(!!localStorage.getItem('shavuot-seeded'))
+    setSeedDone(!!localStorage.getItem('holiday-seeded-v2'))
     fetch('/api/meals').then(r => r.json()).then(setMeals)
     fetch('/api/events').then(r => r.json()).then(setEvents)
     fetch('/api/meal-templates').then(r => r.json()).then(setTemplates)
@@ -124,14 +124,19 @@ export default function MealCalendar({ periodDates = [], chugim = [] }: { period
 
   const runSeed = async () => {
     await fetch('/api/seed', { method: 'POST' })
-    localStorage.setItem('shavuot-seeded', '1')
+    localStorage.setItem('holiday-seeded-v2', '1')
     setSeedDone(true)
-    const [newMeals, newEvents] = await Promise.all([
+    const [newMeals, newEvents, newTemplates] = await Promise.all([
       fetch('/api/meals').then(r => r.json()),
       fetch('/api/events').then(r => r.json()),
+      fetch('/api/meal-templates').then(r => r.json()),
     ])
     setMeals(newMeals)
     setEvents(newEvents)
+    setTemplates(newTemplates)
+    // Navigate to May 2026 where the seeded meals live
+    setYear(2026)
+    setMonth(4) // May is index 4
   }
 
   useEffect(() => {
@@ -363,7 +368,7 @@ export default function MealCalendar({ periodDates = [], chugim = [] }: { period
               Load
             </button>
             <button
-              onClick={() => { localStorage.setItem('shavuot-seeded', '1'); setSeedDone(true) }}
+              onClick={() => { localStorage.setItem('holiday-seeded-v2', '1'); setSeedDone(true) }}
               className="px-3 py-1.5 text-amber-600 text-xs font-bold rounded-xl bg-white border border-amber-200 hover:scale-105 transition-all"
             >
               Dismiss
