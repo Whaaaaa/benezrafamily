@@ -93,11 +93,10 @@ export default function ChugimTab() {
       ))
     } else {
       const id = crypto.randomUUID()
-      const transactionId = crypto.randomUUID()
       await fetch('/api/budget/chugim', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id, name: form.name.trim(), child: form.child, days: form.days, time: form.time, monthlyCost: cost, transactionId }),
+        body: JSON.stringify({ id, name: form.name.trim(), child: form.child, days: form.days, time: form.time, monthlyCost: cost }),
       })
       setChugim(prev => [...prev, { id, name: form.name.trim(), child: form.child, days: form.days, time: form.time, monthlyCost: cost }])
     }
@@ -336,7 +335,7 @@ export default function ChugimTab() {
             </span>
           </div>
           <p className="text-xs text-gray-400 font-semibold mt-1">
-            Automatically tracked under Kids / School / Chugim
+            Link CC transactions to this chug from the Transactions tab
           </p>
         </div>
       )}

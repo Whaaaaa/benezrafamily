@@ -19,6 +19,9 @@ type ManualTransaction = {
   categoryId: string
   isRecurring: boolean
   recurringDay: number | null
+  chugId: string | null
+  recurringInterval: string
+  recurringStartMonth: string | null
 }
 
 type Transaction = {
@@ -215,6 +218,8 @@ const EMPTY_FORM = {
   categoryId: '',
   isRecurring: false,
   recurringDay: '',
+  recurringInterval: 'monthly' as 'monthly' | 'bimonthly',
+  recurringStartMonth: '',
 }
 
 // ── Spending bar chart (SVG, no deps) ─────────────────────────────────────────
@@ -395,7 +400,17 @@ export default function BudgetDashboard() {
 
     const fromManualRecurring = manualTxns
       .filter(t => t.isRecurring && t.categoryId === catId)
-      .filter(t => !isCurrentMonth || (t.recurringDay !== null && t.recurringDay <= todayDay))
+      .filter(t => {
+        if (isCurrentMonth && (t.recurringDay === null || t.recurringDay > todayDay)) return false
+        if (t.recurringStartMonth && selectedMonth < t.recurringStartMonth) return false
+        if (t.recurringInterval === 'bimonthly' && t.recurringStartMonth) {
+          const [sy, sm] = t.recurringStartMonth.split('-').map(Number)
+          const [ty, tm] = selectedMonth.split('-').map(Number)
+          const diff = (ty - sy) * 12 + (tm - sm)
+          if (diff % 2 !== 0) return false
+        }
+        return true
+      })
       .reduce((sum, t) => sum + Number(t.amount), 0)
 
     const fromSavedCC = savedCcTxns
@@ -491,11 +506,18 @@ export default function BudgetDashboard() {
       categoryId: form.categoryId,
       isRecurring: form.isRecurring,
       recurringDay: form.isRecurring && form.recurringDay ? parseInt(form.recurringDay) : null,
+      chugId: null,
+      recurringInterval: form.recurringInterval,
+      recurringStartMonth: form.isRecurring && form.recurringStartMonth ? form.recurringStartMonth : null,
     }
     await fetch('/api/budget/transactions', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(txn),
+      body: JSON.stringify({
+        ...txn,
+        recurringInterval: txn.recurringInterval,
+        recurringStartMonth: txn.recurringStartMonth,
+      }),
     })
     setManualTxns(prev => [txn, ...prev])
     setForm({ ...EMPTY_FORM, date: new Date().toISOString().split('T')[0] })
@@ -909,18 +931,40 @@ export default function BudgetDashboard() {
                     className="w-4 h-4 rounded"
                     style={{ accentColor: '#7C3AED' }}
                   />
-                  Recurring monthly
+                  Recurring
                 </label>
                 {form.isRecurring && (
-                  <input
-                    type="number"
-                    min="1"
-                    max="31"
-                    placeholder="Day of month (1–31)"
-                    value={form.recurringDay}
-                    onChange={e => setForm(f => ({ ...f, recurringDay: e.target.value }))}
-                    className={inputCls}
-                  />
+                  <div className="flex flex-col gap-2">
+                    <div className="flex rounded-lg border-2 border-violet-200 overflow-hidden text-xs">
+                      {(['monthly', 'bimonthly'] as const).map(iv => (
+                        <button
+                          key={iv}
+                          type="button"
+                          onClick={() => setForm(f => ({ ...f, recurringInterval: iv }))}
+                          className={`flex-1 py-1 font-black transition-colors ${form.recurringInterval === iv ? 'text-white' : 'text-gray-500 hover:bg-violet-50'}`}
+                          style={form.recurringInterval === iv ? { background: 'linear-gradient(135deg,#7C3AED,#A855F7)' } : {}}
+                        >
+                          {iv === 'monthly' ? 'Monthly' : 'Bi-monthly'}
+                        </button>
+                      ))}
+                    </div>
+                    <input
+                      type="number"
+                      min="1"
+                      max="31"
+                      placeholder="Day of month (1–31)"
+                      value={form.recurringDay}
+                      onChange={e => setForm(f => ({ ...f, recurringDay: e.target.value }))}
+                      className={inputCls}
+                    />
+                    <input
+                      type="month"
+                      placeholder="Start month (optional)"
+                      value={form.recurringStartMonth}
+                      onChange={e => setForm(f => ({ ...f, recurringStartMonth: e.target.value }))}
+                      className={inputCls}
+                    />
+                  </div>
                 )}
               </div>
             </div>
@@ -974,7 +1018,15 @@ export default function BudgetDashboard() {
                               className="inline-block w-2 h-2 rounded-full"
                               style={{ background: isActiveRecurring ? 'linear-gradient(135deg,#10B981,#059669)' : '#D1D5DB' }}
                             />
-                            {t.recurringDay ? `Every ${t.recurringDay}${ordinal(t.recurringDay)}` : 'Monthly'}
+                            <span>
+                              {t.recurringDay ? `Every ${t.recurringDay}${ordinal(t.recurringDay)}` : 'Monthly'}
+                              {t.recurringInterval === 'bimonthly' && (
+                                <span className="ml-1 text-[10px] font-black text-violet-500 bg-violet-50 px-1 rounded">2mo</span>
+                              )}
+                              {t.recurringStartMonth && (
+                                <span className="ml-1 text-[10px] text-gray-400">from {t.recurringStartMonth}</span>
+                              )}
+                            </span>
                           </span>
                         ) : t.date}
                       </td>

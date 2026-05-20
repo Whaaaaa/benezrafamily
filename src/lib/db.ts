@@ -87,6 +87,9 @@ export async function initDb() {
     )
   `
   await sql`ALTER TABLE manual_transactions ADD COLUMN IF NOT EXISTS chug_id TEXT`
+  await sql`ALTER TABLE manual_transactions ADD COLUMN IF NOT EXISTS recurring_interval TEXT DEFAULT 'monthly'`
+  await sql`ALTER TABLE manual_transactions ADD COLUMN IF NOT EXISTS recurring_start_month TEXT`
+  await sql`ALTER TABLE cc_transactions ADD COLUMN IF NOT EXISTS chug_id TEXT`
   for (const cat of DEFAULT_CATEGORIES) {
     await sql`
       INSERT INTO budget_categories (id, name, budget_amount, sort_order)

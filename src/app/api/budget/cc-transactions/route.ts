@@ -7,13 +7,13 @@ export async function GET(req: Request) {
   if (!month) return Response.json([])
   if (month === 'all') {
     const rows = await sql`
-      SELECT id, date, description, amount, category_id as "categoryId", month
+      SELECT id, date, description, amount, category_id as "categoryId", month, chug_id as "chugId"
       FROM cc_transactions ORDER BY date DESC, id
     `
     return Response.json(rows)
   }
   const rows = await sql`
-    SELECT id, date, description, amount, category_id as "categoryId", month
+    SELECT id, date, description, amount, category_id as "categoryId", month, chug_id as "chugId"
     FROM cc_transactions WHERE month = ${month} ORDER BY date DESC
   `
   return Response.json(rows)
