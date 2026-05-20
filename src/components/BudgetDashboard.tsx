@@ -315,6 +315,7 @@ export default function BudgetDashboard() {
 
   const [selectedMonth, setSelectedMonth] = useState(() => new Date().toISOString().slice(0, 7))
   const currentMonth = new Date().toISOString().slice(0, 7)
+  const maxMonth = (() => { const d = new Date(); d.setMonth(d.getMonth() + 12); return d.toISOString().slice(0, 7) })()
   const todayDay = new Date().getDate()
   const isCurrentMonth = selectedMonth === currentMonth
 
@@ -623,7 +624,7 @@ export default function BudgetDashboard() {
             </span>
             <button
               onClick={() => navigateMonth(1)}
-              disabled={selectedMonth >= currentMonth}
+              disabled={selectedMonth >= maxMonth}
               className="w-8 h-8 flex items-center justify-center rounded-full text-violet-500 hover:bg-violet-100 font-black text-lg transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
             >›</button>
           </div>

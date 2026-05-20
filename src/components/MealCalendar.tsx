@@ -141,7 +141,7 @@ export default function MealCalendar({ periodDates = [], chugim = [] }: { period
 
   useEffect(() => {
     fetch(
-      `https://www.hebcal.com/hebcal/?v=1&cfg=json&year=${year}&month=${month + 1}&maj=on&min=off&nx=off&mf=off&ss=off&mod=on&i=off&lg=s`
+      `https://www.hebcal.com/hebcal/?v=1&cfg=json&year=${year}&month=${month + 1}&maj=on&min=off&nx=off&mf=off&ss=off&mod=on&i=on&lg=s`
     )
       .then(r => r.json())
       .then(data => {
