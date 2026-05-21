@@ -135,6 +135,12 @@ export default function VideoPlayer({ src, title, onClose }: Props) {
     if (limit !== null && used >= limit * 60) setLimitReached(true)
   }, [])
 
+  const resetCodeState = useCallback(() => {
+    setCodeInput('')
+    setCodeAccepted(false)
+    setCodeError(false)
+  }, [])
+
   const applyLimit = useCallback((mins: number | null) => {
     if (mins === null) localStorage.removeItem(LIMIT_KEY)
     else               localStorage.setItem(LIMIT_KEY, String(mins))
@@ -145,12 +151,6 @@ export default function VideoPlayer({ src, title, onClose }: Props) {
     setShowLimitPanel(false)
     resetCodeState()
   }, [resetCodeState])
-
-  const resetCodeState = useCallback(() => {
-    setCodeInput('')
-    setCodeAccepted(false)
-    setCodeError(false)
-  }, [])
 
   const submitCode = useCallback(() => {
     if (codeInput === '9006') {
