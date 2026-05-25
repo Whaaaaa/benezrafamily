@@ -27,7 +27,11 @@ function formatRemaining(secs: number): string {
 }
 
 const LIMIT_KEY  = 'screenTimeLimit'
-const todayKey   = () => `screenTimeUsed_${new Date().toISOString().slice(0, 10)}`
+const periodKey  = () => {
+  const now  = new Date()
+  const half = now.getHours() >= 12 ? 'pm' : 'am'
+  return `screenTimeUsed_${now.toISOString().slice(0, 10)}_${half}`
+}
 
 const LIMIT_OPTIONS = [
   { label: '30 min',  mins: 30  },
@@ -56,13 +60,19 @@ function SeekBar({
   }, [])
 
   useEffect(() => {
-    const move = (e: MouseEvent) => { if (dragging.current) onSeek(getFrac(e.clientX)) }
-    const up   = () => { dragging.current = false }
-    window.addEventListener('mousemove', move)
-    window.addEventListener('mouseup',   up)
+    const move      = (e: MouseEvent)     => { if (dragging.current) onSeek(getFrac(e.clientX)) }
+    const up        = ()                  => { dragging.current = false }
+    const touchMove = (e: TouchEvent)     => { if (dragging.current) { e.preventDefault(); onSeek(getFrac(e.touches[0].clientX)) } }
+    const touchEnd  = ()                  => { dragging.current = false }
+    window.addEventListener('mousemove',  move)
+    window.addEventListener('mouseup',    up)
+    window.addEventListener('touchmove',  touchMove, { passive: false })
+    window.addEventListener('touchend',   touchEnd)
     return () => {
       window.removeEventListener('mousemove', move)
       window.removeEventListener('mouseup',   up)
+      window.removeEventListener('touchmove', touchMove)
+      window.removeEventListener('touchend',  touchEnd)
     }
   }, [getFrac, onSeek])
 
@@ -74,6 +84,7 @@ function SeekBar({
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       onMouseDown={(e) => { dragging.current = true; onSeek(getFrac(e.clientX)) }}
+      onTouchStart={(e) => { dragging.current = true; onSeek(getFrac(e.touches[0].clientX)) }}
     >
       <div
         className="absolute inset-y-0 left-0 rounded-full"
@@ -113,6 +124,8 @@ export default function VideoPlayer({ src, title, onClose }: Props) {
   const [showControls, setShowControls] = useState(true)
   const [isFullscreen, setIsFullscreen] = useState(false)
   const [loading,      setLoading]      = useState(true)
+  const [needsTap,     setNeedsTap]     = useState(false)
+  const [videoError,   setVideoError]   = useState<string | null>(null)
 
   // Screen time
   const [limitMins,        setLimitMins]        = useState<number | null>(null)
@@ -125,14 +138,20 @@ export default function VideoPlayer({ src, title, onClose }: Props) {
   const [codeAccepted,     setCodeAccepted]     = useState(false)
   const [codeError,        setCodeError]        = useState(false)
 
-  // Load from localStorage on mount
+  // Panel unlock (separate from limit-reached code)
+  const [panelCode,     setPanelCode]     = useState('')
+  const [panelUnlocked, setPanelUnlocked] = useState(false)
+  const [panelCodeErr,  setPanelCodeErr]  = useState(false)
+
+  // Load from localStorage on mount — default to 30 min always
   useEffect(() => {
     const stored = localStorage.getItem(LIMIT_KEY)
-    const limit  = stored ? parseInt(stored, 10) : null
-    const used   = parseInt(localStorage.getItem(todayKey()) ?? '0', 10)
+    const limit  = stored ? parseInt(stored, 10) : 30
+    if (!stored) localStorage.setItem(LIMIT_KEY, '30')
+    const used   = parseInt(localStorage.getItem(periodKey()) ?? '0', 10)
     setLimitMins(limit)
     setUsedSecs(used)
-    if (limit !== null && used >= limit * 60) setLimitReached(true)
+    if (used >= limit * 60) setLimitReached(true)
   }, [])
 
   const resetCodeState = useCallback(() => {
@@ -149,8 +168,22 @@ export default function VideoPlayer({ src, title, onClose }: Props) {
     setShowWarning(false)
     setWarningDismissed(false)
     setShowLimitPanel(false)
+    setPanelCode('')
+    setPanelUnlocked(false)
+    setPanelCodeErr(false)
     resetCodeState()
   }, [resetCodeState])
+
+  const submitPanelCode = useCallback(() => {
+    if (panelCode === '9006') {
+      setPanelUnlocked(true)
+      setPanelCodeErr(false)
+    } else {
+      setPanelCodeErr(true)
+      setPanelCode('')
+      setTimeout(() => setPanelCodeErr(false), 600)
+    }
+  }, [panelCode])
 
   const submitCode = useCallback(() => {
     if (codeInput === '9006') {
@@ -193,7 +226,7 @@ export default function VideoPlayer({ src, title, onClose }: Props) {
     tickRef.current = setInterval(() => {
       setUsedSecs(prev => {
         const next = prev + 1
-        localStorage.setItem(todayKey(), String(next))
+        localStorage.setItem(periodKey(), String(next))
         return next
       })
     }, 1000)
@@ -277,7 +310,7 @@ export default function VideoPlayer({ src, title, onClose }: Props) {
     const v = videoRef.current
     if (!v) return
 
-    const onPlay         = () => { setPlaying(true); resetTimer() }
+    const onPlay         = () => { setPlaying(true); setNeedsTap(false); resetTimer() }
     const onPause        = () => setPlaying(false)
     const onTimeUpdate   = () => {
       setCurrentTime(v.currentTime)
@@ -289,7 +322,15 @@ export default function VideoPlayer({ src, title, onClose }: Props) {
         setBuffered(v.buffered.end(v.buffered.length - 1) / v.duration)
     }
     const onWaiting      = () => setLoading(true)
-    const onCanPlay      = () => { setLoading(false); if (!limitReached) v.play().catch(() => {}) }
+    const onCanPlay      = () => {
+      setLoading(false)
+      if (!limitReached) v.play().catch(() => setNeedsTap(true))
+    }
+    const onError        = () => {
+      setLoading(false)
+      const code = v.error?.code
+      setVideoError(code === 4 ? 'Format not supported on this device' : 'Failed to load video')
+    }
     const onVolumeChange = () => { setVolume(v.volume); setMuted(v.muted) }
 
     v.addEventListener('play',           onPlay)
@@ -299,6 +340,7 @@ export default function VideoPlayer({ src, title, onClose }: Props) {
     v.addEventListener('progress',       onProgress)
     v.addEventListener('waiting',        onWaiting)
     v.addEventListener('canplay',        onCanPlay)
+    v.addEventListener('error',          onError)
     v.addEventListener('volumechange',   onVolumeChange)
 
     return () => {
@@ -309,6 +351,7 @@ export default function VideoPlayer({ src, title, onClose }: Props) {
       v.removeEventListener('progress',       onProgress)
       v.removeEventListener('waiting',        onWaiting)
       v.removeEventListener('canplay',        onCanPlay)
+      v.removeEventListener('error',          onError)
       v.removeEventListener('volumechange',   onVolumeChange)
     }
   }, [resetTimer, limitReached])
@@ -325,6 +368,7 @@ export default function VideoPlayer({ src, title, onClose }: Props) {
       ref={containerRef}
       className="fixed inset-0 z-[200] bg-black flex items-center justify-center select-none"
       onMouseMove={resetTimer}
+      onTouchStart={resetTimer}
       style={{ cursor: showControls ? 'default' : 'none' }}
     >
       {/* Video */}
@@ -334,12 +378,38 @@ export default function VideoPlayer({ src, title, onClose }: Props) {
         className="w-full h-full object-contain"
         onClick={limitReached ? undefined : togglePlay}
         preload="metadata"
+        playsInline
       />
 
       {/* Loading spinner */}
-      {loading && !limitReached && (
+      {loading && !limitReached && !videoError && (
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
           <div className="w-14 h-14 border-4 border-white/20 border-t-white rounded-full animate-spin" />
+        </div>
+      )}
+
+      {/* Tap to play (iOS autoplay blocked) */}
+      {needsTap && !limitReached && !videoError && (
+        <button
+          className="absolute inset-0 flex items-center justify-center"
+          onClick={() => { videoRef.current?.play().catch(() => {}); setNeedsTap(false) }}
+          aria-label="Tap to play"
+        >
+          <div
+            className="w-24 h-24 rounded-full flex items-center justify-center text-5xl shadow-2xl"
+            style={{ background: 'rgba(255,255,255,0.15)', backdropFilter: 'blur(8px)' }}
+          >
+            ▶
+          </div>
+        </button>
+      )}
+
+      {/* Video error */}
+      {videoError && (
+        <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 pointer-events-none px-8 text-center">
+          <span className="text-5xl">⚠️</span>
+          <p className="text-white font-bold">{videoError}</p>
+          <p className="text-white/40 text-sm">Try a different video or format</p>
         </div>
       )}
 
@@ -458,7 +528,7 @@ export default function VideoPlayer({ src, title, onClose }: Props) {
       {showLimitPanel && (
         <div
           className="absolute inset-0 z-[220] bg-black/70 backdrop-blur-sm flex items-center justify-center px-6"
-          onClick={() => setShowLimitPanel(false)}
+          onClick={() => { setShowLimitPanel(false); setPanelCode(''); setPanelUnlocked(false); setPanelCodeErr(false) }}
         >
           <div
             className="rounded-3xl p-6 max-w-xs w-full shadow-2xl"
@@ -471,38 +541,74 @@ export default function VideoPlayer({ src, title, onClose }: Props) {
             <div className="flex items-center justify-between mb-1">
               <h3 className="text-white font-black text-lg">⏱ Screen Time Limit</h3>
               <button
-                onClick={() => setShowLimitPanel(false)}
+                onClick={() => { setShowLimitPanel(false); setPanelCode(''); setPanelUnlocked(false); setPanelCodeErr(false) }}
                 className="text-white/50 hover:text-white text-xl transition-colors leading-none"
               >✕</button>
             </div>
             <p className="text-white/40 text-xs mb-5">
-              Today: {formatRemaining(usedSecs)} watched
+              This period: {formatRemaining(usedSecs)} watched
               {remainingSecs !== null && <> · {formatRemaining(remainingSecs)} remaining</>}
             </p>
-            <div className="grid grid-cols-2 gap-2 mb-3">
-              {LIMIT_OPTIONS.map(opt => (
+
+            {!panelUnlocked ? (
+              <>
+                <div className="flex items-center justify-center gap-2 mb-4 py-3 rounded-xl" style={{ background: 'rgba(124,58,237,0.15)' }}>
+                  <span className="text-xl">🔒</span>
+                  <span className="text-white font-black">{limitMins ?? 30} min limit</span>
+                </div>
+                <p className="text-white/40 text-xs text-center mb-3">Enter code to change limit</p>
+                <div className="flex gap-2 mb-2">
+                  <input
+                    type="password"
+                    inputMode="numeric"
+                    maxLength={6}
+                    value={panelCode}
+                    onChange={e => { setPanelCode(e.target.value.replace(/\D/g, '')); setPanelCodeErr(false) }}
+                    onKeyDown={e => { if (e.key === 'Enter') submitPanelCode() }}
+                    placeholder="••••"
+                    className="flex-1 py-3 px-4 rounded-xl font-black text-center text-white text-lg tracking-widest outline-none transition-all"
+                    style={{
+                      background: panelCodeErr ? 'rgba(239,68,68,0.2)' : 'rgba(255,255,255,0.08)',
+                      border: panelCodeErr ? '2px solid rgba(239,68,68,0.7)' : '2px solid rgba(124,58,237,0.35)',
+                      animation: panelCodeErr ? 'shake 0.4s ease' : 'none',
+                    }}
+                  />
+                  <button
+                    onClick={submitPanelCode}
+                    className="py-3 px-5 rounded-xl font-black text-white text-sm hover:scale-105 active:scale-95 transition-transform"
+                    style={{ background: 'linear-gradient(135deg, #7C3AED, #EC4899)' }}
+                  >
+                    OK
+                  </button>
+                </div>
+                {panelCodeErr && <p className="text-red-400 text-xs text-center">Incorrect code</p>}
+              </>
+            ) : (
+              <>
+                <div className="grid grid-cols-2 gap-2 mb-3">
+                  {LIMIT_OPTIONS.map(opt => (
+                    <button
+                      key={opt.mins}
+                      onClick={() => applyLimit(opt.mins)}
+                      className="py-3 rounded-xl font-black text-sm transition-all hover:scale-105 active:scale-95"
+                      style={
+                        limitMins === opt.mins
+                          ? { background: 'linear-gradient(135deg, #7C3AED, #EC4899)', color: 'white' }
+                          : { background: 'rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.75)' }
+                      }
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
                 <button
-                  key={opt.mins}
-                  onClick={() => applyLimit(opt.mins)}
-                  className="py-3 rounded-xl font-black text-sm transition-all hover:scale-105 active:scale-95"
-                  style={
-                    limitMins === opt.mins
-                      ? { background: 'linear-gradient(135deg, #7C3AED, #EC4899)', color: 'white' }
-                      : { background: 'rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.75)' }
-                  }
+                  onClick={() => applyLimit(null)}
+                  className="w-full py-2.5 rounded-xl font-bold text-sm transition-all hover:scale-105 active:scale-95"
+                  style={{ background: 'rgba(255,255,255,0.05)', color: 'rgba(255,255,255,0.5)' }}
                 >
-                  {opt.label}
+                  Remove Limit
                 </button>
-              ))}
-            </div>
-            {limitMins !== null && (
-              <button
-                onClick={() => applyLimit(null)}
-                className="w-full py-2.5 rounded-xl font-bold text-sm transition-all hover:scale-105 active:scale-95"
-                style={{ background: 'rgba(255,255,255,0.05)', color: 'rgba(255,255,255,0.5)' }}
-              >
-                Remove Limit
-              </button>
+              </>
             )}
           </div>
         </div>

@@ -348,24 +348,29 @@ export default function BudgetDashboard() {
 
   // Initial load
   useEffect(() => {
+    const fetchJson = (url: string) => fetch(url).then(r => {
+      if (!r.ok) throw new Error(`${r.status} ${r.statusText} from ${url}`)
+      return r.json()
+    })
     Promise.all([
-      fetch('/api/budget/categories').then(r => r.json()),
-      fetch('/api/budget/transactions').then(r => r.json()),
-      fetch('/api/budget/description-mappings').then(r => r.json()),
+      fetchJson('/api/budget/categories'),
+      fetchJson('/api/budget/transactions'),
+      fetchJson('/api/budget/description-mappings'),
     ]).then(([cats, txns, mappingRows]) => {
       setCategories(cats)
       setManualTxns(txns)
       const m: Record<string, string> = {}
       for (const row of mappingRows) m[row.description] = row.categoryId
       setDescriptionMappings(m)
-    })
+    }).catch(err => console.error('Budget initial load failed:', err))
   }, [])
 
   // Reload CC transactions whenever month changes
   useEffect(() => {
     fetch(`/api/budget/cc-transactions?month=${selectedMonth}`)
-      .then(r => r.json())
+      .then(r => r.ok ? r.json() : Promise.reject(new Error(`${r.status} from cc-transactions`)))
       .then(setSavedCcTxns)
+      .catch(err => console.error('CC transactions load failed:', err))
   }, [selectedMonth])
 
   // Load analytics when modal opens
