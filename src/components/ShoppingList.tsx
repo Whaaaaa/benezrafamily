@@ -131,15 +131,27 @@ function MealCard({ templateId, title, onDelete, meal, ingredients, isDirty, isS
   onAddIngredient: () => void
   inputRef: (el: HTMLInputElement | null) => void
 }) {
+  const [expanded, setExpanded] = useState(false)
+
   return (
     <div className="rounded-2xl border border-emerald-100 bg-white/80 shadow-sm">
-      <div className="flex items-center justify-between px-4 py-3 border-b border-emerald-50 rounded-t-2xl"
-        style={{ background: 'linear-gradient(135deg, #f0fdf4, #ecfdf5)' }}>
-        <span className="font-black text-gray-800">{title}</span>
-        <div className="flex items-center gap-2">
+      <div
+        className="flex items-center justify-between px-4 py-3 rounded-t-2xl cursor-pointer select-none"
+        style={{ background: 'linear-gradient(135deg, #f0fdf4, #ecfdf5)' }}
+        onClick={() => setExpanded(e => !e)}
+      >
+        <div className="flex items-center gap-2 min-w-0">
+          <span className="font-black text-gray-800 truncate">{title}</span>
+          {!expanded && ingredients.length > 0 && (
+            <span className="text-xs text-emerald-600 bg-emerald-100 px-1.5 py-0.5 rounded-full font-semibold flex-shrink-0">
+              {ingredients.length} ing.
+            </span>
+          )}
+        </div>
+        <div className="flex items-center gap-2 flex-shrink-0 ml-2">
           {isDirty && (
             <button
-              onClick={onSave}
+              onClick={e => { e.stopPropagation(); onSave() }}
               disabled={isSaving}
               className="px-3 py-1 text-xs font-bold text-white rounded-lg shadow hover:scale-105 transition-all disabled:opacity-50"
               style={{ background: 'linear-gradient(135deg, #059669, #10B981)' }}
@@ -147,8 +159,9 @@ function MealCard({ templateId, title, onDelete, meal, ingredients, isDirty, isS
               {isSaving ? 'Saving…' : 'Save'}
             </button>
           )}
+          <span className="text-gray-400 text-xs">{expanded ? '▲' : '▼'}</span>
           <button
-            onClick={onDelete}
+            onClick={e => { e.stopPropagation(); onDelete() }}
             className="w-7 h-7 flex items-center justify-center rounded-lg text-gray-300 hover:text-red-400 hover:bg-red-50 transition-all text-base"
             title="Delete"
           >
@@ -157,56 +170,58 @@ function MealCard({ templateId, title, onDelete, meal, ingredients, isDirty, isS
         </div>
       </div>
 
-      <div className="px-4 pt-3 pb-3">
-        {ingredients.length === 0 && (
-          <p className="text-xs text-gray-400 italic mb-2">No ingredients yet.</p>
-        )}
-        <ul className="space-y-1 mb-3">
-          {ingredients.map(ing => (
-            <li key={ing.id} className="flex items-center gap-2">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 flex-shrink-0" />
-              <span className="flex-1 text-sm font-semibold text-gray-700">{ing.name}</span>
-              {ing.quantity && (
-                <span className="text-xs font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
-                  {ing.quantity}
-                </span>
-              )}
-              <button
-                onClick={() => onRemoveIngredient(ing.id)}
-                className="text-gray-300 hover:text-red-400 text-lg leading-none transition-colors flex-shrink-0"
-              >
-                ×
-              </button>
-            </li>
-          ))}
-        </ul>
+      {expanded && (
+        <div className="px-4 pt-3 pb-3 border-t border-emerald-50">
+          {ingredients.length === 0 && (
+            <p className="text-xs text-gray-400 italic mb-2">No ingredients yet.</p>
+          )}
+          <ul className="space-y-1 mb-3">
+            {ingredients.map(ing => (
+              <li key={ing.id} className="flex items-center gap-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 flex-shrink-0" />
+                <span className="flex-1 text-sm font-semibold text-gray-700">{ing.name}</span>
+                {ing.quantity && (
+                  <span className="text-xs font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+                    {ing.quantity}
+                  </span>
+                )}
+                <button
+                  onClick={() => onRemoveIngredient(ing.id)}
+                  className="text-gray-300 hover:text-red-400 text-lg leading-none transition-colors flex-shrink-0"
+                >
+                  ×
+                </button>
+              </li>
+            ))}
+          </ul>
 
-        <div className="flex gap-1.5">
-          <IngredientCombobox
-            ref={inputRef}
-            value={ingInput.name}
-            onChange={onIngNameChange}
-            onKeyDown={e => e.key === 'Enter' && onAddIngredient()}
-            suggestions={allIngredientNames}
-            placeholder="Add ingredient…"
-            className="w-full px-3 py-1.5 border-2 border-emerald-100 rounded-xl text-sm font-semibold focus:outline-none focus:border-emerald-400 bg-white/80"
-          />
-          <input
-            value={ingInput.qty}
-            onChange={e => onIngQtyChange(e.target.value)}
-            onKeyDown={e => e.key === 'Enter' && onAddIngredient()}
-            placeholder="Qty"
-            className="w-16 px-2 py-1.5 border-2 border-emerald-100 rounded-xl text-sm font-semibold focus:outline-none focus:border-emerald-400 bg-white/80"
-          />
-          <button
-            onClick={onAddIngredient}
-            className="px-3 py-1.5 text-white text-sm font-bold rounded-xl shadow hover:scale-105 transition-all"
-            style={{ background: 'linear-gradient(135deg, #059669, #10B981)' }}
-          >
-            +
-          </button>
+          <div className="flex gap-1.5">
+            <IngredientCombobox
+              ref={inputRef}
+              value={ingInput.name}
+              onChange={onIngNameChange}
+              onKeyDown={e => e.key === 'Enter' && onAddIngredient()}
+              suggestions={allIngredientNames}
+              placeholder="Add ingredient…"
+              className="w-full px-3 py-1.5 border-2 border-emerald-100 rounded-xl text-sm font-semibold focus:outline-none focus:border-emerald-400 bg-white/80"
+            />
+            <input
+              value={ingInput.qty}
+              onChange={e => onIngQtyChange(e.target.value)}
+              onKeyDown={e => e.key === 'Enter' && onAddIngredient()}
+              placeholder="Qty"
+              className="w-16 px-2 py-1.5 border-2 border-emerald-100 rounded-xl text-sm font-semibold focus:outline-none focus:border-emerald-400 bg-white/80"
+            />
+            <button
+              onClick={onAddIngredient}
+              className="px-3 py-1.5 text-white text-sm font-bold rounded-xl shadow hover:scale-105 transition-all"
+              style={{ background: 'linear-gradient(135deg, #059669, #10B981)' }}
+            >
+              +
+            </button>
+          </div>
         </div>
-      </div>
+      )}
     </div>
   )
 }
@@ -221,6 +236,7 @@ export default function ShoppingList() {
 
   // Plan tab
   const [selectedMealIds, setSelectedMealIds] = useState<Set<string>>(new Set())
+  const [selectedTemplateIds, setSelectedTemplateIds] = useState<Set<string>>(new Set())
   const [filterFrom, setFilterFrom] = useState('')
   const [filterTo, setFilterTo] = useState('')
   const [expandedMeals, setExpandedMeals] = useState<Set<string>>(new Set())
@@ -228,6 +244,7 @@ export default function ShoppingList() {
   const [generating, setGenerating] = useState(false)
 
   // Meals tab — editing existing
+  const [mealSearch, setMealSearch] = useState('')
   const [templateEdits, setTemplateEdits] = useState<Record<string, Ingredient[]>>({})
   const [dirtyTemplates, setDirtyTemplates] = useState<Set<string>>(new Set())
   const [savingTemplates, setSavingTemplates] = useState<Set<string>>(new Set())
@@ -248,6 +265,9 @@ export default function ShoppingList() {
   const [name, setName] = useState('')
   const [qty, setQty] = useState('')
   const [mealId, setMealId] = useState('')
+
+  // Clear all confirmation
+  const [showClearAllConfirm, setShowClearAllConfirm] = useState(false)
 
   useEffect(() => {
     Promise.all([
@@ -292,6 +312,21 @@ export default function ShoppingList() {
     return templates.filter(t => !scheduledIds.has(t.id))
   }, [meals, templates])
 
+  // Ingredient → meal names map for multi-meal detection
+  const ingredientMealCounts = useMemo(() => {
+    const map = new Map<string, string[]>()
+    for (const meal of meals) {
+      const tmpl = templates.find(t => t.id === meal.templateId)
+      if (!tmpl) continue
+      for (const ing of tmpl.ingredients) {
+        const key = ing.name.toLowerCase()
+        const existing = map.get(key) ?? []
+        if (!existing.includes(meal.name)) map.set(key, [...existing, meal.name])
+      }
+    }
+    return map
+  }, [meals, templates])
+
   // ── Plan tab ─────────────────────────────────────────────────────────────
 
   const applyDateFilter = () => {
@@ -304,11 +339,15 @@ export default function ShoppingList() {
   const toggleMeal = (id: string) =>
     setSelectedMealIds(prev => { const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n })
 
+  const toggleTemplate = (id: string) =>
+    setSelectedTemplateIds(prev => { const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n })
+
   const toggleExpand = (id: string) =>
     setExpandedMeals(prev => { const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n })
 
   const combinedIngredients = useMemo(() => {
     const map = new Map<string, { displayName: string; quantity: string; fromMeals: string[]; count: number }>()
+
     for (const meal of meals.filter(m => selectedMealIds.has(m.id))) {
       const template = templates.find(t => t.id === meal.templateId)
       if (!template) continue
@@ -318,10 +357,19 @@ export default function ShoppingList() {
         else map.set(key, { displayName: ing.name, quantity: ing.quantity, fromMeals: [meal.name], count: 1 })
       }
     }
-    return Array.from(map.values()).sort((a, b) => a.displayName.localeCompare(b.displayName))
-  }, [meals, templates, selectedMealIds])
 
-  const selectedCount = selectedMealIds.size
+    for (const tmpl of templates.filter(t => selectedTemplateIds.has(t.id))) {
+      for (const ing of tmpl.ingredients) {
+        const key = ing.name.toLowerCase().trim()
+        if (map.has(key)) { const e = map.get(key)!; e.fromMeals.push(tmpl.name); e.count++ }
+        else map.set(key, { displayName: ing.name, quantity: ing.quantity, fromMeals: [tmpl.name], count: 1 })
+      }
+    }
+
+    return Array.from(map.values()).sort((a, b) => a.displayName.localeCompare(b.displayName))
+  }, [meals, templates, selectedMealIds, selectedTemplateIds])
+
+  const selectedCount = selectedMealIds.size + selectedTemplateIds.size
   const duplicateCount = combinedIngredients.filter(i => i.count > 1).length
 
   const generateList = async () => {
@@ -476,9 +524,9 @@ export default function ShoppingList() {
   }
 
   const clearAll = async () => {
-    if (!window.confirm('Clear the entire shopping list?')) return
     const toDelete = [...items]
     setItems([])
+    setShowClearAllConfirm(false)
     await Promise.all(toDelete.map(i => fetch(`/api/shopping/${i.id}`, { method: 'DELETE' })))
   }
 
@@ -488,7 +536,11 @@ export default function ShoppingList() {
   ]
 
   const shareWhatsApp = (phone: string) => {
-    const lines = unchecked.map(i => `• ${i.name}${i.quantity ? ` — ${i.quantity}` : ''}`)
+    const lines = unchecked.map(i => {
+      const mealNames = ingredientMealCounts.get(i.name.toLowerCase()) ?? []
+      const mealNote = mealNames.length > 1 ? ` [${mealNames.join(', ')}]` : ''
+      return `• ${i.name}${i.quantity ? ` — ${i.quantity}` : ''}${mealNote}`
+    })
     if (checked.length > 0) {
       lines.push('', '✅ Done:', ...checked.map(i => `• ${i.name}`))
     }
@@ -500,6 +552,24 @@ export default function ShoppingList() {
   const checked = items.filter(i => i.checked)
   const mealLabel = (id: string) => meals.find(m => m.id === id)?.name ?? ''
   const mealOptions = [...meals].sort((a, b) => a.date.localeCompare(b.date))
+
+  // Filtered meals for the Meals tab
+  const filteredMealsByDate = useMemo(() => {
+    if (!mealSearch.trim()) return mealsByDate
+    const q = mealSearch.toLowerCase()
+    const filtered = new Map<string, Meal[]>()
+    for (const [date, dayMeals] of mealsByDate.entries()) {
+      const matching = dayMeals.filter(m => m.name.toLowerCase().includes(q))
+      if (matching.length > 0) filtered.set(date, matching)
+    }
+    return filtered
+  }, [mealsByDate, mealSearch])
+
+  const filteredLibraryTemplates = useMemo(() => {
+    if (!mealSearch.trim()) return libraryTemplates
+    const q = mealSearch.toLowerCase()
+    return libraryTemplates.filter(t => t.name.toLowerCase().includes(q))
+  }, [libraryTemplates, mealSearch])
 
   return (
     <div className="p-4 sm:p-6 max-w-2xl mx-auto animate-slide-up">
@@ -549,13 +619,14 @@ export default function ShoppingList() {
               <button onClick={() => setSelectedMealIds(new Set(meals.map(m => m.id)))}
                 className="text-xs font-bold text-violet-600 hover:text-violet-800 transition-colors">Select all</button>
               <span className="text-gray-300 text-xs">·</span>
-              <button onClick={() => setSelectedMealIds(new Set())}
+              <button onClick={() => { setSelectedMealIds(new Set()); setSelectedTemplateIds(new Set()) }}
                 className="text-xs font-bold text-gray-400 hover:text-gray-600 transition-colors">Clear</button>
             </div>
           </div>
 
+          {/* Scheduled meals */}
           {meals.length === 0 ? (
-            <div className="text-center py-12 text-gray-400 font-bold">No meals on the calendar yet.</div>
+            <div className="text-center py-8 text-gray-400 font-bold text-sm">No meals on the calendar yet.</div>
           ) : (
             <div className="space-y-6 mb-5">
               {Array.from(mealsByDate.entries()).map(([date, dayMeals]) => (
@@ -606,6 +677,33 @@ export default function ShoppingList() {
             </div>
           )}
 
+          {/* Unscheduled meal library */}
+          {libraryTemplates.length > 0 && (
+            <div className="mb-5">
+              <p className="text-xs font-black text-gray-400 uppercase tracking-widest mb-2.5">Meal Library — not scheduled</p>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                {libraryTemplates.map(tmpl => {
+                  const isSelected = selectedTemplateIds.has(tmpl.id)
+                  return (
+                    <div key={tmpl.id} className={`rounded-2xl border-2 transition-all duration-200 overflow-hidden ${isSelected ? 'border-violet-400 bg-violet-50 shadow-md' : 'border-gray-100 bg-white/70'}`}>
+                      <button onClick={() => toggleTemplate(tmpl.id)} className="w-full p-3 text-left">
+                        <div className="flex items-start gap-2">
+                          <span className={`mt-0.5 w-4 h-4 rounded flex-shrink-0 border-2 flex items-center justify-center text-[10px] font-black transition-all ${isSelected ? 'bg-violet-500 border-violet-500 text-white' : 'border-gray-300'}`}>
+                            {isSelected && '✓'}
+                          </span>
+                          <span className="font-bold text-sm text-gray-800 leading-tight">{tmpl.name}</span>
+                        </div>
+                        <p className="text-xs text-gray-400 mt-1.5 ml-6 font-semibold">
+                          {tmpl.ingredients.length > 0 ? `${tmpl.ingredients.length} ingredient${tmpl.ingredients.length !== 1 ? 's' : ''}` : 'No ingredients'}
+                        </p>
+                      </button>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+          )}
+
           {selectedCount > 0 && (
             <div className="rounded-2xl border border-pink-100 shadow-lg overflow-hidden sticky bottom-4"
               style={{ background: 'linear-gradient(135deg, #fdf2f8, #fff1f5)' }}>
@@ -613,7 +711,7 @@ export default function ShoppingList() {
                 <div>
                   <p className="text-sm font-black text-gray-800">
                     {combinedIngredients.length} ingredient{combinedIngredients.length !== 1 ? 's' : ''}
-                    {duplicateCount > 0 && <span className="ml-2 text-xs font-bold text-violet-500 bg-violet-100 px-1.5 py-0.5 rounded-full">{duplicateCount} combined</span>}
+                    {duplicateCount > 0 && <span className="ml-2 text-xs font-bold text-violet-500 bg-violet-100 px-1.5 py-0.5 rounded-full">{duplicateCount} shared</span>}
                   </p>
                   <p className="text-xs text-gray-400 font-semibold">{selectedCount} meal{selectedCount !== 1 ? 's' : ''} selected</p>
                 </div>
@@ -635,7 +733,7 @@ export default function ShoppingList() {
                       <span className="flex-1 text-sm font-semibold text-gray-700">{ing.displayName}</span>
                       {ing.quantity && <span className="text-xs font-bold text-pink-600 bg-pink-50 px-2 py-0.5 rounded-full border border-pink-200">{ing.quantity}</span>}
                       {ing.count > 1
-                        ? <span className="text-xs font-black text-white bg-violet-500 px-2 py-0.5 rounded-full">×{ing.count}</span>
+                        ? <span className="text-xs font-black text-white bg-violet-500 px-2 py-0.5 rounded-full">×{ing.count} meals</span>
                         : <span className="text-[11px] text-gray-300 font-semibold truncate max-w-[80px]">{ing.fromMeals[0]}</span>}
                     </li>
                   ))}
@@ -648,7 +746,24 @@ export default function ShoppingList() {
 
       {/* ─── MEALS TAB ─── */}
       {tab === 'meals' && (
-        <div className="space-y-6">
+        <div className="space-y-4">
+
+          {/* Search */}
+          <div className="relative">
+            <input
+              value={mealSearch}
+              onChange={e => setMealSearch(e.target.value)}
+              placeholder="Search meals…"
+              className="w-full px-4 py-2.5 pl-9 border-2 border-emerald-100 rounded-2xl text-sm font-semibold focus:outline-none focus:border-emerald-400 bg-white/80"
+            />
+            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-300 text-sm">🔍</span>
+            {mealSearch && (
+              <button
+                onClick={() => setMealSearch('')}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-300 hover:text-gray-500 text-lg leading-none"
+              >×</button>
+            )}
+          </div>
 
           {/* Add new meal form */}
           {showNewMealForm ? (
@@ -724,7 +839,7 @@ export default function ShoppingList() {
           )}
 
           {/* Scheduled meals grouped by date */}
-          {Array.from(mealsByDate.entries()).map(([date, dayMeals]) => (
+          {Array.from(filteredMealsByDate.entries()).map(([date, dayMeals]) => (
             <div key={date}>
               <p className="text-xs font-black text-gray-400 uppercase tracking-widest mb-3">{formatDate(date)}</p>
               <div className="space-y-3">
@@ -757,11 +872,11 @@ export default function ShoppingList() {
           ))}
 
           {/* Meal library — unscheduled templates */}
-          {libraryTemplates.length > 0 && (
+          {filteredLibraryTemplates.length > 0 && (
             <div>
               <p className="text-xs font-black text-gray-400 uppercase tracking-widest mb-3">Meal Library</p>
               <div className="space-y-3">
-                {libraryTemplates.map(tmpl => {
+                {filteredLibraryTemplates.map(tmpl => {
                   const input = getIngInput(tmpl.id)
                   return (
                     <MealCard
@@ -787,8 +902,10 @@ export default function ShoppingList() {
             </div>
           )}
 
-          {meals.length === 0 && templates.length === 0 && !showNewMealForm && (
-            <p className="text-center text-gray-400 font-bold py-8">No meals yet. Add one above!</p>
+          {filteredMealsByDate.size === 0 && filteredLibraryTemplates.length === 0 && !showNewMealForm && (
+            <p className="text-center text-gray-400 font-bold py-8">
+              {mealSearch ? 'No meals match your search.' : 'No meals yet. Add one above!'}
+            </p>
           )}
         </div>
       )}
@@ -836,7 +953,7 @@ export default function ShoppingList() {
                 </button>
               ))}
               <button
-                onClick={clearAll}
+                onClick={() => setShowClearAllConfirm(true)}
                 className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-red-500 bg-red-50 border border-red-200 rounded-xl hover:bg-red-100 hover:scale-105 active:scale-95 transition-all"
               >
                 🗑 Clear all
@@ -855,37 +972,83 @@ export default function ShoppingList() {
           )}
 
           <ul className="space-y-2.5">
-            {unchecked.map((item, idx) => (
-              <li key={item.id}
-                className={`flex items-center gap-3 px-4 py-3.5 bg-white/80 rounded-2xl shadow-sm border-l-4 transition-all duration-150 hover:shadow-md hover:-translate-y-0.5 ${ITEM_ACCENTS[idx % ITEM_ACCENTS.length]}`}>
-                <input type="checkbox" checked={false} onChange={() => toggle(item.id)}
-                  className="w-5 h-5 cursor-pointer rounded" style={{ accentColor: '#EC4899' }} />
-                <span className="flex-1 text-gray-800 font-semibold">{item.name}</span>
-                {item.quantity && <span className="text-xs font-bold text-pink-600 bg-pink-50 px-2 py-0.5 rounded-full border border-pink-200">{item.quantity}</span>}
-                {item.mealId && <span className="text-xs font-bold text-violet-700 bg-violet-50 px-2 py-0.5 rounded-full border border-violet-200 truncate max-w-[100px]">{mealLabel(item.mealId)}</span>}
-                <button onClick={() => remove(item.id)} className="text-gray-300 hover:text-red-400 text-xl leading-none transition-colors">×</button>
-              </li>
-            ))}
+            {unchecked.map((item, idx) => {
+              const mealNames = ingredientMealCounts.get(item.name.toLowerCase()) ?? []
+              const isMultiMeal = mealNames.length > 1
+              return (
+                <li key={item.id}
+                  className={`flex items-center gap-3 px-4 py-3.5 bg-white/80 rounded-2xl shadow-sm border-l-4 transition-all duration-150 hover:shadow-md hover:-translate-y-0.5 ${ITEM_ACCENTS[idx % ITEM_ACCENTS.length]}`}>
+                  <input type="checkbox" checked={false} onChange={() => toggle(item.id)}
+                    className="w-5 h-5 cursor-pointer rounded flex-shrink-0" style={{ accentColor: '#EC4899' }} />
+                  <span className="flex-1 text-gray-800 font-semibold min-w-0 truncate">{item.name}</span>
+                  {item.quantity && <span className="text-xs font-bold text-pink-600 bg-pink-50 px-2 py-0.5 rounded-full border border-pink-200 flex-shrink-0">{item.quantity}</span>}
+                  {isMultiMeal && (
+                    <span className="text-xs font-bold text-orange-600 bg-orange-50 px-2 py-0.5 rounded-full border border-orange-200 flex-shrink-0" title={mealNames.join(', ')}>
+                      ×{mealNames.length} meals
+                    </span>
+                  )}
+                  {!isMultiMeal && item.mealId && (
+                    <span className="text-xs font-bold text-violet-700 bg-violet-50 px-2 py-0.5 rounded-full border border-violet-200 truncate max-w-[90px] flex-shrink-0">{mealLabel(item.mealId)}</span>
+                  )}
+                  <button onClick={() => remove(item.id)} className="text-gray-300 hover:text-red-400 text-xl leading-none transition-colors flex-shrink-0">×</button>
+                </li>
+              )
+            })}
           </ul>
 
           {checked.length > 0 && (
             <div className="mt-8">
               <div className="flex justify-between items-center mb-3">
                 <span className="text-sm font-black text-gray-400 uppercase tracking-wide">✅ Done ({checked.length})</span>
-                <button onClick={clearChecked} className="text-xs font-bold text-red-400 hover:text-red-600 transition-colors">Clear all</button>
+                <button onClick={clearChecked} className="text-xs font-bold text-red-400 hover:text-red-600 transition-colors">Clear done</button>
               </div>
               <ul className="space-y-2">
                 {checked.map(item => (
                   <li key={item.id} className="flex items-center gap-3 px-4 py-3 bg-gray-50/70 rounded-2xl border border-gray-100 opacity-60">
-                    <input type="checkbox" checked={true} onChange={() => toggle(item.id)} className="w-5 h-5 cursor-pointer" style={{ accentColor: '#EC4899' }} />
+                    <input type="checkbox" checked={true} onChange={() => toggle(item.id)} className="w-5 h-5 cursor-pointer flex-shrink-0" style={{ accentColor: '#EC4899' }} />
                     <span className="flex-1 line-through text-gray-400 font-semibold">{item.name}</span>
                     {item.quantity && <span className="text-xs text-gray-300 bg-gray-100 px-2 py-0.5 rounded-full">{item.quantity}</span>}
-                    <button onClick={() => remove(item.id)} className="text-gray-300 hover:text-red-400 text-xl leading-none transition-colors">×</button>
+                    <button onClick={() => remove(item.id)} className="text-gray-300 hover:text-red-400 text-xl leading-none transition-colors flex-shrink-0">×</button>
                   </li>
                 ))}
               </ul>
             </div>
           )}
+        </div>
+      )}
+
+      {/* ── Clear all confirmation modal ── */}
+      {showClearAllConfirm && (
+        <div
+          className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+          onClick={() => setShowClearAllConfirm(false)}
+        >
+          <div
+            className="w-full max-w-sm rounded-2xl p-6 shadow-2xl animate-bounce-in"
+            style={{ background: 'linear-gradient(135deg, #fff1f5, #fdf2f8)' }}
+            onClick={e => e.stopPropagation()}
+          >
+            <div className="text-center mb-5">
+              <div className="text-4xl mb-3">🗑</div>
+              <p className="text-base font-black text-gray-800 mb-1">Clear everything?</p>
+              <p className="text-sm text-gray-500 font-semibold">This will remove all {items.length} item{items.length !== 1 ? 's' : ''} from your shopping list.</p>
+            </div>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowClearAllConfirm(false)}
+                className="flex-1 py-2.5 bg-white/80 text-gray-600 text-sm font-bold rounded-xl border border-gray-200 hover:scale-105 transition-all"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={clearAll}
+                className="flex-1 py-2.5 text-white text-sm font-bold rounded-xl shadow-md hover:scale-105 active:scale-95 transition-all"
+                style={{ background: 'linear-gradient(135deg, #EF4444, #DC2626)' }}
+              >
+                Clear all
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>
