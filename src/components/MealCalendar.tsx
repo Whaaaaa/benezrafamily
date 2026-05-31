@@ -103,6 +103,7 @@ export default function MealCalendar({ periodDates = [], chugim = [] }: { period
   const [viewIngQty, setViewIngQty] = useState('')
   const [viewPendingIngs, setViewPendingIngs] = useState<Ingredient[]>([])
   const viewIngRef = useRef<HTMLInputElement>(null)
+  const todayListRef = useRef<HTMLDivElement>(null)
 
   const [seedDone, setSeedDone] = useState(false)
 
@@ -148,6 +149,14 @@ export default function MealCalendar({ periodDates = [], chugim = [] }: { period
       })
       .catch(() => {})
   }, [year, month])
+
+  useEffect(() => {
+    if (viewMode !== 'list') return
+    const timer = setTimeout(() => {
+      todayListRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    }, 80)
+    return () => clearTimeout(timer)
+  }, [viewMode, year, month])
 
   const prevMonth = () => {
     if (month === 0) { setYear(y => y - 1); setMonth(11) }
@@ -319,15 +328,7 @@ export default function MealCalendar({ periodDates = [], chugim = [] }: { period
   const firstDay = new Date(year, month, 1).getDay()
   const todayStr = toDateStr(today.getFullYear(), today.getMonth(), today.getDate())
 
-  const daysWithContent = Array.from({ length: daysInMonth }, (_, i) => i + 1).filter(day => {
-    const dateStr = toDateStr(year, month, day)
-    return (
-      meals.some(m => m.date === dateStr) ||
-      events.some(e => e.date === dateStr) ||
-      (holidays[dateStr]?.length ?? 0) > 0 ||
-      chugim.some(c => c.days.includes(CHUG_DOW[new Date(year, month, day).getDay()]))
-    )
-  })
+  const allDays = Array.from({ length: daysInMonth }, (_, i) => i + 1)
 
   return (
     <>
@@ -411,98 +412,118 @@ export default function MealCalendar({ periodDates = [], chugim = [] }: { period
 
         {/* ── List view ── */}
         {viewMode === 'list' && (
-          <div className="space-y-2 mb-4">
-            {daysWithContent.length === 0 && (
-              <div className="text-center py-10 text-gray-400 font-semibold text-sm">
-                Nothing scheduled this month.
-              </div>
-            )}
-            {daysWithContent.map(day => {
-              const dateStr = toDateStr(year, month, day)
-              const dayMeals = meals.filter(m => m.date === dateStr)
-              const dayEvents = events.filter(e => e.date === dateStr)
-              const dayHolidays = holidays[dateStr] ?? []
-              const isToday = dateStr === todayStr
-              const dayOfWeek = CHUG_DOW[new Date(year, month, day).getDay()]
-              const dayChugim = chugim.filter(c => c.days.includes(dayOfWeek))
-              const isPeriod = periodDates.includes(dateStr)
+          <>
+            <div className="space-y-1.5 mb-4">
+              {allDays.map(day => {
+                const dateStr = toDateStr(year, month, day)
+                const dayMeals = meals.filter(m => m.date === dateStr)
+                const dayEvents = events.filter(e => e.date === dateStr)
+                const dayHolidays = holidays[dateStr] ?? []
+                const isToday = dateStr === todayStr
+                const dayOfWeek = CHUG_DOW[new Date(year, month, day).getDay()]
+                const dayChugim = chugim.filter(c => c.days.includes(dayOfWeek))
+                const isPeriod = periodDates.includes(dateStr)
+                const hasContent = dayMeals.length > 0 || dayEvents.length > 0 || dayHolidays.length > 0 || dayChugim.length > 0
 
-              return (
-                <div
-                  key={day}
-                  onClick={() => setSelectedDate(selectedDate === dateStr ? null : dateStr)}
-                  className={`rounded-2xl p-3 cursor-pointer transition-all shadow-sm ${
-                    selectedDate === dateStr
-                      ? 'ring-2 ring-violet-400 bg-violet-50'
-                      : 'bg-white/80 hover:bg-violet-50/50'
-                  }`}
-                >
-                  <div className="flex items-start gap-3">
-                    <div className="flex-shrink-0 text-center w-11">
-                      {isToday ? (
-                        <span
-                          className="inline-flex items-center justify-center w-8 h-8 rounded-full text-xs font-black text-white shadow-md"
-                          style={{ background: 'linear-gradient(135deg, #7C3AED, #EC4899)' }}
-                        >
-                          {day}
-                        </span>
+                return (
+                  <div
+                    key={day}
+                    ref={isToday ? todayListRef : undefined}
+                    onClick={() => setSelectedDate(selectedDate === dateStr ? null : dateStr)}
+                    className={`rounded-2xl p-2.5 cursor-pointer transition-all ${
+                      isToday
+                        ? 'ring-2 ring-violet-300 bg-violet-50/80 shadow-sm'
+                        : selectedDate === dateStr
+                          ? 'ring-2 ring-violet-400 bg-violet-50 shadow-sm'
+                          : hasContent
+                            ? 'bg-white/80 hover:bg-violet-50/50 shadow-sm'
+                            : 'bg-white/40 hover:bg-white/70'
+                    }`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="flex-shrink-0 w-11 text-center">
+                        {isToday ? (
+                          <span
+                            className="inline-flex items-center justify-center w-8 h-8 rounded-full text-xs font-black text-white shadow-md"
+                            style={{ background: 'linear-gradient(135deg, #7C3AED, #EC4899)' }}
+                          >
+                            {day}
+                          </span>
+                        ) : (
+                          <span className={`inline-flex items-center justify-center w-8 h-8 text-sm font-bold ${hasContent ? 'text-gray-700' : 'text-gray-300'}`}>
+                            {day}
+                          </span>
+                        )}
+                        <div className={`text-[10px] font-semibold leading-tight ${hasContent ? 'text-gray-400' : 'text-gray-200'}`}>
+                          {DAYS[new Date(year, month, day).getDay()]}
+                        </div>
+                        {isPeriod && <span className="w-1.5 h-1.5 rounded-full bg-rose-400 opacity-70 inline-block mt-0.5" />}
+                      </div>
+
+                      {hasContent ? (
+                        <div className="flex-1 flex flex-wrap gap-1 min-w-0">
+                          {dayHolidays.map(h => (
+                            <div key={h} className="text-xs rounded-lg px-2 py-0.5 font-bold bg-amber-100 text-amber-800 border border-amber-300">
+                              ✡ {h}
+                            </div>
+                          ))}
+                          {dayEvents.map(event => {
+                            const colorDef = EVENT_COLORS.find(c => c.value === event.color) ?? EVENT_COLORS[0]
+                            return (
+                              <div key={event.id} className={`flex items-center gap-1 text-xs rounded-lg px-2 py-0.5 font-bold text-white ${colorDef.bg}`}>
+                                <span>✦ {event.title}</span>
+                                <button onClick={e => { e.stopPropagation(); removeEvent(event.id) }} className="opacity-70 hover:opacity-100 leading-none">×</button>
+                              </div>
+                            )
+                          })}
+                          {dayMeals.map((meal, mi) => {
+                            const hasTemplate = !!meal.templateId
+                            return (
+                              <div key={meal.id} className={`flex items-center gap-1 text-xs rounded-lg px-2 py-0.5 font-semibold ${MEAL_PILL_COLORS[mi % MEAL_PILL_COLORS.length]}`}>
+                                <button onClick={e => openViewMeal(meal, e)} className="flex items-center gap-0.5 hover:underline">
+                                  {hasTemplate && <span className="opacity-60 text-[9px]">🥕</span>}
+                                  {meal.name}
+                                </button>
+                                <button onClick={e => { e.stopPropagation(); removeMeal(meal.id) }} className="opacity-50 hover:opacity-100 leading-none">×</button>
+                              </div>
+                            )
+                          })}
+                          {dayChugim.map(chug => (
+                            <div key={chug.id} className={`flex items-center gap-1 text-xs rounded-lg px-2 py-0.5 font-semibold ${CHILD_CHUG_COLORS[chug.child] ?? 'bg-violet-100 text-violet-800'}`}>
+                              <span className="text-[10px]">🎽</span>
+                              {chug.name}
+                              {chug.time && <span className="opacity-60">{chug.time}</span>}
+                            </div>
+                          ))}
+                        </div>
                       ) : (
-                        <span className="inline-flex items-center justify-center w-8 h-8 text-sm font-bold text-gray-600">
-                          {day}
-                        </span>
+                        <span className="text-[11px] text-gray-200 font-semibold">tap to add</span>
                       )}
-                      <div className="text-[10px] text-gray-400 font-semibold leading-tight">{DAYS[new Date(year, month, day).getDay()]}</div>
-                      {isPeriod && <span className="w-1.5 h-1.5 rounded-full bg-rose-400 opacity-70 inline-block mt-0.5" />}
-                    </div>
-                    <div className="flex-1 flex flex-col gap-1 min-w-0">
-                      {dayHolidays.map(h => (
-                        <div key={h} className="text-xs rounded-lg px-2 py-1 font-bold bg-amber-100 text-amber-800 border border-amber-300">
-                          ✡ {h}
-                        </div>
-                      ))}
-                      {dayEvents.map(event => {
-                        const colorDef = EVENT_COLORS.find(c => c.value === event.color) ?? EVENT_COLORS[0]
-                        return (
-                          <div key={event.id} className={`flex items-center justify-between text-xs rounded-lg px-2 py-1 font-bold text-white ${colorDef.bg}`}>
-                            <span className="truncate">✦ {event.title}</span>
-                            <button
-                              onClick={e => { e.stopPropagation(); removeEvent(event.id) }}
-                              className="ml-2 opacity-70 hover:opacity-100 flex-shrink-0"
-                            >×</button>
-                          </div>
-                        )
-                      })}
-                      {dayMeals.map((meal, mi) => {
-                        const hasTemplate = !!meal.templateId
-                        return (
-                          <div key={meal.id} className={`flex items-center justify-between text-xs rounded-lg px-2 py-1 font-semibold ${MEAL_PILL_COLORS[mi % MEAL_PILL_COLORS.length]}`}>
-                            <button
-                              onClick={e => openViewMeal(meal, e)}
-                              className="text-left flex items-center gap-1 hover:underline truncate"
-                            >
-                              {hasTemplate && <span className="opacity-60 text-[9px] flex-shrink-0">🥕</span>}
-                              <span className="truncate">{meal.name}</span>
-                            </button>
-                            <button
-                              onClick={e => { e.stopPropagation(); removeMeal(meal.id) }}
-                              className="ml-2 opacity-50 hover:opacity-100 flex-shrink-0"
-                            >×</button>
-                          </div>
-                        )
-                      })}
-                      {dayChugim.map(chug => (
-                        <div key={chug.id} className={`flex items-center gap-1 text-xs rounded-lg px-2 py-1 font-semibold ${CHILD_CHUG_COLORS[chug.child] ?? 'bg-violet-100 text-violet-800'}`}>
-                          <span className="text-[10px] flex-shrink-0">🎽</span>
-                          <span className="truncate">{chug.name}</span>
-                          {chug.time && <span className="opacity-60 flex-shrink-0 ml-0.5">{chug.time}</span>}
-                        </div>
-                      ))}
                     </div>
                   </div>
-                </div>
-              )
-            })}
-          </div>
+                )
+              })}
+            </div>
+
+            {/* Bottom month navigation */}
+            <div className="flex items-center justify-between pt-2 pb-2">
+              <button
+                onClick={prevMonth}
+                className="px-4 py-2 rounded-full font-bold text-white text-sm transition-all duration-200 hover:scale-105 active:scale-95 shadow-md"
+                style={{ background: 'linear-gradient(135deg, #7C3AED, #A855F7)' }}
+              >
+                ‹ Prev
+              </button>
+              <span className="text-xs font-bold text-gray-400">{MONTHS[month]} {year}</span>
+              <button
+                onClick={nextMonth}
+                className="px-4 py-2 rounded-full font-bold text-white text-sm transition-all duration-200 hover:scale-105 active:scale-95 shadow-md"
+                style={{ background: 'linear-gradient(135deg, #EC4899, #F43F5E)' }}
+              >
+                Next ›
+              </button>
+            </div>
+          </>
         )}
 
         {/* ── Calendar grid — hidden when list view is active ── */}
