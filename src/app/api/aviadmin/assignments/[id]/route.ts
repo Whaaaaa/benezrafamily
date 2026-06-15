@@ -13,6 +13,15 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
   return Response.json({ ok: true })
 }
 
+export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params
+  const { completed_at } = await req.json()
+  await sql`
+    UPDATE aviad_assignments SET completed_at = ${completed_at ?? null} WHERE id = ${id}
+  `
+  return Response.json({ ok: true })
+}
+
 export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
   await sql`DELETE FROM aviad_assignments WHERE id = ${id}`

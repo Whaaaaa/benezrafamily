@@ -19,11 +19,11 @@ type SchoolClass = {
 }
 type Assignment = {
   id: string; class_type_id: string; subject: string; notes: string; due_at: string
-  reminders_enabled: boolean; class_type_name: string
+  reminders_enabled: boolean; class_type_name: string; completed_at?: string | null
 }
-type Tab = 'calendar' | 'jobs' | 'classes' | 'customers' | 'map'
+type Tab = 'calendar' | 'jobs' | 'classes' | 'customers' | 'map' | 'assignments'
 type CalView = 'day' | 'week' | 'month'
-type Modal = 'newJob' | 'addEvent' | 'newClass' | 'eventDetail' | 'classDetail' | 'completeJob' | 'newAssignment' | 'assignmentDetail' | 'editEvent' | 'editClass' | null
+type Modal = 'newJob' | 'addEvent' | 'newClass' | 'eventDetail' | 'classDetail' | 'completeJob' | 'newAssignment' | 'assignmentDetail' | 'editAssignment' | 'editEvent' | 'editClass' | null
 
 const DAY_START = 7
 const DAY_END = 21
@@ -307,7 +307,7 @@ export default function AviadminPage() {
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
     const t = params.get('tab') as Tab
-    if (t && ['calendar', 'jobs', 'classes', 'customers', 'map'].includes(t)) setTab(t)
+    if (t && ['calendar', 'jobs', 'classes', 'customers', 'map', 'assignments'].includes(t)) setTab(t)
   }, [])
   const [calDate, setCalDate] = useState<Date>(() => {
     const d = new Date(); d.setHours(0, 0, 0, 0); return d
@@ -339,13 +339,20 @@ export default function AviadminPage() {
   const [alertMsg, setAlertMsg] = useState<string | null>(null)
   const [confirmDialog, setConfirmDialog] = useState<{ message: string; onConfirm: () => void | Promise<void> } | null>(null)
 
-  // ── New Assignment form ──
+  // ── New / Edit Assignment form ──
   const [asgClassId, setAsgClassId] = useState('')
   const [asgSubject, setAsgSubject] = useState('')
   const [asgNotes, setAsgNotes] = useState('')
   const [asgDate, setAsgDate] = useState(todayStr())
   const [asgTime, setAsgTime] = useState('17:00')
   const [asgReminders, setAsgReminders] = useState(true)
+  const [editAsgId, setEditAsgId] = useState('')
+
+  // ── Assignments tab filters ──
+  const [asgTabTypeId, setAsgTabTypeId] = useState('')
+  const [asgTabStatus, setAsgTabStatus] = useState<'all' | 'pending' | 'done'>('all')
+  const [asgTabDateFrom, setAsgTabDateFrom] = useState('')
+  const [asgTabDateTo, setAsgTabDateTo] = useState('')
 
   // ── New Job form ──
   const [custMode, setCustMode] = useState<'new' | 'existing'>('new')
@@ -495,6 +502,45 @@ export default function AviadminPage() {
     await fetch(`/api/aviadmin/assignments/${id}`, { method: 'DELETE' })
     await fetchAll()
     setModal(selectedClass ? 'classDetail' : null)
+  }
+
+  function openEditAssignment(a: Assignment) {
+    setEditAsgId(a.id)
+    setAsgSubject(a.subject)
+    setAsgNotes(a.notes)
+    setAsgDate(a.due_at.slice(0, 10))
+    setAsgTime(a.due_at.slice(11, 16))
+    setAsgReminders(a.reminders_enabled)
+    setModal('editAssignment')
+  }
+
+  async function handleUpdateAssignment() {
+    if (!editAsgId || !asgSubject.trim() || !asgDate) return
+    setSaving(true)
+    try {
+      const due_at = isoFromParts(asgDate, asgTime)
+      const updates = { subject: asgSubject.trim(), notes: asgNotes, due_at, reminders_enabled: asgReminders }
+      await fetch(`/api/aviadmin/assignments/${editAsgId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updates),
+      })
+      if (selectedAssignment) setSelectedAssignment({ ...selectedAssignment, ...updates })
+      setModal('assignmentDetail')
+      fetchAll()
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  async function handleToggleComplete(a: Assignment) {
+    const completed_at = a.completed_at ? null : new Date().toISOString()
+    setSelectedAssignment({ ...a, completed_at })
+    fetch(`/api/aviadmin/assignments/${a.id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ completed_at }),
+    }).then(() => fetchAll())
   }
 
   async function handleSaveJob() {
@@ -1741,16 +1787,81 @@ export default function AviadminPage() {
           {modal === 'assignmentDetail' && selectedAssignment && (
             <div className="p-5 space-y-4">
               <h2 className="av-modal-title">Assignment</h2>
-              <div className="bg-amber-50 rounded-2xl p-4 space-y-1.5">
-                <p className="font-bold text-amber-800 text-base">📝 {selectedAssignment.subject}</p>
-                {selectedAssignment.class_type_name && <p className="text-sm text-amber-700">{selectedAssignment.class_type_name}</p>}
-                <p className="text-sm text-amber-600">Due {fmtDate(selectedAssignment.due_at)} · {fmtTime(selectedAssignment.due_at)}</p>
-                {selectedAssignment.reminders_enabled && <p className="text-xs text-amber-500">🔔 Reminder on</p>}
+              <div className={`rounded-2xl p-4 space-y-1.5 ${selectedAssignment.completed_at ? 'bg-emerald-50' : 'bg-amber-50'}`}>
+                <p className={`font-bold text-base ${selectedAssignment.completed_at ? 'text-emerald-800' : 'text-amber-800'}`}>
+                  {selectedAssignment.completed_at ? '✓ ' : '📝 '}{selectedAssignment.subject}
+                </p>
+                {selectedAssignment.class_type_name && (
+                  <p className={`text-sm ${selectedAssignment.completed_at ? 'text-emerald-700' : 'text-amber-700'}`}>{selectedAssignment.class_type_name}</p>
+                )}
+                <p className={`text-sm ${selectedAssignment.completed_at ? 'text-emerald-600' : 'text-amber-600'}`}>
+                  Due {fmtDate(selectedAssignment.due_at)} · {fmtTime(selectedAssignment.due_at)}
+                </p>
+                {selectedAssignment.completed_at && (
+                  <p className="text-xs text-emerald-500">Completed {fmtDate(selectedAssignment.completed_at)}</p>
+                )}
+                {selectedAssignment.reminders_enabled && !selectedAssignment.completed_at && (
+                  <p className="text-xs text-amber-500">🔔 Reminder on</p>
+                )}
               </div>
-              {selectedAssignment.notes && <p className="text-sm text-gray-500 bg-gray-50 rounded-xl p-3 whitespace-pre-wrap">{selectedAssignment.notes}</p>}
+              {selectedAssignment.notes && (
+                <p className="text-sm text-gray-500 bg-gray-50 rounded-xl p-3 whitespace-pre-wrap">{selectedAssignment.notes}</p>
+              )}
+              <button onClick={() => handleToggleComplete(selectedAssignment)}
+                className={`w-full py-2.5 rounded-xl text-sm font-semibold ${selectedAssignment.completed_at ? 'bg-amber-50 text-amber-700' : 'bg-emerald-50 text-emerald-700'}`}>
+                {selectedAssignment.completed_at ? '↩ Mark incomplete' : '✓ Mark complete'}
+              </button>
+              <button onClick={() => openEditAssignment(selectedAssignment)}
+                className="w-full py-2.5 bg-purple-50 text-purple-700 rounded-xl text-sm font-semibold">
+                ✏️ Edit
+              </button>
               <button onClick={() => handleDeleteAssignment(selectedAssignment.id)}
                 className="w-full py-2.5 bg-red-50 text-red-600 rounded-xl text-sm font-semibold">
                 Delete assignment
+              </button>
+            </div>
+          )}
+
+          {/* ── Edit Assignment ── */}
+          {modal === 'editAssignment' && (
+            <div className="p-5 space-y-4">
+              <h2 className="av-modal-title">Edit Assignment</h2>
+              <div>
+                <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1 block">Subject</label>
+                <input value={asgSubject} onChange={e => setAsgSubject(e.target.value)} autoFocus
+                  className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-amber-300" />
+              </div>
+              <div>
+                <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1 block">Notes</label>
+                <textarea value={asgNotes} onChange={e => setAsgNotes(e.target.value)} rows={2}
+                  className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-amber-300" />
+              </div>
+              <div>
+                <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1 block">Due date & time</label>
+                <div className="flex gap-2">
+                  <input type="date" value={asgDate} onChange={e => setAsgDate(e.target.value)}
+                    className="flex-1 px-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-amber-300" />
+                  <input type="time" step="1800" value={asgTime} onChange={e => setAsgTime(e.target.value)}
+                    className="w-28 px-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-amber-300" />
+                </div>
+              </div>
+              <div className="flex items-center justify-between bg-gray-50 rounded-xl px-3 py-2.5">
+                <div>
+                  <p className="text-sm font-semibold text-gray-700">🔔 Reminders</p>
+                  <p className="text-[10px] text-gray-400">Push notification before it is due</p>
+                </div>
+                <button onClick={() => setAsgReminders(v => !v)}
+                  className={`relative w-11 h-6 rounded-full transition-colors ${asgReminders ? 'bg-amber-500' : 'bg-gray-300'}`}>
+                  <span className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-all ${asgReminders ? 'left-[22px]' : 'left-0.5'}`} />
+                </button>
+              </div>
+              <ValidationErrors errors={[
+                ...(!asgSubject.trim() ? ['Please enter a subject.'] : []),
+                ...(!asgDate ? ['Please select a due date.'] : []),
+              ]} />
+              <button onClick={handleUpdateAssignment} disabled={saving || !asgSubject.trim() || !asgDate}
+                className="w-full py-3.5 bg-amber-500 text-white rounded-xl font-bold text-sm shadow disabled:opacity-50">
+                {saving ? 'Saving…' : 'Save changes'}
               </button>
             </div>
           )}
@@ -1900,6 +2011,74 @@ export default function AviadminPage() {
     )
   }
 
+  // ── Assignments tab ──────────────────────────────────────────────────
+  function renderAssignments() {
+    let filtered = [...assignments]
+    if (asgTabTypeId) filtered = filtered.filter(a => a.class_type_id === asgTabTypeId)
+    if (asgTabStatus === 'pending') filtered = filtered.filter(a => !a.completed_at)
+    if (asgTabStatus === 'done') filtered = filtered.filter(a => !!a.completed_at)
+    if (asgTabDateFrom) filtered = filtered.filter(a => a.due_at >= asgTabDateFrom)
+    if (asgTabDateTo) filtered = filtered.filter(a => a.due_at.slice(0, 10) <= asgTabDateTo)
+    filtered.sort((a, b) => b.due_at.localeCompare(a.due_at))
+
+    return (
+      <div className="p-4 space-y-3">
+        {/* Status filter */}
+        <div className="flex gap-2">
+          {(['all', 'pending', 'done'] as const).map(s => (
+            <button key={s} onClick={() => setAsgTabStatus(s)}
+              className={`flex-1 py-2 rounded-xl text-sm font-semibold transition-colors ${asgTabStatus === s ? 'bg-amber-500 text-white shadow-sm' : 'bg-gray-100 text-gray-600'}`}>
+              {s === 'all' ? 'All' : s === 'pending' ? 'Pending' : 'Done'}
+            </button>
+          ))}
+        </div>
+
+        {/* Class type filter */}
+        <select value={asgTabTypeId} onChange={e => setAsgTabTypeId(e.target.value)}
+          className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-amber-300">
+          <option value="">All class types</option>
+          {classTypes.map(ct => <option key={ct.id} value={ct.id}>{ct.name}</option>)}
+        </select>
+
+        {/* Date range */}
+        <div className="flex gap-2">
+          <input type="date" value={asgTabDateFrom} onChange={e => setAsgTabDateFrom(e.target.value)}
+            placeholder="From"
+            className="flex-1 px-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-amber-300" />
+          <input type="date" value={asgTabDateTo} onChange={e => setAsgTabDateTo(e.target.value)}
+            placeholder="To"
+            className="flex-1 px-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-amber-300" />
+        </div>
+
+        {/* List */}
+        {filtered.length === 0 ? (
+          <p className="text-center text-gray-400 text-sm py-8">No assignments found.</p>
+        ) : (
+          <div className="space-y-2">
+            {filtered.map(a => (
+              <button key={a.id} onClick={() => { setSelectedAssignment(a); setModal('assignmentDetail') }}
+                className={`w-full text-left rounded-2xl px-4 py-3 flex items-start gap-3 ${a.completed_at ? 'bg-emerald-50' : 'bg-amber-50'}`}>
+                <span className="text-base mt-0.5 flex-shrink-0">{a.completed_at ? '✓' : '📝'}</span>
+                <div className="flex-1 min-w-0">
+                  <p className={`font-semibold text-sm truncate ${a.completed_at ? 'text-emerald-800 line-through' : 'text-amber-800'}`}>
+                    {a.subject}
+                  </p>
+                  {a.class_type_name && (
+                    <p className={`text-xs ${a.completed_at ? 'text-emerald-600' : 'text-amber-600'}`}>{a.class_type_name}</p>
+                  )}
+                  <p className={`text-xs ${a.completed_at ? 'text-emerald-500' : 'text-amber-500'}`}>
+                    Due {fmtDate(a.due_at)} · {fmtTime(a.due_at)}
+                  </p>
+                </div>
+                {a.reminders_enabled && !a.completed_at && <span className="text-amber-400 text-xs flex-shrink-0 mt-0.5">🔔</span>}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+    )
+  }
+
   // ── App shell ────────────────────────────────────────────────────────
   const TAB_CFG: { key: Tab; label: string; icon: (active: boolean) => React.ReactNode }[] = [
     {
@@ -1954,6 +2133,15 @@ export default function AviadminPage() {
         </svg>
       ),
     },
+    {
+      key: 'assignments', label: 'Homework',
+      icon: () => (
+        <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M9 11l3 3L22 4" />
+          <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
+        </svg>
+      ),
+    },
   ]
 
   return (
@@ -1994,6 +2182,7 @@ export default function AviadminPage() {
         {tab === 'jobs' && renderJobs()}
         {tab === 'classes' && renderClasses()}
         {tab === 'customers' && renderCustomers()}
+        {tab === 'assignments' && renderAssignments()}
         {tab === 'map' && <MapTab jobs={jobs} jobEvents={jobEvents} />}
       </div>
 
