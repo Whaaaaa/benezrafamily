@@ -190,6 +190,22 @@ export async function initAviadDb() {
       notes TEXT NOT NULL DEFAULT ''
     )
   `
+  await sql`
+    CREATE TABLE IF NOT EXISTS aviad_invoices (
+      id TEXT PRIMARY KEY,
+      job_id TEXT NOT NULL,
+      customer_id TEXT NOT NULL,
+      amount NUMERIC NOT NULL,
+      total_minutes INTEGER NOT NULL DEFAULT 0,
+      description TEXT NOT NULL DEFAULT '',
+      created_at TEXT NOT NULL DEFAULT '',
+      paid_at TEXT,
+      payment_method TEXT
+    )
+  `
+  await sql`ALTER TABLE aviad_jobs ADD COLUMN IF NOT EXISTS completed_at TEXT`
+  await sql`ALTER TABLE aviad_job_events ADD COLUMN IF NOT EXISTS series_id TEXT`
+  await sql`ALTER TABLE aviad_classes ADD COLUMN IF NOT EXISTS series_id TEXT`
 }
 
 export default sql

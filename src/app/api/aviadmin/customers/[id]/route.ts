@@ -7,23 +7,18 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
   const [customer] = await sql`SELECT * FROM aviad_customers WHERE id = ${id}`
   if (!customer) return Response.json({ error: 'Not found' }, { status: 404 })
 
-  const jobs = await sql`
-    SELECT * FROM aviad_jobs WHERE customer_id = ${id} ORDER BY created_at DESC
-  `
+  const jobs = await sql`SELECT * FROM aviad_jobs WHERE customer_id = ${id} ORDER BY created_at DESC`
   const events = jobs.length
-    ? await sql`
-        SELECT e.* FROM aviad_job_events e
-        WHERE e.job_id = ANY(${jobs.map(j => j.id)})
-        ORDER BY e.start_time
-      `
+    ? await sql`SELECT e.* FROM aviad_job_events e WHERE e.job_id = ANY(${jobs.map((j: Record<string, unknown>) => j.id)}) ORDER BY e.start_time`
     : []
+  const invoices = await sql`SELECT * FROM aviad_invoices WHERE customer_id = ${id} ORDER BY created_at DESC`
 
   const jobsWithEvents = jobs.map((j: Record<string, unknown>) => ({
     ...j,
     events: (events as Record<string, unknown>[]).filter((e: Record<string, unknown>) => e.job_id === j.id),
   }))
 
-  return Response.json({ ...customer, jobs: jobsWithEvents })
+  return Response.json({ ...customer, jobs: jobsWithEvents, invoices })
 }
 
 export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -37,6 +32,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
 export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
   await sql`DELETE FROM aviad_job_events WHERE job_id IN (SELECT id FROM aviad_jobs WHERE customer_id=${id})`
+  await sql`DELETE FROM aviad_invoices WHERE customer_id=${id}`
   await sql`DELETE FROM aviad_jobs WHERE customer_id=${id}`
   await sql`DELETE FROM aviad_customers WHERE id=${id}`
   return Response.json({ ok: true })

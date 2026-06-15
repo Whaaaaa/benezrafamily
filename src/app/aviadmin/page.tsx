@@ -8,15 +8,15 @@ type Customer = { id: string; name: string; phone: string; address: string; crea
 type ClassType = { id: string; name: string }
 type Job = {
   id: string; customer_id: string; customer_name: string; customer_phone: string; customer_address: string
-  notes: string; first_hour_rate: number; additional_hour_rate: number; created_at: string
+  notes: string; first_hour_rate: number; additional_hour_rate: number; created_at: string; completed_at?: string | null
 }
-type JobEvent = { id: string; job_id: string; start_time: string; end_time: string }
+type JobEvent = { id: string; job_id: string; start_time: string; end_time: string; series_id?: string | null }
 type SchoolClass = {
   id: string; class_type_id: string; class_type_name: string
-  duration_hours: number; start_time: string; end_time: string; notes: string
+  duration_hours: number; start_time: string; end_time: string; notes: string; series_id?: string | null
 }
 type Tab = 'calendar' | 'jobs' | 'classes' | 'customers' | 'map'
-type Modal = 'newJob' | 'addEvent' | 'newClass' | 'eventDetail' | 'classDetail' | null
+type Modal = 'newJob' | 'addEvent' | 'newClass' | 'eventDetail' | 'classDetail' | 'completeJob' | null
 
 const DAY_START = 7
 const DAY_END = 21
@@ -24,12 +24,181 @@ const SLOT_H = 48
 
 function uid() { return crypto.randomUUID() }
 
-function calcCost(startTime: string, endTime: string, firstRate: number, addRate: number): number {
-  const mins = (new Date(endTime).getTime() - new Date(startTime).getTime()) / 60000
+function costFromMinutes(mins: number, firstRate: number, addRate: number): number {
   const hours = mins / 60
   if (hours <= 0) return 0
   if (hours <= 1) return Number(firstRate)
   return Number(firstRate) + (hours - 1) * Number(addRate)
+}
+
+function calcCost(startTime: string, endTime: string, firstRate: number, addRate: number): number {
+  const mins = (new Date(endTime).getTime() - new Date(startTime).getTime()) / 60000
+  return costFromMinutes(mins, firstRate, addRate)
+}
+
+const WEEKDAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+
+type RecurState = {
+  repeat: boolean
+  freq: 'daily' | 'weekly' | 'monthly'
+  interval: number
+  weekdays: number[]
+  endMode: 'count' | 'date'
+  count: number
+  endDate: string
+}
+
+function defaultRecur(): RecurState {
+  return { repeat: false, freq: 'weekly', interval: 1, weekdays: [], endMode: 'count', count: 4, endDate: '' }
+}
+
+function dateStr(d: Date) {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+}
+
+function startOfWeek(d: Date) {
+  const x = new Date(d)
+  x.setHours(0, 0, 0, 0)
+  x.setDate(x.getDate() - x.getDay())
+  return x
+}
+
+// Generate the list of occurrence dates (YYYY-MM-DD) for a recurrence pattern.
+function generateDates(r: RecurState, start: string): string[] {
+  const out: string[] = []
+  if (!start) return out
+  const startD = new Date(`${start}T00:00:00`)
+  if (isNaN(startD.getTime())) return out
+  const MAX = 200
+  const interval = Math.max(1, Math.floor(r.interval) || 1)
+  const endD = r.endMode === 'date' && r.endDate ? new Date(`${r.endDate}T00:00:00`) : null
+
+  if (r.freq === 'monthly') {
+    for (let i = 0; out.length < MAX && i < 600; i++) {
+      const d = new Date(startD)
+      d.setMonth(d.getMonth() + i * interval)
+      if (endD && d > endD) break
+      out.push(dateStr(d))
+      if (r.endMode === 'count' && out.length >= r.count) break
+    }
+    return out
+  }
+
+  if (r.freq === 'daily') {
+    const cursor = new Date(startD)
+    for (let i = 0; out.length < MAX && i < 1000; i++) {
+      if (endD && cursor > endD) break
+      out.push(dateStr(cursor))
+      if (r.endMode === 'count' && out.length >= r.count) break
+      cursor.setDate(cursor.getDate() + interval)
+    }
+    return out
+  }
+
+  // weekly (optionally on multiple weekdays)
+  const wk = r.weekdays.length ? [...r.weekdays].sort((a, b) => a - b) : [startD.getDay()]
+  const baseWeek = startOfWeek(startD)
+  const cursor = new Date(startD)
+  for (let guard = 0; out.length < MAX && guard < 3000; guard++) {
+    if (endD && cursor > endD) break
+    const weekIdx = Math.round((startOfWeek(cursor).getTime() - baseWeek.getTime()) / (7 * 86400000))
+    if (weekIdx % interval === 0 && wk.includes(cursor.getDay())) {
+      out.push(dateStr(cursor))
+      if (r.endMode === 'count' && out.length >= r.count) break
+    }
+    cursor.setDate(cursor.getDate() + 1)
+  }
+  return out
+}
+
+function RecurrenceControls({ value, onChange, accent }: {
+  value: RecurState
+  onChange: (v: RecurState) => void
+  accent: 'teal' | 'purple'
+}) {
+  const A = accent === 'teal'
+    ? { on: 'bg-teal-600 text-white', ring: 'focus:ring-teal-300', soft: 'text-teal-600', border: 'border-teal-300' }
+    : { on: 'bg-purple-600 text-white', ring: 'focus:ring-purple-300', soft: 'text-purple-600', border: 'border-purple-300' }
+  const set = (patch: Partial<RecurState>) => onChange({ ...value, ...patch })
+
+  return (
+    <div>
+      <div className="flex items-center justify-between">
+        <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Repeat</label>
+        <button onClick={() => set({ repeat: !value.repeat })}
+          className={`relative w-11 h-6 rounded-full transition-colors ${value.repeat ? (accent === 'teal' ? 'bg-teal-600' : 'bg-purple-600') : 'bg-gray-300'}`}>
+          <span className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-all ${value.repeat ? 'left-[22px]' : 'left-0.5'}`} />
+        </button>
+      </div>
+
+      {value.repeat && (
+        <div className="mt-3 space-y-3 bg-gray-50 rounded-xl p-3">
+          {/* Frequency */}
+          <div className="flex gap-2">
+            {(['daily', 'weekly', 'monthly'] as const).map(f => (
+              <button key={f} onClick={() => set({ freq: f })}
+                className={`flex-1 py-2 rounded-lg text-xs font-semibold capitalize ${value.freq === f ? A.on : 'bg-white text-gray-600 border border-gray-200'}`}>
+                {f}
+              </button>
+            ))}
+          </div>
+
+          {/* Interval */}
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-gray-500">Every</span>
+            <input type="number" min={1} value={value.interval}
+              onChange={e => set({ interval: Math.max(1, Number(e.target.value)) })}
+              className={`w-16 px-2 py-1.5 rounded-lg border border-gray-200 text-sm text-center focus:outline-none focus:ring-2 ${A.ring}`} />
+            <span className="text-xs text-gray-500">{value.freq === 'daily' ? 'day(s)' : value.freq === 'weekly' ? 'week(s)' : 'month(s)'}</span>
+          </div>
+
+          {/* Weekdays (weekly only) */}
+          {value.freq === 'weekly' && (
+            <div>
+              <label className="text-[10px] text-gray-400 mb-1 block">On days (defaults to start day)</label>
+              <div className="flex gap-1">
+                {WEEKDAYS.map((d, i) => {
+                  const sel = value.weekdays.includes(i)
+                  return (
+                    <button key={i}
+                      onClick={() => set({ weekdays: sel ? value.weekdays.filter(x => x !== i) : [...value.weekdays, i] })}
+                      className={`flex-1 py-1.5 rounded-lg text-[10px] font-semibold ${sel ? A.on : 'bg-white text-gray-500 border border-gray-200'}`}>
+                      {d}
+                    </button>
+                  )
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* End condition */}
+          <div>
+            <div className="flex gap-2 mb-2">
+              <button onClick={() => set({ endMode: 'count' })}
+                className={`flex-1 py-1.5 rounded-lg text-xs font-semibold ${value.endMode === 'count' ? A.on : 'bg-white text-gray-600 border border-gray-200'}`}>
+                # of times
+              </button>
+              <button onClick={() => set({ endMode: 'date' })}
+                className={`flex-1 py-1.5 rounded-lg text-xs font-semibold ${value.endMode === 'date' ? A.on : 'bg-white text-gray-600 border border-gray-200'}`}>
+                End date
+              </button>
+            </div>
+            {value.endMode === 'count' ? (
+              <div className="flex items-center gap-2">
+                <input type="number" min={1} value={value.count}
+                  onChange={e => set({ count: Math.max(1, Number(e.target.value)) })}
+                  className={`w-20 px-2 py-1.5 rounded-lg border border-gray-200 text-sm text-center focus:outline-none focus:ring-2 ${A.ring}`} />
+                <span className="text-xs text-gray-500">occurrences</span>
+              </div>
+            ) : (
+              <input type="date" value={value.endDate} onChange={e => set({ endDate: e.target.value })}
+                className={`w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 ${A.ring}`} />
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  )
 }
 
 function fmtTime(iso: string) {
@@ -127,6 +296,12 @@ export default function AviadminPage() {
   const [jobAddRate, setJobAddRate] = useState(150)
   const [jobNotes, setJobNotes] = useState('')
   const [jobSlots, setJobSlots] = useState([{ date: todayStr(), start: '09:00', end: '10:00' }])
+  const [jobRecur, setJobRecur] = useState<RecurState>(defaultRecur())
+
+  // ── Complete job form ──
+  const [completeJobId, setCompleteJobId] = useState('')
+  const [compHours, setCompHours] = useState(1)
+  const [compMins, setCompMins] = useState(0)
 
   // ── Add Event form ──
   const [evDate, setEvDate] = useState(todayStr())
@@ -141,6 +316,7 @@ export default function AviadminPage() {
   const [clDate, setClDate] = useState(todayStr())
   const [clStart, setClStart] = useState('09:00')
   const [clNotes, setClNotes] = useState('')
+  const [clRecur, setClRecur] = useState<RecurState>(defaultRecur())
 
   // ── Customer filter ──
   const [custFilter, setCustFilter] = useState('')
@@ -171,11 +347,13 @@ export default function AviadminPage() {
     setCustMode('new'); setCustSearch(''); setCustId(''); setCustName(''); setCustPhone(''); setCustAddress('')
     setJobFirstRate(250); setJobAddRate(150); setJobNotes('')
     setJobSlots([{ date: todayStr(), start: '09:00', end: '10:00' }])
+    setJobRecur(defaultRecur())
   }
 
   function resetClassForm() {
     setClTypeId(''); setClNewTypeName(''); setClShowNewType(false)
     setClDuration(1.5); setClDate(todayStr()); setClStart('09:00'); setClNotes('')
+    setClRecur(defaultRecur())
   }
 
   async function handleSaveJob() {
@@ -198,13 +376,27 @@ export default function AviadminPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id: jobId, customer_id: finalCustId, notes: jobNotes, first_hour_rate: jobFirstRate, additional_hour_rate: jobAddRate, created_at: new Date().toISOString() }),
       })
-      for (const slot of jobSlots) {
-        if (!slot.date || !slot.start || !slot.end) continue
-        await fetch('/api/aviadmin/job-events', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ id: uid(), job_id: jobId, start_time: isoFromParts(slot.date, slot.start), end_time: isoFromParts(slot.date, slot.end) }),
-        })
+      if (jobRecur.repeat) {
+        const seriesId = uid()
+        const base = jobSlots[0]
+        const dates = generateDates(jobRecur, base.date)
+        for (const date of dates) {
+          if (!base.start || !base.end) continue
+          await fetch('/api/aviadmin/job-events', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id: uid(), job_id: jobId, start_time: isoFromParts(date, base.start), end_time: isoFromParts(date, base.end), series_id: seriesId }),
+          })
+        }
+      } else {
+        for (const slot of jobSlots) {
+          if (!slot.date || !slot.start || !slot.end) continue
+          await fetch('/api/aviadmin/job-events', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id: uid(), job_id: jobId, start_time: isoFromParts(slot.date, slot.start), end_time: isoFromParts(slot.date, slot.end) }),
+          })
+        }
       }
       await fetchAll()
       setModal(null)
@@ -230,6 +422,44 @@ export default function AviadminPage() {
     }
   }
 
+  function openComplete(jobId: string) {
+    const evs = jobEvents.filter(e => e.job_id === jobId)
+    const mins = evs.reduce((s, e) => s + (new Date(e.end_time).getTime() - new Date(e.start_time).getTime()) / 60000, 0)
+    const safe = mins > 0 ? mins : 60
+    setCompleteJobId(jobId)
+    setCompHours(Math.floor(safe / 60))
+    setCompMins(Math.round(safe % 60))
+    setModal('completeJob')
+  }
+
+  async function handleCompleteJob() {
+    const job = jobs.find(j => j.id === completeJobId)
+    if (!job) return
+    const totalMins = compHours * 60 + compMins
+    const amount = costFromMinutes(totalMins, job.first_hour_rate, job.additional_hour_rate)
+    const now = new Date().toISOString()
+    setSaving(true)
+    try {
+      await fetch(`/api/aviadmin/jobs/${job.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ notes: job.notes, first_hour_rate: job.first_hour_rate, additional_hour_rate: job.additional_hour_rate, completed_at: now }),
+      })
+      await fetch('/api/aviadmin/invoices', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id: uid(), job_id: job.id, customer_id: job.customer_id, amount, total_minutes: totalMins,
+          description: job.notes?.trim() || 'Work completed', created_at: now,
+        }),
+      })
+      await fetchAll()
+      setModal(null)
+    } finally {
+      setSaving(false)
+    }
+  }
+
   async function handleSaveClass() {
     let typeId = clTypeId
     if (clShowNewType && clNewTypeName.trim()) {
@@ -243,12 +473,16 @@ export default function AviadminPage() {
     if (!typeId || !clDate || !clStart) return
     setSaving(true)
     try {
-      const endTime = addMinutes(clStart, clDate, clDuration * 60)
-      await fetch('/api/aviadmin/classes', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id: uid(), class_type_id: typeId, duration_hours: clDuration, start_time: isoFromParts(clDate, clStart), end_time: isoFromParts(clDate, endTime), notes: clNotes }),
-      })
+      const dates = clRecur.repeat ? generateDates(clRecur, clDate) : [clDate]
+      const seriesId = clRecur.repeat ? uid() : null
+      for (const date of dates) {
+        const endTime = addMinutes(clStart, date, clDuration * 60)
+        await fetch('/api/aviadmin/classes', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id: uid(), class_type_id: typeId, duration_hours: clDuration, start_time: isoFromParts(date, clStart), end_time: isoFromParts(date, endTime), notes: clNotes, series_id: seriesId }),
+        })
+      }
       await fetchAll()
       setModal(null)
       resetClassForm()
@@ -404,6 +638,11 @@ export default function AviadminPage() {
                 <div key={job.id} className="p-3 border-b border-gray-50 last:border-0">
                   <div className="flex items-start justify-between">
                     <div>
+                      {job.completed_at && (
+                        <span className="inline-block text-[10px] font-bold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full mb-1">
+                          ✓ Completed {fmtDate(job.completed_at)}
+                        </span>
+                      )}
                       {job.notes && <p className="text-xs text-gray-500 mb-1">{job.notes}</p>}
                       <p className="text-xs text-gray-400">
                         {evs.length} session{evs.length !== 1 ? 's' : ''} · {totalHours.toFixed(1)}h · ₪{total.toFixed(0)}
@@ -427,6 +666,12 @@ export default function AviadminPage() {
                         </button>
                       ))}
                     </div>
+                  )}
+                  {!job.completed_at && (
+                    <button onClick={() => openComplete(job.id)}
+                      className="mt-2 w-full py-2 bg-emerald-600 text-white rounded-lg text-xs font-semibold">
+                      ✓ Mark complete & invoice
+                    </button>
                   )}
                 </div>
               )
@@ -588,11 +833,16 @@ export default function AviadminPage() {
                   className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-teal-300" />
               </div>
 
+              {/* Recurrence */}
+              <RecurrenceControls value={jobRecur} onChange={setJobRecur} accent="teal" />
+
               {/* Sessions */}
               <div>
-                <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2 block">Sessions</label>
+                <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2 block">
+                  {jobRecur.repeat ? 'Time (applied to every occurrence)' : 'Sessions'}
+                </label>
                 <div className="space-y-2">
-                  {jobSlots.map((slot, i) => {
+                  {(jobRecur.repeat ? jobSlots.slice(0, 1) : jobSlots).map((slot, i) => {
                     const durationMins = slot.date && slot.start && slot.end
                       ? (new Date(`${slot.date}T${slot.end}`).getTime() - new Date(`${slot.date}T${slot.start}`).getTime()) / 60000
                       : 0
@@ -600,8 +850,8 @@ export default function AviadminPage() {
                     return (
                       <div key={i} className="bg-gray-50 rounded-xl p-3 space-y-2">
                         <div className="flex items-center justify-between">
-                          <span className="text-xs font-semibold text-gray-500">Session {i + 1}</span>
-                          {i > 0 && (
+                          <span className="text-xs font-semibold text-gray-500">{jobRecur.repeat ? 'Starts on' : `Session ${i + 1}`}</span>
+                          {!jobRecur.repeat && i > 0 && (
                             <button onClick={() => setJobSlots(s => s.filter((_, j) => j !== i))}
                               className="text-red-400 text-xs">Remove</button>
                           )}
@@ -622,17 +872,23 @@ export default function AviadminPage() {
                         </div>
                         {cost > 0 && (
                           <p className="text-xs text-teal-600 font-semibold">
-                            {(durationMins / 60).toFixed(1)}h → ₪{cost.toFixed(0)}
+                            {(durationMins / 60).toFixed(1)}h → ₪{cost.toFixed(0)} per session
                           </p>
                         )}
                       </div>
                     )
                   })}
                 </div>
-                <button onClick={() => setJobSlots(s => [...s, { date: todayStr(), start: '09:00', end: '10:00' }])}
-                  className="mt-2 w-full py-2 border-2 border-dashed border-teal-300 rounded-xl text-teal-600 text-sm font-semibold">
-                  + Add another session
-                </button>
+                {!jobRecur.repeat && (
+                  <button onClick={() => setJobSlots(s => [...s, { date: todayStr(), start: '09:00', end: '10:00' }])}
+                    className="mt-2 w-full py-2 border-2 border-dashed border-teal-300 rounded-xl text-teal-600 text-sm font-semibold">
+                    + Add another session
+                  </button>
+                )}
+                {jobRecur.repeat && (() => {
+                  const n = generateDates(jobRecur, jobSlots[0].date).length
+                  return <p className="mt-2 text-xs text-teal-600 font-semibold">Creates {n} session{n !== 1 ? 's' : ''}</p>
+                })()}
               </div>
 
               <button onClick={handleSaveJob} disabled={saving || (custMode === 'new' ? !custName.trim() : !custId)}
@@ -739,6 +995,13 @@ export default function AviadminPage() {
                   className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-purple-300" />
               </div>
 
+              {/* Recurrence */}
+              <RecurrenceControls value={clRecur} onChange={setClRecur} accent="purple" />
+              {clRecur.repeat && (() => {
+                const n = generateDates(clRecur, clDate).length
+                return <p className="text-xs text-purple-600 font-semibold">Creates {n} class{n !== 1 ? 'es' : ''}</p>
+              })()}
+
               <button onClick={handleSaveClass} disabled={saving || (!clTypeId && !clNewTypeName.trim()) || !clDate}
                 className="w-full py-3.5 bg-purple-600 text-white rounded-xl font-bold text-sm shadow disabled:opacity-50">
                 {saving ? 'Saving…' : 'Create Class'}
@@ -804,6 +1067,48 @@ export default function AviadminPage() {
               </button>
             </div>
           )}
+
+          {/* ── Complete Job ── */}
+          {modal === 'completeJob' && (() => {
+            const job = jobs.find(j => j.id === completeJobId)
+            const totalMins = compHours * 60 + compMins
+            const amount = costFromMinutes(totalMins, job?.first_hour_rate ?? 250, job?.additional_hour_rate ?? 150)
+            return (
+              <div className="p-5 space-y-4">
+                <h2 className="text-lg font-bold text-gray-800">Complete Job</h2>
+                {job && <p className="text-sm text-gray-500">For <span className="font-semibold text-gray-700">{job.customer_name}</span></p>}
+                <div>
+                  <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2 block">Total time spent</label>
+                  <div className="flex gap-3">
+                    <div className="flex-1">
+                      <label className="text-[10px] text-gray-400 mb-0.5 block">Hours</label>
+                      <input type="number" min={0} value={compHours} onChange={e => setCompHours(Math.max(0, Number(e.target.value)))}
+                        className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-300" />
+                    </div>
+                    <div className="flex-1">
+                      <label className="text-[10px] text-gray-400 mb-0.5 block">Minutes</label>
+                      <input type="number" min={0} max={59} step={5} value={compMins} onChange={e => setCompMins(Math.max(0, Math.min(59, Number(e.target.value))))}
+                        className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-300" />
+                    </div>
+                  </div>
+                  <p className="text-[10px] text-gray-400 mt-1">Pre-filled from scheduled sessions — adjust to the actual time worked.</p>
+                </div>
+                <div className="bg-emerald-50 rounded-2xl p-4 flex items-center justify-between">
+                  <div>
+                    <p className="text-xs text-emerald-500">Invoice amount</p>
+                    <p className="text-[10px] text-emerald-400">
+                      ₪{job?.first_hour_rate}/1st hr · ₪{job?.additional_hour_rate}/add. hr
+                    </p>
+                  </div>
+                  <p className="text-2xl font-bold text-emerald-700">₪{amount.toFixed(0)}</p>
+                </div>
+                <button onClick={handleCompleteJob} disabled={saving || totalMins <= 0}
+                  className="w-full py-3.5 bg-emerald-600 text-white rounded-xl font-bold text-sm shadow disabled:opacity-50">
+                  {saving ? 'Saving…' : 'Complete & create invoice'}
+                </button>
+              </div>
+            )
+          })()}
         </div>
       </div>
     )
