@@ -4,6 +4,15 @@ import { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
 import { use } from 'react'
 
+type Tab = 'calendar' | 'jobs' | 'classes' | 'customers' | 'map'
+const TAB_CFG: { key: Tab; label: string; emoji: string }[] = [
+  { key: 'calendar', label: 'Calendar', emoji: '📅' },
+  { key: 'map', label: 'Map', emoji: '🗺️' },
+  { key: 'jobs', label: 'Jobs', emoji: '💼' },
+  { key: 'classes', label: 'Classes', emoji: '🎓' },
+  { key: 'customers', label: 'Clients', emoji: '👥' },
+]
+
 type JobEvent = { id: string; job_id: string; start_time: string; end_time: string }
 type Job = {
   id: string; customer_id: string; notes: string
@@ -159,7 +168,7 @@ export default function CustomerDetailPage({ params }: { params: Promise<{ id: s
   const outstandingTotal = invoicedTotal - paidTotal
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 pb-20">
       {/* Header */}
       <div className="bg-gradient-to-r from-blue-600 to-indigo-700 text-white px-4 pt-4 pb-6 sticky top-0 z-10">
         <div className="flex items-center gap-3 mb-3">
@@ -312,10 +321,13 @@ export default function CustomerDetailPage({ params }: { params: Promise<{ id: s
           <div className="bg-gradient-to-r from-teal-500 to-emerald-600 rounded-2xl p-4 text-white">
             <div className="flex justify-between items-center">
               <div>
-                <p className="text-sm text-teal-100">Grand Total</p>
-                <p className="text-xs text-teal-200">{data.jobs.length} job{data.jobs.length !== 1 ? 's' : ''} · {totalSessions} session{totalSessions !== 1 ? 's' : ''} · {totalHours.toFixed(1)}h</p>
+                <p className="text-sm text-teal-100">{invoices.length > 0 ? 'Invoiced Total' : 'Estimated Total'}</p>
+                <p className="text-xs text-teal-200">
+                  {data.jobs.length} job{data.jobs.length !== 1 ? 's' : ''} · {totalSessions} session{totalSessions !== 1 ? 's' : ''} · {totalHours.toFixed(1)}h
+                </p>
+                {invoices.length === 0 && <p className="text-[10px] text-teal-300 mt-0.5">From scheduled sessions</p>}
               </div>
-              <p className="text-3xl font-bold">₪{totalCost.toFixed(0)}</p>
+              <p className="text-3xl font-bold">₪{(invoices.length > 0 ? invoicedTotal : totalCost).toFixed(0)}</p>
             </div>
           </div>
         )}
@@ -326,7 +338,10 @@ export default function CustomerDetailPage({ params }: { params: Promise<{ id: s
         <div className="fixed inset-0 z-50 flex items-end">
           <div className="absolute inset-0 bg-black/50" onClick={() => setPayingInvoice(null)} />
           <div className="relative w-full bg-white rounded-t-3xl p-5 space-y-4 shadow-2xl">
-            <div className="w-10 h-1 bg-gray-300 rounded-full mx-auto mb-1" />
+            <div className="flex items-center justify-center relative mb-1">
+              <div className="w-10 h-1 bg-gray-300 rounded-full" />
+              <button onClick={() => setPayingInvoice(null)} className="absolute right-0 w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 text-gray-500 text-sm font-bold">✕</button>
+            </div>
             <h2 className="text-lg font-bold text-gray-800">Mark as paid</h2>
             <p className="text-sm text-gray-500">
               {payingInvoice.description || 'Work completed'} · <span className="font-semibold text-gray-700">₪{Number(payingInvoice.amount).toFixed(0)}</span>
@@ -350,7 +365,10 @@ export default function CustomerDetailPage({ params }: { params: Promise<{ id: s
         <div className="fixed inset-0 z-50 flex items-end">
           <div className="absolute inset-0 bg-black/50" onClick={() => setEditing(false)} />
           <div className="relative w-full bg-white rounded-t-3xl p-5 space-y-4 shadow-2xl">
-            <div className="w-10 h-1 bg-gray-300 rounded-full mx-auto mb-1" />
+            <div className="flex items-center justify-center relative mb-1">
+              <div className="w-10 h-1 bg-gray-300 rounded-full" />
+              <button onClick={() => setEditing(false)} className="absolute right-0 w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 text-gray-500 text-sm font-bold">✕</button>
+            </div>
             <h2 className="text-lg font-bold text-gray-800">Edit Customer</h2>
             <input value={editName} onChange={e => setEditName(e.target.value)} placeholder="Full name"
               className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300" />
@@ -365,6 +383,17 @@ export default function CustomerDetailPage({ params }: { params: Promise<{ id: s
           </div>
         </div>
       )}
+      {/* Bottom nav */}
+      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 flex z-10">
+        {TAB_CFG.map(({ key, label, emoji }) => (
+          <Link key={key} href={`/aviadmin?tab=${key}`}
+            className={`flex-1 py-2.5 flex flex-col items-center gap-0.5 ${key === 'customers' ? 'text-blue-600' : 'text-gray-400'}`}>
+            <span className="text-xl leading-none">{emoji}</span>
+            <span className={`text-[10px] font-semibold leading-none ${key === 'customers' ? 'text-blue-600' : 'text-gray-400'}`}>{label}</span>
+            {key === 'customers' && <div className="w-1 h-1 rounded-full bg-blue-600 mt-0.5" />}
+          </Link>
+        ))}
+      </div>
     </div>
   )
 }

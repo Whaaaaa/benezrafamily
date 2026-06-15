@@ -22,11 +22,12 @@ type Assignment = {
 }
 type Tab = 'calendar' | 'jobs' | 'classes' | 'customers' | 'map'
 type CalView = 'day' | 'week' | 'month'
-type Modal = 'newJob' | 'addEvent' | 'newClass' | 'eventDetail' | 'classDetail' | 'completeJob' | 'newAssignment' | 'assignmentDetail' | null
+type Modal = 'newJob' | 'addEvent' | 'newClass' | 'eventDetail' | 'classDetail' | 'completeJob' | 'newAssignment' | 'assignmentDetail' | 'editEvent' | 'editClass' | null
 
 const DAY_START = 7
 const DAY_END = 21
 const SLOT_H = 48
+const WEEK_SLOT_H = 28
 
 function uid() { return crypto.randomUUID() }
 
@@ -247,17 +248,17 @@ function isSameDay(d: Date, iso: string) {
   return d.getFullYear() === ev.getFullYear() && d.getMonth() === ev.getMonth() && d.getDate() === ev.getDate()
 }
 
-function timeToPixel(isoOrHHMM: string) {
+function timeToPixel(isoOrHHMM: string, slotH = SLOT_H) {
   const t = isoOrHHMM.length > 5 ? isoOrHHMM : `2000-01-01T${isoOrHHMM}:00`
   const d = new Date(t)
   const h = d.getHours()
   const m = d.getMinutes()
-  return ((h - DAY_START) * 60 + m) / 30 * SLOT_H
+  return ((h - DAY_START) * 60 + m) / 30 * slotH
 }
 
-function durationToPixels(startIso: string, endIso: string) {
+function durationToPixels(startIso: string, endIso: string, slotH = SLOT_H) {
   const mins = (new Date(endIso).getTime() - new Date(startIso).getTime()) / 60000
-  return (mins / 30) * SLOT_H
+  return (mins / 30) * slotH
 }
 
 function todayStr() {
@@ -290,6 +291,12 @@ const TOTAL_SLOTS = (DAY_END - DAY_START) * 2
 
 export default function AviadminPage() {
   const [tab, setTab] = useState<Tab>('calendar')
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    const t = params.get('tab') as Tab
+    if (t && ['calendar', 'jobs', 'classes', 'customers', 'map'].includes(t)) setTab(t)
+  }, [])
   const [calDate, setCalDate] = useState<Date>(() => {
     const d = new Date(); d.setHours(0, 0, 0, 0); return d
   })
@@ -361,6 +368,23 @@ export default function AviadminPage() {
 
   // ── Customer filter ──
   const [custFilter, setCustFilter] = useState('')
+
+  // ── Day view compact ──
+  const [dayCollapsed, setDayCollapsed] = useState(true)
+
+  // ── Edit Event form ──
+  const [editEventId, setEditEventId] = useState('')
+  const [editEventDate, setEditEventDate] = useState(todayStr())
+  const [editEventStart, setEditEventStart] = useState('09:00')
+  const [editEventEnd, setEditEventEnd] = useState('10:00')
+
+  // ── Edit Class form ──
+  const [editClassId, setEditClassId] = useState('')
+  const [editClassTypeId, setEditClassTypeId] = useState('')
+  const [editClassDate, setEditClassDate] = useState(todayStr())
+  const [editClassStart, setEditClassStart] = useState('09:00')
+  const [editClassDuration, setEditClassDuration] = useState<1.5 | 3>(1.5)
+  const [editClassNotes, setEditClassNotes] = useState('')
 
   const fetchAll = useCallback(async () => {
     setLoading(true)
@@ -614,6 +638,66 @@ export default function AviadminPage() {
     setModal('addEvent')
   }
 
+  function openEditEvent(ev: JobEvent) {
+    setEditEventId(ev.id)
+    setEditEventDate(dateFromIso(ev.start_time))
+    setEditEventStart(timeFromIso(ev.start_time))
+    setEditEventEnd(timeFromIso(ev.end_time))
+    setModal('editEvent')
+  }
+
+  async function handleUpdateEvent() {
+    if (!editEventId || !editEventDate || !editEventStart || !editEventEnd) return
+    setSaving(true)
+    try {
+      await fetch(`/api/aviadmin/job-events/${editEventId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          start_time: isoFromParts(editEventDate, editEventStart),
+          end_time: isoFromParts(editEventDate, editEventEnd),
+        }),
+      })
+      await fetchAll()
+      setModal(null)
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  function openEditClass(cl: SchoolClass) {
+    setEditClassId(cl.id)
+    setEditClassTypeId(cl.class_type_id)
+    setEditClassDate(dateFromIso(cl.start_time))
+    setEditClassStart(timeFromIso(cl.start_time))
+    setEditClassDuration(cl.duration_hours as 1.5 | 3)
+    setEditClassNotes(cl.notes)
+    setModal('editClass')
+  }
+
+  async function handleUpdateClass() {
+    if (!editClassId || !editClassDate || !editClassStart) return
+    setSaving(true)
+    try {
+      const endTime = addMinutes(editClassStart, editClassDate, editClassDuration * 60)
+      await fetch(`/api/aviadmin/classes/${editClassId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          class_type_id: editClassTypeId,
+          duration_hours: editClassDuration,
+          start_time: isoFromParts(editClassDate, editClassStart),
+          end_time: isoFromParts(editClassDate, endTime),
+          notes: editClassNotes,
+        }),
+      })
+      await fetchAll()
+      setModal(null)
+    } finally {
+      setSaving(false)
+    }
+  }
+
   // ── Calendar data (respecting type filters) ─────────────────────────
   const calJobEvents = filters.jobs ? jobEvents : []
   const calClasses = filters.classes ? classes : []
@@ -640,45 +724,48 @@ export default function AviadminPage() {
     return calDate.toLocaleDateString('en-IL', { month: 'long', year: 'numeric' })
   }
 
-  function renderJobBlock(ev: JobEvent, totalH: number, opts?: { compact?: boolean }) {
+  function renderJobBlock(ev: JobEvent, totalH: number, opts?: { compact?: boolean; slotH?: number }, topOffset = 0) {
+    const sh = opts?.slotH ?? SLOT_H
     const job = jobs.find(j => j.id === ev.job_id)
-    const top = timeToPixel(ev.start_time)
-    const h = durationToPixels(ev.start_time, ev.end_time)
-    if (top < 0 || top >= totalH) return null
+    const top = timeToPixel(ev.start_time, sh) - topOffset
+    const h = durationToPixels(ev.start_time, ev.end_time, sh)
+    if (top + h < 0 || top >= totalH) return null
     const cost = calcCost(ev.start_time, ev.end_time, job?.first_hour_rate ?? 250, job?.additional_hour_rate ?? 150)
     return (
       <button key={ev.id} onClick={() => { setSelectedJobEvent(ev); setModal('eventDetail') }}
         className="absolute left-0.5 right-0.5 bg-teal-50 border-l-4 border-teal-500 rounded-r-lg p-1 text-left overflow-hidden hover:bg-teal-100 transition-colors"
-        style={{ top, height: Math.max(h, opts?.compact ? 18 : SLOT_H) }}>
+        style={{ top, height: Math.max(h, opts?.compact ? 18 : sh) }}>
         <p className="text-[10px] font-bold text-teal-800 leading-tight truncate">{job?.customer_name ?? '—'}</p>
         {!opts?.compact && <p className="text-[10px] text-teal-600 leading-tight">{fmtTime(ev.start_time)}–{fmtTime(ev.end_time)}</p>}
-        {!opts?.compact && h >= SLOT_H * 2 && <p className="text-[10px] text-teal-500 mt-0.5">₪{cost.toFixed(0)}</p>}
+        {!opts?.compact && h >= sh * 2 && <p className="text-[10px] text-teal-500 mt-0.5">₪{cost.toFixed(0)}</p>}
       </button>
     )
   }
 
-  function renderClassBlock(cl: SchoolClass, totalH: number, opts?: { compact?: boolean }) {
-    const top = timeToPixel(cl.start_time)
-    const h = durationToPixels(cl.start_time, cl.end_time)
-    if (top < 0 || top >= totalH) return null
+  function renderClassBlock(cl: SchoolClass, totalH: number, opts?: { compact?: boolean; slotH?: number }, topOffset = 0) {
+    const sh = opts?.slotH ?? SLOT_H
+    const top = timeToPixel(cl.start_time, sh) - topOffset + 2
+    const h = durationToPixels(cl.start_time, cl.end_time, sh)
+    if (top + h < 0 || top >= totalH) return null
     return (
       <button key={cl.id} onClick={() => { setSelectedClass(cl); setModal('classDetail') }}
         className="absolute left-0.5 right-0.5 bg-purple-50 border-l-4 border-purple-500 rounded-r-lg p-1 text-left overflow-hidden hover:bg-purple-100 transition-colors"
-        style={{ top: top + 2, height: Math.max(h - 2, opts?.compact ? 18 : SLOT_H) }}>
+        style={{ top, height: Math.max(h - 2, opts?.compact ? 18 : sh) }}>
         <p className="text-[10px] font-bold text-purple-800 leading-tight truncate">{cl.class_type_name}</p>
         {!opts?.compact && <p className="text-[10px] text-purple-600 leading-tight">{fmtTime(cl.start_time)}–{fmtTime(cl.end_time)}</p>}
-        {!opts?.compact && h >= SLOT_H * 2 && <p className="text-[10px] text-purple-500 mt-0.5">{cl.duration_hours}h</p>}
+        {!opts?.compact && h >= sh * 2 && <p className="text-[10px] text-purple-500 mt-0.5">{cl.duration_hours}h</p>}
       </button>
     )
   }
 
-  function renderAsgBlock(a: Assignment, totalH: number, opts?: { compact?: boolean }) {
-    const top = timeToPixel(a.due_at)
+  function renderAsgBlock(a: Assignment, totalH: number, opts?: { compact?: boolean; slotH?: number }, topOffset = 0) {
+    const sh = opts?.slotH ?? SLOT_H
+    const top = timeToPixel(a.due_at, sh) - topOffset
     if (top < 0 || top >= totalH) return null
     return (
       <button key={a.id} onClick={() => { setSelectedAssignment(a); setModal('assignmentDetail') }}
         className="absolute left-0.5 right-0.5 bg-amber-50 border-l-4 border-amber-500 rounded-r-lg p-1 text-left overflow-hidden hover:bg-amber-100 transition-colors"
-        style={{ top, height: opts?.compact ? 18 : SLOT_H }}>
+        style={{ top, height: opts?.compact ? 18 : sh }}>
         <p className="text-[10px] font-bold text-amber-800 leading-tight truncate">📝 {a.subject}</p>
         {!opts?.compact && <p className="text-[10px] text-amber-600 leading-tight">due {fmtTime(a.due_at)}</p>}
       </button>
@@ -686,32 +773,72 @@ export default function AviadminPage() {
   }
 
   function renderDayView() {
-    const totalH = TOTAL_SLOTS * SLOT_H
+    const allDayItems = [...jobsOn(calDate), ...classesOn(calDate)]
+    const shouldCollapse = dayCollapsed && allDayItems.length > 0
+
+    let displayStart = DAY_START
+    let displayEnd = DAY_END
+
+    if (shouldCollapse) {
+      const startHours = allDayItems.map(ev => new Date(ev.start_time).getHours())
+      const endHours = allDayItems.map(ev => new Date(ev.end_time).getHours())
+      displayStart = Math.max(DAY_START, Math.min(...startHours) - 1)
+      displayEnd = Math.min(DAY_END, Math.max(...endHours) + 1)
+    }
+
+    const topOffset = (displayStart - DAY_START) * 2 * SLOT_H
+    const visSlots = (displayEnd - displayStart) * 2
+    const visH = visSlots * SLOT_H
+    const collapsedTopHours = displayStart - DAY_START
+    const collapsedBottomHours = DAY_END - displayEnd
+
     return (
       <div className="flex-1 overflow-y-auto">
-        <div className="relative flex" style={{ height: totalH }}>
+        {collapsedTopHours > 0 && (
+          <button onClick={() => setDayCollapsed(false)}
+            className="w-full py-2 text-xs text-gray-400 text-center bg-gray-50 border-b border-dashed border-gray-200 hover:bg-gray-100">
+            ▲ {collapsedTopHours}h hidden — tap to expand
+          </button>
+        )}
+        <div className="relative flex" style={{ height: visH }}>
           <div className="w-12 flex-shrink-0">
-            {TIMES.map((t, i) => (
-              <div key={t} className="absolute flex items-start" style={{ top: i * SLOT_H, height: SLOT_H, left: 0, width: 48 }}>
-                {i % 2 === 0 && <span className="text-[10px] text-gray-400 pl-1 pt-0.5 leading-none">{t}</span>}
-              </div>
-            ))}
+            {TIMES.map((t, i) => {
+              const pixAbs = i * SLOT_H
+              if (pixAbs < topOffset || pixAbs >= topOffset + visH) return null
+              return (
+                <div key={t} className="absolute flex items-start"
+                  style={{ top: pixAbs - topOffset, height: SLOT_H, left: 0, width: 48 }}>
+                  {i % 2 === 0 && <span className="text-[10px] text-gray-400 pl-1 pt-0.5 leading-none">{t}</span>}
+                </div>
+              )
+            })}
           </div>
           <div className="relative flex-1 border-l border-gray-200">
-            {TIMES.map((_, i) => (
-              <div key={i} className={`absolute w-full border-t ${i % 2 === 0 ? 'border-gray-200' : 'border-gray-100'}`} style={{ top: i * SLOT_H }} />
-            ))}
-            {jobsOn(calDate).map(ev => renderJobBlock(ev, totalH))}
-            {classesOn(calDate).map(cl => renderClassBlock(cl, totalH))}
-            {asgOn(calDate).map(a => renderAsgBlock(a, totalH))}
+            {TIMES.map((_, i) => {
+              const pixAbs = i * SLOT_H
+              if (pixAbs < topOffset || pixAbs >= topOffset + visH) return null
+              return (
+                <div key={i} className={`absolute w-full border-t ${i % 2 === 0 ? 'border-gray-200' : 'border-gray-100'}`}
+                  style={{ top: pixAbs - topOffset }} />
+              )
+            })}
+            {jobsOn(calDate).map(ev => renderJobBlock(ev, visH, undefined, topOffset))}
+            {classesOn(calDate).map(cl => renderClassBlock(cl, visH, undefined, topOffset))}
+            {asgOn(calDate).map(a => renderAsgBlock(a, visH, undefined, topOffset))}
           </div>
         </div>
+        {collapsedBottomHours > 0 && (
+          <button onClick={() => setDayCollapsed(false)}
+            className="w-full py-2 text-xs text-gray-400 text-center bg-gray-50 border-t border-dashed border-gray-200 hover:bg-gray-100">
+            ▼ {collapsedBottomHours}h hidden — tap to expand
+          </button>
+        )}
       </div>
     )
   }
 
   function renderWeekView() {
-    const totalH = TOTAL_SLOTS * SLOT_H
+    const totalH = TOTAL_SLOTS * WEEK_SLOT_H
     const days = weekDays(calDate)
     const todayKey = todayStr()
     return (
@@ -735,7 +862,7 @@ export default function AviadminPage() {
         <div className="relative flex" style={{ height: totalH }}>
           <div className="w-9 flex-shrink-0">
             {TIMES.map((t, i) => (
-              <div key={t} className="absolute" style={{ top: i * SLOT_H, left: 0 }}>
+              <div key={t} className="absolute" style={{ top: i * WEEK_SLOT_H, left: 0 }}>
                 {i % 2 === 0 && <span className="text-[9px] text-gray-400 pl-0.5 leading-none">{t.slice(0, 2)}</span>}
               </div>
             ))}
@@ -743,11 +870,12 @@ export default function AviadminPage() {
           {days.map(d => (
             <div key={d.toISOString()} className="relative flex-1 border-l border-gray-200">
               {TIMES.map((_, i) => (
-                <div key={i} className={`absolute w-full border-t ${i % 2 === 0 ? 'border-gray-100' : 'border-gray-50'}`} style={{ top: i * SLOT_H }} />
+                <div key={i} className={`absolute w-full border-t ${i % 2 === 0 ? 'border-gray-100' : 'border-gray-50'}`}
+                  style={{ top: i * WEEK_SLOT_H }} />
               ))}
-              {jobsOn(d).map(ev => renderJobBlock(ev, totalH, { compact: true }))}
-              {classesOn(d).map(cl => renderClassBlock(cl, totalH, { compact: true }))}
-              {asgOn(d).map(a => renderAsgBlock(a, totalH, { compact: true }))}
+              {jobsOn(d).map(ev => renderJobBlock(ev, totalH, { compact: true, slotH: WEEK_SLOT_H }))}
+              {classesOn(d).map(cl => renderClassBlock(cl, totalH, { compact: true, slotH: WEEK_SLOT_H }))}
+              {asgOn(d).map(a => renderAsgBlock(a, totalH, { compact: true, slotH: WEEK_SLOT_H }))}
             </div>
           ))}
         </div>
@@ -832,6 +960,12 @@ export default function AviadminPage() {
                 </button>
               )
             })}
+            {calView === 'day' && (
+              <button onClick={() => setDayCollapsed(v => !v)}
+                className={`px-2.5 py-1.5 rounded-full text-[11px] font-semibold border flex-shrink-0 ${dayCollapsed ? 'bg-blue-50 text-blue-600 border-blue-200' : 'bg-gray-50 text-gray-400 border-gray-200'}`}>
+                {dayCollapsed ? '⊘ Compact' : '⊡ Full'}
+              </button>
+            )}
           </div>
         </div>
 
@@ -1008,7 +1142,13 @@ export default function AviadminPage() {
       <div className="fixed inset-0 z-50 flex items-end">
         <div className="absolute inset-0 bg-black/50" onClick={() => setModal(null)} />
         <div className="relative w-full bg-white rounded-t-3xl max-h-[90vh] overflow-y-auto shadow-2xl">
-          <div className="w-10 h-1 bg-gray-300 rounded-full mx-auto mt-3 mb-1" />
+          <div className="flex items-center justify-center pt-3 pb-1 relative">
+            <div className="w-10 h-1 bg-gray-300 rounded-full" />
+            <button onClick={() => setModal(null)}
+              className="absolute right-4 w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 text-gray-500 text-sm font-bold hover:bg-gray-200">
+              ✕
+            </button>
+          </div>
 
           {/* ── New Job ── */}
           {modal === 'newJob' && (
@@ -1311,6 +1451,10 @@ export default function AviadminPage() {
                   className="block w-full py-2.5 bg-blue-50 text-blue-700 rounded-xl text-sm font-semibold text-center">
                   View customer profile →
                 </Link>
+                <button onClick={() => openEditEvent(ev)}
+                  className="w-full py-2.5 bg-teal-50 text-teal-700 rounded-xl text-sm font-semibold">
+                  ✏️ Edit session
+                </button>
                 <button onClick={() => handleDeleteJobEvent(ev.id)}
                   className="w-full py-2.5 bg-red-50 text-red-600 rounded-xl text-sm font-semibold">
                   Delete session
@@ -1358,6 +1502,10 @@ export default function AviadminPage() {
                 )}
               </div>
 
+              <button onClick={() => openEditClass(selectedClass)}
+                className="w-full py-2.5 bg-purple-50 text-purple-700 rounded-xl text-sm font-semibold">
+                ✏️ Edit class
+              </button>
               <button onClick={() => handleDeleteClass(selectedClass.id)}
                 className="w-full py-2.5 bg-red-50 text-red-600 rounded-xl text-sm font-semibold">
                 Delete class
@@ -1438,37 +1586,123 @@ export default function AviadminPage() {
                 <h2 className="text-lg font-bold text-gray-800">Complete Job</h2>
                 {job && <p className="text-sm text-gray-500">For <span className="font-semibold text-gray-700">{job.customer_name}</span></p>}
                 <div>
-                  <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2 block">Total time spent</label>
+                  <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2 block">Actual time worked</label>
                   <div className="flex gap-3">
                     <div className="flex-1">
                       <label className="text-[10px] text-gray-400 mb-0.5 block">Hours</label>
-                      <input type="number" min={0} value={compHours} onChange={e => setCompHours(Math.max(0, Number(e.target.value)))}
+                      <input type="number" min={0} value={compHours} onChange={e => setCompHours(Math.max(0, parseInt(e.target.value) || 0))}
                         className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-300" />
                     </div>
                     <div className="flex-1">
                       <label className="text-[10px] text-gray-400 mb-0.5 block">Minutes</label>
-                      <input type="number" min={0} max={59} step={5} value={compMins} onChange={e => setCompMins(Math.max(0, Math.min(59, Number(e.target.value))))}
+                      <input type="number" min={0} max={59} step={5} value={compMins} onChange={e => setCompMins(Math.max(0, Math.min(59, parseInt(e.target.value) || 0)))}
                         className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-300" />
                     </div>
                   </div>
-                  <p className="text-[10px] text-gray-400 mt-1">Pre-filled from scheduled sessions — adjust to the actual time worked.</p>
+                  <p className="text-[10px] text-gray-400 mt-1">Pre-filled from scheduled sessions — adjust to actual hours worked.</p>
                 </div>
-                <div className="bg-emerald-50 rounded-2xl p-4 flex items-center justify-between">
-                  <div>
-                    <p className="text-xs text-emerald-500">Invoice amount</p>
-                    <p className="text-[10px] text-emerald-400">
-                      ₪{job?.first_hour_rate}/1st hr · ₪{job?.additional_hour_rate}/add. hr
-                    </p>
+                <div className="bg-emerald-50 rounded-2xl p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-xs font-semibold text-emerald-600">Invoice will be created for</p>
+                      <p className="text-[10px] text-emerald-400">
+                        {compHours}h {compMins > 0 ? `${compMins}m` : ''} · ₪{job?.first_hour_rate}/1st hr · ₪{job?.additional_hour_rate}/add. hr
+                      </p>
+                    </div>
+                    <p className="text-2xl font-bold text-emerald-700">₪{amount.toFixed(0)}</p>
                   </div>
-                  <p className="text-2xl font-bold text-emerald-700">₪{amount.toFixed(0)}</p>
                 </div>
                 <button onClick={handleCompleteJob} disabled={saving || totalMins <= 0}
                   className="w-full py-3.5 bg-emerald-600 text-white rounded-xl font-bold text-sm shadow disabled:opacity-50">
-                  {saving ? 'Saving…' : 'Complete & create invoice'}
+                  {saving ? 'Saving…' : `Confirm ${compHours}h ${compMins > 0 ? `${compMins}m` : ''} & create invoice`}
                 </button>
               </div>
             )
           })()}
+
+          {/* ── Edit Event ── */}
+          {modal === 'editEvent' && (() => {
+            const ev = jobEvents.find(e => e.id === editEventId)
+            const job = ev ? jobs.find(j => j.id === ev.job_id) : null
+            return (
+              <div className="p-5 space-y-4">
+                <h2 className="text-lg font-bold text-gray-800">Edit Session</h2>
+                {job && <p className="text-sm text-gray-500">For <span className="font-semibold text-gray-700">{job.customer_name}</span></p>}
+                <input type="date" value={editEventDate} onChange={e => setEditEventDate(e.target.value)}
+                  className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-teal-300" />
+                <div className="flex gap-3">
+                  <div className="flex-1">
+                    <label className="text-xs text-gray-500 mb-1 block">Start</label>
+                    <input type="time" step="1800" value={editEventStart} onChange={e => setEditEventStart(e.target.value)}
+                      className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-teal-300" />
+                  </div>
+                  <div className="flex-1">
+                    <label className="text-xs text-gray-500 mb-1 block">End</label>
+                    <input type="time" step="1800" value={editEventEnd} onChange={e => setEditEventEnd(e.target.value)}
+                      className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-teal-300" />
+                  </div>
+                </div>
+                {editEventDate && editEventStart && editEventEnd && (() => {
+                  const mins = (new Date(isoFromParts(editEventDate, editEventEnd)).getTime() - new Date(isoFromParts(editEventDate, editEventStart)).getTime()) / 60000
+                  if (mins <= 0) return null
+                  const cost = calcCost(isoFromParts(editEventDate, editEventStart), isoFromParts(editEventDate, editEventEnd), job?.first_hour_rate ?? 250, job?.additional_hour_rate ?? 150)
+                  return <p className="text-sm text-teal-600 font-semibold">{(mins / 60).toFixed(1)}h → ₪{cost.toFixed(0)}</p>
+                })()}
+                <button onClick={handleUpdateEvent} disabled={saving}
+                  className="w-full py-3.5 bg-teal-600 text-white rounded-xl font-bold text-sm shadow disabled:opacity-50">
+                  {saving ? 'Saving…' : 'Save Changes'}
+                </button>
+              </div>
+            )
+          })()}
+
+          {/* ── Edit Class ── */}
+          {modal === 'editClass' && (
+            <div className="p-5 space-y-4">
+              <h2 className="text-lg font-bold text-gray-800">Edit Class</h2>
+              <div>
+                <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2 block">Class Type</label>
+                <div className="max-h-40 overflow-y-auto space-y-1">
+                  {classTypes.map(ct => (
+                    <button key={ct.id} onClick={() => setEditClassTypeId(ct.id)}
+                      className={`w-full text-left px-3 py-2.5 rounded-xl text-sm ${editClassTypeId === ct.id ? 'bg-purple-100 text-purple-800 font-semibold' : 'bg-gray-50 text-gray-700'}`}>
+                      {ct.name}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div>
+                <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2 block">Duration</label>
+                <div className="flex gap-3">
+                  {([1.5, 3] as const).map(d => (
+                    <button key={d} onClick={() => setEditClassDuration(d)}
+                      className={`flex-1 py-3 rounded-xl text-sm font-bold ${editClassDuration === d ? 'bg-purple-600 text-white' : 'bg-gray-100 text-gray-600'}`}>
+                      {d}h
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div>
+                <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2 block">Date & Start Time</label>
+                <input type="date" value={editClassDate} onChange={e => setEditClassDate(e.target.value)}
+                  className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm mb-2 focus:outline-none focus:ring-2 focus:ring-purple-300" />
+                <input type="time" step="1800" value={editClassStart} onChange={e => setEditClassStart(e.target.value)}
+                  className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-purple-300" />
+                {editClassDate && editClassStart && (
+                  <p className="text-xs text-purple-500 mt-1">Ends at {addMinutes(editClassStart, editClassDate, editClassDuration * 60)}</p>
+                )}
+              </div>
+              <div>
+                <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1 block">Notes</label>
+                <input value={editClassNotes} onChange={e => setEditClassNotes(e.target.value)} placeholder="Optional…"
+                  className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-purple-300" />
+              </div>
+              <button onClick={handleUpdateClass} disabled={saving || !editClassTypeId || !editClassDate}
+                className="w-full py-3.5 bg-purple-600 text-white rounded-xl font-bold text-sm shadow disabled:opacity-50">
+                {saving ? 'Saving…' : 'Save Changes'}
+              </button>
+            </div>
+          )}
         </div>
       </div>
     )
