@@ -1,9 +1,10 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import './aviadmin.css'
+import React, { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
 import MapTab from './MapTab'
-import { getPushState, enablePush, disablePush, pushDebugInfo, type PushState } from './push-client'
+import { getPushState, enablePush, disablePush, type PushState } from './push-client'
 
 type Customer = { id: string; name: string; phone: string; address: string; created_at: string }
 type ClassType = { id: string; name: string }
@@ -1035,14 +1036,18 @@ export default function AviadminPage() {
         {calView === 'month' && renderMonthView()}
 
         {/* FABs */}
-        <div className="fixed bottom-20 right-4 flex flex-col gap-2 z-20">
-          <button onClick={() => { resetClassForm(); setModal('newClass') }}
-            className="flex items-center gap-1.5 bg-purple-600 text-white px-3 py-2 rounded-full shadow-lg text-xs font-semibold">
-            🎓 Class
+        <div className="av-fab-wrap">
+          <button onClick={() => { resetClassForm(); setModal('newClass') }} className="av-fab av-fab-purple">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" /><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
+            </svg>
+            CLASS
           </button>
-          <button onClick={() => { resetJobForm(); setModal('newJob') }}
-            className="flex items-center gap-1.5 bg-teal-600 text-white px-3 py-2 rounded-full shadow-lg text-xs font-semibold">
-            💼 Appt
+          <button onClick={() => { resetJobForm(); setModal('newJob') }} className="av-fab av-fab-teal">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" />
+            </svg>
+            APPT
           </button>
         </div>
       </div>
@@ -1295,21 +1300,16 @@ export default function AviadminPage() {
 
   function renderModal() {
     return (
-      <div className="fixed inset-0 z-50 flex items-end">
-        <div className="absolute inset-0 bg-black/50" onClick={() => setModal(null)} />
-        <div className="relative w-full bg-white rounded-t-3xl max-h-[90vh] overflow-y-auto shadow-2xl">
-          <div className="flex items-center justify-center pt-6 pb-1 relative">
-            <div className="w-10 h-1 bg-gray-300 rounded-full" />
-            <button onClick={() => setModal(null)}
-              className="absolute right-4 w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 text-gray-500 text-sm font-bold hover:bg-gray-200">
-              ✕
-            </button>
-          </div>
+      <div className="av-backdrop">
+        <div className="absolute inset-0" onClick={() => setModal(null)} />
+        <div className="av-sheet">
+          <div className="av-drag-handle" />
+          <button onClick={() => setModal(null)} className="av-close-btn">✕</button>
 
           {/* ── New Job ── */}
           {modal === 'newJob' && (
             <div className="p-5 space-y-4">
-              <h2 className="text-lg font-bold text-gray-800">New Appointment</h2>
+              <h2 className="av-modal-title">New Appointment</h2>
 
               {/* Customer */}
               <div>
@@ -1461,7 +1461,7 @@ export default function AviadminPage() {
           {/* ── Add Event ── */}
           {modal === 'addEvent' && (
             <div className="p-5 space-y-4">
-              <h2 className="text-lg font-bold text-gray-800">Add Session</h2>
+              <h2 className="av-modal-title">Add Session</h2>
               {(() => {
                 const job = jobs.find(j => j.id === addEventJobId)
                 return job && <p className="text-sm text-gray-500">To: <span className="font-semibold text-gray-700">{job.customer_name}</span></p>
@@ -1502,7 +1502,7 @@ export default function AviadminPage() {
           {/* ── New Class ── */}
           {modal === 'newClass' && (
             <div className="p-5 space-y-4">
-              <h2 className="text-lg font-bold text-gray-800">New Class</h2>
+              <h2 className="av-modal-title">New Class</h2>
 
               <div>
                 <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2 block">Class Type</label>
@@ -1599,7 +1599,7 @@ export default function AviadminPage() {
             const hours = (new Date(ev.end_time).getTime() - new Date(ev.start_time).getTime()) / 3600000
             return (
               <div className="p-5 space-y-4">
-                <h2 className="text-lg font-bold text-gray-800">Appointment</h2>
+                <h2 className="av-modal-title">Appointment</h2>
                 <div className="bg-teal-50 rounded-2xl p-4 space-y-1.5">
                   <p className="font-bold text-teal-800 text-base">{job?.customer_name}</p>
                   {ev.subject && <p className="text-sm font-semibold text-teal-700">📋 {ev.subject}</p>}
@@ -1644,7 +1644,7 @@ export default function AviadminPage() {
               .sort((a, b) => a.due_at.localeCompare(b.due_at))
             return (
             <div className="p-5 space-y-4">
-              <h2 className="text-lg font-bold text-gray-800">Class</h2>
+              <h2 className="av-modal-title">Class</h2>
               <div className="bg-purple-50 rounded-2xl p-4 space-y-1.5">
                 <p className="font-bold text-purple-800 text-base">{selectedClass.class_type_name}</p>
                 <p className="text-sm text-purple-700">{fmtDate(selectedClass.start_time)} · {fmtTime(selectedClass.start_time)}–{fmtTime(selectedClass.end_time)}</p>
@@ -1694,7 +1694,7 @@ export default function AviadminPage() {
             const ct = classTypes.find(t => t.id === asgClassId)
             return (
               <div className="p-5 space-y-4">
-                <h2 className="text-lg font-bold text-gray-800">New Assignment</h2>
+                <h2 className="av-modal-title">New Assignment</h2>
                 {ct && <p className="text-sm text-gray-500">For <span className="font-semibold text-purple-700">{ct.name}</span></p>}
                 <div>
                   <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1 block">Subject</label>
@@ -1740,7 +1740,7 @@ export default function AviadminPage() {
           {/* ── Assignment Detail ── */}
           {modal === 'assignmentDetail' && selectedAssignment && (
             <div className="p-5 space-y-4">
-              <h2 className="text-lg font-bold text-gray-800">Assignment</h2>
+              <h2 className="av-modal-title">Assignment</h2>
               <div className="bg-amber-50 rounded-2xl p-4 space-y-1.5">
                 <p className="font-bold text-amber-800 text-base">📝 {selectedAssignment.subject}</p>
                 {selectedAssignment.class_type_name && <p className="text-sm text-amber-700">{selectedAssignment.class_type_name}</p>}
@@ -1762,7 +1762,7 @@ export default function AviadminPage() {
             const amount = costFromMinutes(totalMins, job?.first_hour_rate ?? 250, job?.additional_hour_rate ?? 150)
             return (
               <div className="p-5 space-y-4">
-                <h2 className="text-lg font-bold text-gray-800">Complete Job</h2>
+                <h2 className="av-modal-title">Complete Job</h2>
                 {job && <p className="text-sm text-gray-500">For <span className="font-semibold text-gray-700">{job.customer_name}</span></p>}
                 <div>
                   <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2 block">Actual time worked</label>
@@ -1808,7 +1808,7 @@ export default function AviadminPage() {
             const job = ev ? jobs.find(j => j.id === ev.job_id) : null
             return (
               <div className="p-5 space-y-4">
-                <h2 className="text-lg font-bold text-gray-800">Edit Session</h2>
+                <h2 className="av-modal-title">Edit Session</h2>
                 {job && <p className="text-sm text-gray-500">For <span className="font-semibold text-gray-700">{job.customer_name}</span></p>}
                 <input value={editEventSubject} onChange={e => setEditEventSubject(e.target.value)} placeholder="Subject (optional)"
                   className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-teal-300" />
@@ -1847,7 +1847,7 @@ export default function AviadminPage() {
           {/* ── Edit Class ── */}
           {modal === 'editClass' && (
             <div className="p-5 space-y-4">
-              <h2 className="text-lg font-bold text-gray-800">Edit Class</h2>
+              <h2 className="av-modal-title">Edit Class</h2>
               <div>
                 <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2 block">Class Type</label>
                 <div className="max-h-40 overflow-y-auto space-y-1">
@@ -1901,37 +1901,94 @@ export default function AviadminPage() {
   }
 
   // ── App shell ────────────────────────────────────────────────────────
-  const TAB_CFG: { key: Tab; label: string; emoji: string }[] = [
-    { key: 'calendar', label: 'Calendar', emoji: '📅' },
-    { key: 'map', label: 'Map', emoji: '🗺️' },
-    { key: 'jobs', label: 'Jobs', emoji: '💼' },
-    { key: 'classes', label: 'Classes', emoji: '🎓' },
-    { key: 'customers', label: 'Clients', emoji: '👥' },
+  const TAB_CFG: { key: Tab; label: string; icon: (active: boolean) => React.ReactNode }[] = [
+    {
+      key: 'calendar', label: 'Schedule',
+      icon: () => (
+        <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+          <rect x="3" y="4" width="18" height="18" rx="2" />
+          <line x1="16" y1="2" x2="16" y2="6" />
+          <line x1="8" y1="2" x2="8" y2="6" />
+          <line x1="3" y1="10" x2="21" y2="10" />
+          <line x1="8" y1="14" x2="8" y2="14" strokeWidth="2.2" strokeLinecap="round" />
+          <line x1="12" y1="14" x2="12" y2="14" strokeWidth="2.2" strokeLinecap="round" />
+          <line x1="16" y1="14" x2="16" y2="14" strokeWidth="2.2" strokeLinecap="round" />
+        </svg>
+      ),
+    },
+    {
+      key: 'map', label: 'Map',
+      icon: () => (
+        <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+          <polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6" />
+          <line x1="8" y1="2" x2="8" y2="18" />
+          <line x1="16" y1="6" x2="16" y2="22" />
+        </svg>
+      ),
+    },
+    {
+      key: 'jobs', label: 'Jobs',
+      icon: () => (
+        <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" />
+        </svg>
+      ),
+    },
+    {
+      key: 'classes', label: 'Classes',
+      icon: () => (
+        <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
+          <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
+        </svg>
+      ),
+    },
+    {
+      key: 'customers', label: 'Clients',
+      icon: () => (
+        <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+          <circle cx="9" cy="7" r="4" />
+          <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+          <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+        </svg>
+      ),
+    },
   ]
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <div className="bg-gradient-to-r from-blue-600 to-indigo-700 text-white px-4 py-3 sticky top-0 z-10 flex items-center gap-3" style={{ height: 60 }}>
-        <div className="w-8 h-8 bg-white/20 rounded-xl flex items-center justify-center text-base">🗓</div>
-        <div>
-          <h1 className="text-base font-bold leading-tight">Avi Calendar</h1>
-          <p className="text-[10px] text-blue-200 leading-none">Appointment & Class Manager</p>
+    <div className="aviadmin-root min-h-screen">
+
+      {/* ── Header ── */}
+      <header className="av-header">
+        {/* Gear logo */}
+        <div className="av-logo">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="12" cy="12" r="3" />
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
+          </svg>
         </div>
-        <div className="ml-auto flex items-center gap-2">
-          {loading && <div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />}
-          <span className="text-[9px] text-white/60 font-mono">{pushDebugInfo()}</span>
+
+        <div>
+          <p className="av-header-title">FORGE</p>
+          <p className="av-header-sub">Field Manager</p>
+        </div>
+
+        <div className="av-header-actions">
+          {loading && <div className="av-spinner" />}
           {pushState !== 'unsupported' && (
-            <button onClick={handleTogglePush} disabled={pushBusy}
-              title={pushState === 'enabled' ? 'Reminders on' : 'Enable reminders'}
-              className={`px-2.5 py-1.5 rounded-full text-xs font-semibold transition-colors ${pushState === 'enabled' ? 'bg-white/25 text-white' : 'bg-white/10 text-blue-100'}`}>
-              {pushBusy ? '…' : pushState === 'enabled' ? '🔔 On' : pushState === 'denied' ? '🔕 Blocked' : '🔔 Off'}
+            <button
+              onClick={handleTogglePush}
+              disabled={pushBusy}
+              className={`av-push-btn ${pushState === 'enabled' ? 'on' : pushState === 'denied' ? 'blocked' : 'off'}`}
+            >
+              {pushBusy ? '…' : pushState === 'enabled' ? '● ALERTS ON' : pushState === 'denied' ? '✕ BLOCKED' : '○ ALERTS'}
             </button>
           )}
         </div>
-      </div>
+      </header>
 
-      {/* Page content */}
+      {/* ── Page content ── */}
       <div className={tab === 'map' ? '' : 'pb-20'}>
         {tab === 'calendar' && renderCalendar()}
         {tab === 'jobs' && renderJobs()}
@@ -1940,48 +1997,89 @@ export default function AviadminPage() {
         {tab === 'map' && <MapTab jobs={jobs} jobEvents={jobEvents} />}
       </div>
 
-      {/* Bottom tab bar */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 flex z-10 safe-area-inset-bottom">
-        {TAB_CFG.map(({ key, label, emoji }) => (
-          <button key={key} onClick={() => setTab(key)}
-            className={`flex-1 py-2.5 flex flex-col items-center gap-0.5 transition-colors ${tab === key ? 'text-blue-600' : 'text-gray-400'}`}>
-            <span className="text-xl leading-none">{emoji}</span>
-            <span className={`text-[10px] font-semibold leading-none ${tab === key ? 'text-blue-600' : 'text-gray-400'}`}>{label}</span>
-            {tab === key && <div className="w-1 h-1 rounded-full bg-blue-600 mt-0.5" />}
+      {/* ── Bottom tab bar ── */}
+      <nav className="av-tabbar">
+        {TAB_CFG.map(({ key, label, icon }) => (
+          <button
+            key={key}
+            onClick={() => setTab(key)}
+            className={`av-tab-btn ${tab === key ? 'active' : ''}`}
+          >
+            <span className="av-tab-icon">{icon(tab === key)}</span>
+            <span className="av-tab-label">{label}</span>
           </button>
         ))}
-      </div>
+      </nav>
 
-      {/* Modals */}
+      {/* ── Modals ── */}
       {modal && renderModal()}
 
-      {/* Alert modal */}
+      {/* ── Alert dialog ── */}
       {alertMsg && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/50" onClick={() => setAlertMsg(null)} />
-          <div className="relative bg-white rounded-2xl shadow-2xl p-6 max-w-sm w-full">
-            <p className="text-sm text-gray-700 mb-5 leading-relaxed">{alertMsg}</p>
-            <button onClick={() => setAlertMsg(null)}
-              className="w-full py-2.5 bg-blue-600 text-white rounded-xl font-semibold text-sm">
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-5" style={{ background: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(6px)' }}>
+          <div style={{
+            background: 'linear-gradient(145deg, #1a2130, #141920)',
+            border: '1px solid #2a3447',
+            borderRadius: 16,
+            padding: '24px 20px 20px',
+            maxWidth: 340,
+            width: '100%',
+            boxShadow: '0 24px 80px rgba(0,0,0,0.9)',
+          }}>
+            <p style={{ fontSize: 14, color: '#dde4f0', lineHeight: 1.6, marginBottom: 20 }}>{alertMsg}</p>
+            <button
+              onClick={() => setAlertMsg(null)}
+              style={{
+                width: '100%',
+                padding: '11px 0',
+                background: 'linear-gradient(135deg, #1d4ed8, #2563eb)',
+                color: 'white',
+                borderRadius: 10,
+                fontWeight: 700,
+                fontSize: 13,
+                letterSpacing: '0.04em',
+                boxShadow: '0 2px 12px rgba(37,99,235,0.4)',
+              }}
+            >
               OK
             </button>
           </div>
         </div>
       )}
 
-      {/* Confirm dialog */}
+      {/* ── Confirm dialog ── */}
       {confirmDialog && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/50" onClick={() => setConfirmDialog(null)} />
-          <div className="relative bg-white rounded-2xl shadow-2xl p-6 max-w-sm w-full">
-            <p className="text-sm text-gray-700 mb-5 leading-relaxed">{confirmDialog.message}</p>
-            <div className="flex gap-3">
-              <button onClick={() => setConfirmDialog(null)}
-                className="flex-1 py-2.5 bg-gray-100 text-gray-700 rounded-xl font-semibold text-sm">
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-5" style={{ background: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(6px)' }}>
+          <div style={{
+            background: 'linear-gradient(145deg, #1a2130, #141920)',
+            border: '1px solid #2a3447',
+            borderRadius: 16,
+            padding: '24px 20px 20px',
+            maxWidth: 340,
+            width: '100%',
+            boxShadow: '0 24px 80px rgba(0,0,0,0.9)',
+          }}>
+            <p style={{ fontSize: 14, color: '#dde4f0', lineHeight: 1.6, marginBottom: 20 }}>{confirmDialog.message}</p>
+            <div style={{ display: 'flex', gap: 10 }}>
+              <button
+                onClick={() => setConfirmDialog(null)}
+                style={{
+                  flex: 1, padding: '11px 0',
+                  background: '#1a2130', border: '1px solid #2a3447',
+                  color: '#8fa3c0', borderRadius: 10, fontWeight: 700, fontSize: 13,
+                }}
+              >
                 Cancel
               </button>
-              <button onClick={() => { const fn = confirmDialog.onConfirm; setConfirmDialog(null); fn() }}
-                className="flex-1 py-2.5 bg-red-600 text-white rounded-xl font-semibold text-sm">
+              <button
+                onClick={() => { const fn = confirmDialog.onConfirm; setConfirmDialog(null); fn() }}
+                style={{
+                  flex: 1, padding: '11px 0',
+                  background: 'linear-gradient(135deg, #dc2626, #b91c1c)',
+                  color: 'white', borderRadius: 10, fontWeight: 700, fontSize: 13,
+                  boxShadow: '0 2px 12px rgba(220,38,38,0.4)',
+                }}
+              >
                 Delete
               </button>
             </div>
