@@ -76,7 +76,7 @@ export default function MapTab({ jobs, jobEvents }: Props) {
         })
         .sort((a, b) => a.start_time.localeCompare(b.start_time))
         .map(ev => ({ event: ev, job: jobs.find(j => j.id === ev.job_id)! }))
-        .filter((x): x is MapEntry => Boolean(x.job))
+        .filter((x): x is { event: JobEvent; job: Job } => Boolean(x.job))
 
   async function geocodeAddress(address: string): Promise<[number, number] | null> {
     if (!address?.trim()) return null
