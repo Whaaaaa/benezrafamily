@@ -40,6 +40,12 @@
   min-height: 100vh;
 }
 
+/* Suppress root grid pattern in time-grid views so it doesn't double up */
+.av-timegrid-scroll {
+  background-color: var(--av-bg) !important;
+  background-image: none !important;
+}
+
 /* ── Background overrides ────────────────────────────────────────────── */
 .aviadmin-root .bg-white          { background-color: var(--av-surface)   !important; }
 .aviadmin-root .bg-gray-50        { background-color: var(--av-surface-2) !important; }

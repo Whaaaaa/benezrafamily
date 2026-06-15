@@ -876,8 +876,18 @@ export default function AviadminPage() {
     const collapsedTopHours = displayStart - DAY_START
     const collapsedBottomHours = DAY_END - displayEnd
 
+    if (allDayItems.length === 0) {
+      return (
+        <div className="flex-1 flex flex-col items-center justify-center pb-20 px-6 text-center av-timegrid-scroll">
+          <div className="text-5xl mb-4">☀️</div>
+          <p className="text-base font-bold text-gray-700 mb-1">Nothing scheduled</p>
+          <p className="text-sm text-gray-400">Enjoy your time off!</p>
+        </div>
+      )
+    }
+
     return (
-      <div className="flex-1 overflow-y-auto">
+      <div className="flex-1 overflow-y-auto av-timegrid-scroll">
         {collapsedTopHours > 0 && (
           <button onClick={() => setDayCollapsed(false)}
             className="w-full py-2 text-xs text-gray-400 text-center bg-gray-50 border-b border-dashed border-gray-200 hover:bg-gray-100">
@@ -925,8 +935,20 @@ export default function AviadminPage() {
     const totalH = TOTAL_SLOTS * WEEK_SLOT_H
     const days = weekDays(calDate)
     const todayKey = todayStr()
+    const hasAnyEvents = days.some(d => jobsOn(d).length > 0 || classesOn(d).length > 0 || asgOn(d).length > 0)
+
+    if (!hasAnyEvents) {
+      return (
+        <div className="flex-1 flex flex-col items-center justify-center pb-20 px-6 text-center av-timegrid-scroll">
+          <div className="text-5xl mb-4">🌴</div>
+          <p className="text-base font-bold text-gray-700 mb-1">Nothing this week</p>
+          <p className="text-sm text-gray-400">Enjoy your time off!</p>
+        </div>
+      )
+    }
+
     return (
-      <div className="flex-1 overflow-y-auto">
+      <div className="flex-1 overflow-y-auto av-timegrid-scroll">
         {/* Day headers */}
         <div className="flex sticky top-0 bg-white z-[5] border-b border-gray-100">
           <div className="w-9 flex-shrink-0" />
