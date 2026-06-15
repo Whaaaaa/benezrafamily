@@ -373,6 +373,9 @@ export default function AviadminPage() {
   // ── Day view compact ──
   const [dayCollapsed, setDayCollapsed] = useState(true)
 
+  // ── Classes tab expanded groups ──
+  const [expandedClassTypes, setExpandedClassTypes] = useState<Set<string>>(new Set())
+
   // ── Edit Event form ──
   const [editEventId, setEditEventId] = useState('')
   const [editEventDate, setEditEventDate] = useState(todayStr())
@@ -1071,24 +1074,104 @@ export default function AviadminPage() {
 
   // ── Classes list ────────────────────────────────────────────────────
   function renderClasses() {
-    const upcoming = [...classes].sort((a, b) => a.start_time.localeCompare(b.start_time))
+    // Group by class_type_id
+    const groups: Record<string, { typeId: string; typeName: string; instances: SchoolClass[] }> = {}
+    for (const cl of classes) {
+      if (!groups[cl.class_type_id]) {
+        groups[cl.class_type_id] = { typeId: cl.class_type_id, typeName: cl.class_type_name, instances: [] }
+      }
+      groups[cl.class_type_id].instances.push(cl)
+    }
+    const sortedGroups = Object.values(groups).sort((a, b) => a.typeName.localeCompare(b.typeName))
+    for (const g of sortedGroups) {
+      g.instances.sort((a, b) => a.start_time.localeCompare(b.start_time))
+    }
+
     return (
       <div className="p-4 space-y-3">
         <button onClick={() => { resetClassForm(); setModal('newClass') }}
           className="w-full py-3 bg-purple-600 text-white rounded-xl font-semibold text-sm shadow">
           + New Class
         </button>
-        {upcoming.map(cl => (
-          <button key={cl.id} onClick={() => { setSelectedClass(cl); setModal('classDetail') }}
-            className="w-full text-left bg-white rounded-2xl shadow-sm p-3 flex items-start gap-3">
-            <div className="w-10 h-10 rounded-xl bg-purple-100 flex items-center justify-center text-lg flex-shrink-0">🎓</div>
-            <div className="flex-1 min-w-0">
-              <p className="font-semibold text-gray-800 text-sm">{cl.class_type_name}</p>
-              <p className="text-xs text-gray-500">{fmtDate(cl.start_time)} · {fmtTime(cl.start_time)}–{fmtTime(cl.end_time)}</p>
-              <p className="text-xs text-purple-600">{cl.duration_hours}h</p>
+
+        {sortedGroups.map(group => {
+          const isExpanded = expandedClassTypes.has(group.typeId)
+          const toggle = () => setExpandedClassTypes(prev => {
+            const next = new Set(prev)
+            if (next.has(group.typeId)) next.delete(group.typeId)
+            else next.add(group.typeId)
+            return next
+          })
+          const upcoming = group.instances.filter(cl => new Date(cl.start_time) >= new Date())
+          const totalAsg = group.instances.reduce((s, cl) => s + assignments.filter(a => a.class_id === cl.id).length, 0)
+
+          return (
+            <div key={group.typeId} className="bg-white rounded-2xl shadow-sm overflow-hidden">
+              {/* Group header — tap to expand/collapse */}
+              <button onClick={toggle} className="w-full text-left p-4 flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-purple-100 flex items-center justify-center text-lg flex-shrink-0">🎓</div>
+                <div className="flex-1 min-w-0">
+                  <p className="font-semibold text-gray-800 text-sm">{group.typeName}</p>
+                  <p className="text-xs text-gray-500">
+                    {group.instances.length} class{group.instances.length !== 1 ? 'es' : ''}
+                    {upcoming.length > 0 && ` · ${upcoming.length} upcoming`}
+                    {totalAsg > 0 && ` · ${totalAsg} assignment${totalAsg !== 1 ? 's' : ''}`}
+                  </p>
+                  {upcoming.length > 0 && (
+                    <p className="text-xs text-purple-600 mt-0.5">
+                      Next: {fmtDate(upcoming[0].start_time)} · {fmtTime(upcoming[0].start_time)}
+                    </p>
+                  )}
+                </div>
+                <span className="text-gray-400 text-sm ml-1">{isExpanded ? '▲' : '▼'}</span>
+              </button>
+
+              {/* Expanded: individual class instances */}
+              {isExpanded && (
+                <div className="border-t border-purple-50">
+                  {group.instances.map(cl => {
+                    const clAsg = assignments.filter(a => a.class_id === cl.id)
+                      .sort((a, b) => a.due_at.localeCompare(b.due_at))
+                    return (
+                      <div key={cl.id} className="border-b border-gray-50 last:border-0">
+                        {/* Class row */}
+                        <button onClick={() => { setSelectedClass(cl); setModal('classDetail') }}
+                          className="w-full text-left px-4 py-3 flex items-center justify-between hover:bg-purple-50 transition-colors">
+                          <div className="min-w-0">
+                            <p className="text-sm font-semibold text-gray-700">{fmtDate(cl.start_time)}</p>
+                            <p className="text-xs text-gray-400">{fmtTime(cl.start_time)}–{fmtTime(cl.end_time)} · {cl.duration_hours}h</p>
+                            {cl.notes && <p className="text-xs text-gray-400 italic truncate">{cl.notes}</p>}
+                          </div>
+                          <span className="text-[10px] text-purple-500 ml-2 flex-shrink-0">
+                            {clAsg.length > 0 ? `${clAsg.length} asg` : ''}
+                          </span>
+                        </button>
+
+                        {/* Assignments under this class */}
+                        {clAsg.length > 0 && (
+                          <div className="px-4 pb-3 space-y-1.5">
+                            {clAsg.map(a => (
+                              <button key={a.id}
+                                onClick={() => { setSelectedAssignment(a); setModal('assignmentDetail') }}
+                                className="w-full text-left bg-amber-50 rounded-xl px-3 py-2 flex items-center justify-between">
+                                <div className="min-w-0">
+                                  <p className="text-xs font-semibold text-amber-800 truncate">📝 {a.subject}</p>
+                                  <p className="text-[11px] text-amber-600">due {fmtDate(a.due_at)} · {fmtTime(a.due_at)}</p>
+                                </div>
+                                {a.reminders_enabled && <span className="text-amber-400 text-xs flex-shrink-0 ml-1">🔔</span>}
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    )
+                  })}
+                </div>
+              )}
             </div>
-          </button>
-        ))}
+          )
+        })}
+
         {classes.length === 0 && !loading && (
           <p className="text-center text-gray-400 text-sm py-8">No classes yet. Tap "+ New Class" to get started.</p>
         )}
