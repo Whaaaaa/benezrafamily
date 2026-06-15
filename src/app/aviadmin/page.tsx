@@ -11,7 +11,7 @@ type Job = {
   id: string; customer_id: string; customer_name: string; customer_phone: string; customer_address: string
   notes: string; first_hour_rate: number; additional_hour_rate: number; created_at: string; completed_at?: string | null
 }
-type JobEvent = { id: string; job_id: string; start_time: string; end_time: string; series_id?: string | null }
+type JobEvent = { id: string; job_id: string; start_time: string; end_time: string; series_id?: string | null; subject?: string }
 type SchoolClass = {
   id: string; class_type_id: string; class_type_name: string
   duration_hours: number; start_time: string; end_time: string; notes: string; series_id?: string | null
@@ -341,7 +341,7 @@ export default function AviadminPage() {
   const [jobFirstRate, setJobFirstRate] = useState(250)
   const [jobAddRate, setJobAddRate] = useState(150)
   const [jobNotes, setJobNotes] = useState('')
-  const [jobSlots, setJobSlots] = useState([{ date: todayStr(), start: '09:00', end: '10:00' }])
+  const [jobSlots, setJobSlots] = useState([{ date: todayStr(), start: '09:00', end: '10:00', subject: '' }])
   const [jobRecur, setJobRecur] = useState<RecurState>(defaultRecur())
   const [jobReminders, setJobReminders] = useState(true)
 
@@ -354,6 +354,7 @@ export default function AviadminPage() {
   const [evDate, setEvDate] = useState(todayStr())
   const [evStart, setEvStart] = useState('09:00')
   const [evEnd, setEvEnd] = useState('10:00')
+  const [evSubject, setEvSubject] = useState('')
 
   // ── New Class form ──
   const [clTypeId, setClTypeId] = useState('')
@@ -377,6 +378,7 @@ export default function AviadminPage() {
   const [editEventDate, setEditEventDate] = useState(todayStr())
   const [editEventStart, setEditEventStart] = useState('09:00')
   const [editEventEnd, setEditEventEnd] = useState('10:00')
+  const [editEventSubject, setEditEventSubject] = useState('')
 
   // ── Edit Class form ──
   const [editClassId, setEditClassId] = useState('')
@@ -433,7 +435,7 @@ export default function AviadminPage() {
   function resetJobForm() {
     setCustMode('new'); setCustSearch(''); setCustId(''); setCustName(''); setCustPhone(''); setCustAddress('')
     setJobFirstRate(250); setJobAddRate(150); setJobNotes('')
-    setJobSlots([{ date: todayStr(), start: '09:00', end: '10:00' }])
+    setJobSlots([{ date: todayStr(), start: '09:00', end: '10:00', subject: '' }])
     setJobRecur(defaultRecur()); setJobReminders(true)
   }
 
@@ -506,7 +508,7 @@ export default function AviadminPage() {
           await fetch('/api/aviadmin/job-events', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ id: uid(), job_id: jobId, start_time: isoFromParts(date, base.start), end_time: isoFromParts(date, base.end), series_id: seriesId, reminders_enabled: jobReminders }),
+            body: JSON.stringify({ id: uid(), job_id: jobId, start_time: isoFromParts(date, base.start), end_time: isoFromParts(date, base.end), series_id: seriesId, reminders_enabled: jobReminders, subject: base.subject ?? '' }),
           })
         }
       } else {
@@ -515,7 +517,7 @@ export default function AviadminPage() {
           await fetch('/api/aviadmin/job-events', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ id: uid(), job_id: jobId, start_time: isoFromParts(slot.date, slot.start), end_time: isoFromParts(slot.date, slot.end), reminders_enabled: jobReminders }),
+            body: JSON.stringify({ id: uid(), job_id: jobId, start_time: isoFromParts(slot.date, slot.start), end_time: isoFromParts(slot.date, slot.end), reminders_enabled: jobReminders, subject: slot.subject ?? '' }),
           })
         }
       }
@@ -534,7 +536,7 @@ export default function AviadminPage() {
       await fetch('/api/aviadmin/job-events', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id: uid(), job_id: addEventJobId, start_time: isoFromParts(evDate, evStart), end_time: isoFromParts(evDate, evEnd) }),
+        body: JSON.stringify({ id: uid(), job_id: addEventJobId, start_time: isoFromParts(evDate, evStart), end_time: isoFromParts(evDate, evEnd), subject: evSubject }),
       })
       await fetchAll()
       setModal(null)
@@ -635,6 +637,7 @@ export default function AviadminPage() {
     setEvDate(todayStr())
     setEvStart('09:00')
     setEvEnd('10:00')
+    setEvSubject('')
     setModal('addEvent')
   }
 
@@ -643,6 +646,7 @@ export default function AviadminPage() {
     setEditEventDate(dateFromIso(ev.start_time))
     setEditEventStart(timeFromIso(ev.start_time))
     setEditEventEnd(timeFromIso(ev.end_time))
+    setEditEventSubject(ev.subject ?? '')
     setModal('editEvent')
   }
 
@@ -656,6 +660,7 @@ export default function AviadminPage() {
         body: JSON.stringify({
           start_time: isoFromParts(editEventDate, editEventStart),
           end_time: isoFromParts(editEventDate, editEventEnd),
+          subject: editEventSubject,
         }),
       })
       await fetchAll()
@@ -736,6 +741,7 @@ export default function AviadminPage() {
         className="absolute left-0.5 right-0.5 bg-teal-50 border-l-4 border-teal-500 rounded-r-lg p-1 text-left overflow-hidden hover:bg-teal-100 transition-colors"
         style={{ top, height: Math.max(h, opts?.compact ? 18 : sh) }}>
         <p className="text-[10px] font-bold text-teal-800 leading-tight truncate">{job?.customer_name ?? '—'}</p>
+        {ev.subject && <p className="text-[10px] text-teal-700 leading-tight truncate italic">{ev.subject}</p>}
         {!opts?.compact && <p className="text-[10px] text-teal-600 leading-tight">{fmtTime(ev.start_time)}–{fmtTime(ev.end_time)}</p>}
         {!opts?.compact && h >= sh * 2 && <p className="text-[10px] text-teal-500 mt-0.5">₪{cost.toFixed(0)}</p>}
       </button>
@@ -1039,7 +1045,7 @@ export default function AviadminPage() {
                       {evs.map(ev => (
                         <button key={ev.id} onClick={() => { setSelectedJobEvent(ev); setModal('eventDetail') }}
                           className="w-full text-left text-xs bg-teal-50 rounded-lg px-2 py-1.5 flex justify-between">
-                          <span className="text-teal-700">{fmtDate(ev.start_time)} · {fmtTime(ev.start_time)}–{fmtTime(ev.end_time)}</span>
+                          <span className="text-teal-700">{ev.subject ? `${ev.subject} · ` : ''}{fmtDate(ev.start_time)} · {fmtTime(ev.start_time)}–{fmtTime(ev.end_time)}</span>
                           <span className="text-teal-600 font-semibold">₪{calcCost(ev.start_time, ev.end_time, job.first_hour_rate, job.additional_hour_rate).toFixed(0)}</span>
                         </button>
                       ))}
@@ -1240,6 +1246,9 @@ export default function AviadminPage() {
                               className="text-red-400 text-xs">Remove</button>
                           )}
                         </div>
+                        <input value={slot.subject ?? ''} onChange={e => setJobSlots(s => s.map((sl, j) => j === i ? { ...sl, subject: e.target.value } : sl))}
+                          placeholder="Subject (optional)"
+                          className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-teal-300" />
                         <input type="date" value={slot.date} onChange={e => setJobSlots(s => s.map((sl, j) => j === i ? { ...sl, date: e.target.value } : sl))}
                           className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-teal-300" />
                         <div className="flex gap-2">
@@ -1264,7 +1273,7 @@ export default function AviadminPage() {
                   })}
                 </div>
                 {!jobRecur.repeat && (
-                  <button onClick={() => setJobSlots(s => [...s, { date: todayStr(), start: '09:00', end: '10:00' }])}
+                  <button onClick={() => setJobSlots(s => [...s, { date: todayStr(), start: '09:00', end: '10:00', subject: '' }])}
                     className="mt-2 w-full py-2 border-2 border-dashed border-teal-300 rounded-xl text-teal-600 text-sm font-semibold">
                     + Add another session
                   </button>
@@ -1302,6 +1311,8 @@ export default function AviadminPage() {
                 const job = jobs.find(j => j.id === addEventJobId)
                 return job && <p className="text-sm text-gray-500">To: <span className="font-semibold text-gray-700">{job.customer_name}</span></p>
               })()}
+              <input value={evSubject} onChange={e => setEvSubject(e.target.value)} placeholder="Subject (optional)"
+                className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-teal-300" />
               <input type="date" value={evDate} onChange={e => setEvDate(e.target.value)}
                 className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-teal-300" />
               <div className="flex gap-3">
@@ -1428,6 +1439,7 @@ export default function AviadminPage() {
                 <h2 className="text-lg font-bold text-gray-800">Appointment</h2>
                 <div className="bg-teal-50 rounded-2xl p-4 space-y-1.5">
                   <p className="font-bold text-teal-800 text-base">{job?.customer_name}</p>
+                  {ev.subject && <p className="text-sm font-semibold text-teal-700">📋 {ev.subject}</p>}
                   {job?.customer_phone && <p className="text-sm text-teal-700">📞 {job.customer_phone}</p>}
                   {job?.customer_address && <p className="text-sm text-teal-600">📍 {job.customer_address}</p>}
                 </div>
@@ -1628,6 +1640,8 @@ export default function AviadminPage() {
               <div className="p-5 space-y-4">
                 <h2 className="text-lg font-bold text-gray-800">Edit Session</h2>
                 {job && <p className="text-sm text-gray-500">For <span className="font-semibold text-gray-700">{job.customer_name}</span></p>}
+                <input value={editEventSubject} onChange={e => setEditEventSubject(e.target.value)} placeholder="Subject (optional)"
+                  className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-teal-300" />
                 <input type="date" value={editEventDate} onChange={e => setEditEventDate(e.target.value)}
                   className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-teal-300" />
                 <div className="flex gap-3">

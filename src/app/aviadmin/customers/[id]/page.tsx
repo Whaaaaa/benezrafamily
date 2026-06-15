@@ -13,7 +13,7 @@ const TAB_CFG: { key: Tab; label: string; emoji: string }[] = [
   { key: 'customers', label: 'Clients', emoji: '👥' },
 ]
 
-type JobEvent = { id: string; job_id: string; start_time: string; end_time: string }
+type JobEvent = { id: string; job_id: string; start_time: string; end_time: string; subject?: string }
 type Job = {
   id: string; customer_id: string; notes: string
   first_hour_rate: number; additional_hour_rate: number; created_at: string; completed_at?: string | null
@@ -246,6 +246,7 @@ export default function CustomerDetailPage({ params }: { params: Promise<{ id: s
                         <div key={ev.id} className="px-4 py-3 flex justify-between items-center">
                           <div>
                             <p className="text-sm font-semibold text-gray-700">{fmtDateLong(ev.start_time)}</p>
+                            {ev.subject && <p className="text-xs font-semibold text-teal-700">📋 {ev.subject}</p>}
                             <p className="text-xs text-gray-400">{fmtTime(ev.start_time)} – {fmtTime(ev.end_time)} · {hours.toFixed(1)}h</p>
                           </div>
                           <p className="font-semibold text-teal-600 text-sm">₪{cost.toFixed(0)}</p>

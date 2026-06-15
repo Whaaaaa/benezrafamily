@@ -229,6 +229,7 @@ export async function initAviadDb() {
   await sql`ALTER TABLE aviad_job_events ADD COLUMN IF NOT EXISTS reminder_sent BOOLEAN NOT NULL DEFAULT FALSE`
   await sql`ALTER TABLE aviad_classes ADD COLUMN IF NOT EXISTS reminders_enabled BOOLEAN NOT NULL DEFAULT TRUE`
   await sql`ALTER TABLE aviad_classes ADD COLUMN IF NOT EXISTS reminder_sent BOOLEAN NOT NULL DEFAULT FALSE`
+  await sql`ALTER TABLE aviad_job_events ADD COLUMN IF NOT EXISTS subject TEXT NOT NULL DEFAULT ''`
 }
 
 export default sql

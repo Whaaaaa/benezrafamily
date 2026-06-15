@@ -3,8 +3,8 @@ import type { NextRequest } from 'next/server'
 
 export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
-  const { start_time, end_time } = await req.json()
-  await sql`UPDATE aviad_job_events SET start_time=${start_time}, end_time=${end_time} WHERE id=${id}`
+  const { start_time, end_time, subject } = await req.json()
+  await sql`UPDATE aviad_job_events SET start_time=${start_time}, end_time=${end_time}, subject=${subject ?? ''} WHERE id=${id}`
   return Response.json({ ok: true })
 }
 

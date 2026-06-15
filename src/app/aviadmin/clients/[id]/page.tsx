@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { use } from 'react'
 
-type JobEvent = { id: string; job_id: string; start_time: string; end_time: string }
+type JobEvent = { id: string; job_id: string; start_time: string; end_time: string; subject?: string }
 type Job = {
   id: string; customer_id: string; notes: string
   first_hour_rate: number; additional_hour_rate: number; created_at: string; completed_at?: string | null
@@ -202,6 +202,7 @@ export default function ClientProfilePage({ params }: { params: Promise<{ id: st
                           <div key={ev.id} className="px-4 py-3 flex justify-between items-center">
                             <div>
                               <p className="text-sm font-semibold text-gray-700">{fmtDateLong(ev.start_time)}</p>
+                              {ev.subject && <p className="text-xs font-semibold text-teal-700">📋 {ev.subject}</p>}
                               <p className="text-xs text-gray-400">{fmtTime(ev.start_time)} – {fmtTime(ev.end_time)} · {hours.toFixed(1)}h</p>
                             </div>
                           </div>
