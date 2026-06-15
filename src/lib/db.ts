@@ -217,6 +217,7 @@ export async function initAviadDb() {
     )
   `
   await sql`ALTER TABLE aviad_assignments ADD COLUMN IF NOT EXISTS class_type_id TEXT NOT NULL DEFAULT ''`
+  await sql`ALTER TABLE aviad_assignments ALTER COLUMN class_id SET DEFAULT ''`
   await sql`
     CREATE TABLE IF NOT EXISTS aviad_push_subscriptions (
       endpoint TEXT PRIMARY KEY,
