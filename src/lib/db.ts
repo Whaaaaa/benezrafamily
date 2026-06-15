@@ -203,9 +203,32 @@ export async function initAviadDb() {
       payment_method TEXT
     )
   `
+  await sql`
+    CREATE TABLE IF NOT EXISTS aviad_assignments (
+      id TEXT PRIMARY KEY,
+      class_id TEXT NOT NULL,
+      subject TEXT NOT NULL DEFAULT '',
+      notes TEXT NOT NULL DEFAULT '',
+      due_at TEXT NOT NULL,
+      reminders_enabled BOOLEAN NOT NULL DEFAULT TRUE,
+      reminder_sent BOOLEAN NOT NULL DEFAULT FALSE,
+      created_at TEXT NOT NULL DEFAULT ''
+    )
+  `
+  await sql`
+    CREATE TABLE IF NOT EXISTS aviad_push_subscriptions (
+      endpoint TEXT PRIMARY KEY,
+      subscription TEXT NOT NULL,
+      created_at TEXT NOT NULL DEFAULT ''
+    )
+  `
   await sql`ALTER TABLE aviad_jobs ADD COLUMN IF NOT EXISTS completed_at TEXT`
   await sql`ALTER TABLE aviad_job_events ADD COLUMN IF NOT EXISTS series_id TEXT`
   await sql`ALTER TABLE aviad_classes ADD COLUMN IF NOT EXISTS series_id TEXT`
+  await sql`ALTER TABLE aviad_job_events ADD COLUMN IF NOT EXISTS reminders_enabled BOOLEAN NOT NULL DEFAULT TRUE`
+  await sql`ALTER TABLE aviad_job_events ADD COLUMN IF NOT EXISTS reminder_sent BOOLEAN NOT NULL DEFAULT FALSE`
+  await sql`ALTER TABLE aviad_classes ADD COLUMN IF NOT EXISTS reminders_enabled BOOLEAN NOT NULL DEFAULT TRUE`
+  await sql`ALTER TABLE aviad_classes ADD COLUMN IF NOT EXISTS reminder_sent BOOLEAN NOT NULL DEFAULT FALSE`
 }
 
 export default sql

@@ -3,14 +3,18 @@ import type { NextRequest } from 'next/server'
 
 export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
-  const { class_type_id, duration_hours, start_time, end_time, notes } = await req.json()
-  await sql`UPDATE aviad_classes SET class_type_id=${class_type_id}, duration_hours=${duration_hours}, start_time=${start_time}, end_time=${end_time}, notes=${notes} WHERE id=${id}`
+  const { subject, notes, due_at, reminders_enabled } = await req.json()
+  await sql`
+    UPDATE aviad_assignments
+    SET subject = ${subject}, notes = ${notes}, due_at = ${due_at},
+        reminders_enabled = ${reminders_enabled ?? true}, reminder_sent = FALSE
+    WHERE id = ${id}
+  `
   return Response.json({ ok: true })
 }
 
 export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
-  await sql`DELETE FROM aviad_assignments WHERE class_id = ${id}`
-  await sql`DELETE FROM aviad_classes WHERE id = ${id}`
+  await sql`DELETE FROM aviad_assignments WHERE id = ${id}`
   return Response.json({ ok: true })
 }

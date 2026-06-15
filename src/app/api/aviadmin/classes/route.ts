@@ -13,10 +13,10 @@ export async function GET() {
 
 export async function POST(req: Request) {
   await initAviadDb()
-  const { id, class_type_id, duration_hours, start_time, end_time, notes, series_id } = await req.json()
+  const { id, class_type_id, duration_hours, start_time, end_time, notes, series_id, reminders_enabled } = await req.json()
   await sql`
-    INSERT INTO aviad_classes (id, class_type_id, duration_hours, start_time, end_time, notes, series_id)
-    VALUES (${id}, ${class_type_id}, ${duration_hours}, ${start_time}, ${end_time}, ${notes}, ${series_id ?? null})
+    INSERT INTO aviad_classes (id, class_type_id, duration_hours, start_time, end_time, notes, series_id, reminders_enabled)
+    VALUES (${id}, ${class_type_id}, ${duration_hours}, ${start_time}, ${end_time}, ${notes}, ${series_id ?? null}, ${reminders_enabled ?? true})
   `
   return Response.json({ ok: true })
 }

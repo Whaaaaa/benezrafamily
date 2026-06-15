@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
 import MapTab from './MapTab'
+import { getPushState, enablePush, disablePush, type PushState } from './push-client'
 
 type Customer = { id: string; name: string; phone: string; address: string; created_at: string }
 type ClassType = { id: string; name: string }
@@ -15,8 +16,13 @@ type SchoolClass = {
   id: string; class_type_id: string; class_type_name: string
   duration_hours: number; start_time: string; end_time: string; notes: string; series_id?: string | null
 }
+type Assignment = {
+  id: string; class_id: string; subject: string; notes: string; due_at: string
+  reminders_enabled: boolean; class_type_name: string; class_start_time: string
+}
 type Tab = 'calendar' | 'jobs' | 'classes' | 'customers' | 'map'
-type Modal = 'newJob' | 'addEvent' | 'newClass' | 'eventDetail' | 'classDetail' | 'completeJob' | null
+type CalView = 'day' | 'week' | 'month'
+type Modal = 'newJob' | 'addEvent' | 'newClass' | 'eventDetail' | 'classDetail' | 'completeJob' | 'newAssignment' | 'assignmentDetail' | null
 
 const DAY_START = 7
 const DAY_END = 21
@@ -259,6 +265,22 @@ function todayStr() {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
 }
 
+function weekDays(anchor: Date): Date[] {
+  const start = startOfWeek(anchor)
+  return Array.from({ length: 7 }, (_, i) => {
+    const d = new Date(start); d.setDate(d.getDate() + i); return d
+  })
+}
+
+// 6-week grid covering the month that `anchor` falls in.
+function monthGrid(anchor: Date): Date[] {
+  const first = new Date(anchor.getFullYear(), anchor.getMonth(), 1)
+  const start = startOfWeek(first)
+  return Array.from({ length: 42 }, (_, i) => {
+    const d = new Date(start); d.setDate(d.getDate() + i); return d
+  })
+}
+
 const TIMES: string[] = []
 for (let h = DAY_START; h < DAY_END; h++) {
   TIMES.push(`${String(h).padStart(2, '0')}:00`)
@@ -272,18 +294,35 @@ export default function AviadminPage() {
     const d = new Date(); d.setHours(0, 0, 0, 0); return d
   })
 
+  const [calView, setCalView] = useState<CalView>('day')
+  const [filters, setFilters] = useState({ jobs: true, classes: true, assignments: true })
+
   const [customers, setCustomers] = useState<Customer[]>([])
   const [classTypes, setClassTypes] = useState<ClassType[]>([])
   const [jobs, setJobs] = useState<Job[]>([])
   const [jobEvents, setJobEvents] = useState<JobEvent[]>([])
   const [classes, setClasses] = useState<SchoolClass[]>([])
+  const [assignments, setAssignments] = useState<Assignment[]>([])
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
 
   const [modal, setModal] = useState<Modal>(null)
   const [selectedJobEvent, setSelectedJobEvent] = useState<JobEvent | null>(null)
   const [selectedClass, setSelectedClass] = useState<SchoolClass | null>(null)
+  const [selectedAssignment, setSelectedAssignment] = useState<Assignment | null>(null)
   const [addEventJobId, setAddEventJobId] = useState('')
+
+  // ── Push notifications ──
+  const [pushState, setPushState] = useState<PushState>('disabled')
+  const [pushBusy, setPushBusy] = useState(false)
+
+  // ── New Assignment form ──
+  const [asgClassId, setAsgClassId] = useState('')
+  const [asgSubject, setAsgSubject] = useState('')
+  const [asgNotes, setAsgNotes] = useState('')
+  const [asgDate, setAsgDate] = useState(todayStr())
+  const [asgTime, setAsgTime] = useState('17:00')
+  const [asgReminders, setAsgReminders] = useState(true)
 
   // ── New Job form ──
   const [custMode, setCustMode] = useState<'new' | 'existing'>('new')
@@ -297,6 +336,7 @@ export default function AviadminPage() {
   const [jobNotes, setJobNotes] = useState('')
   const [jobSlots, setJobSlots] = useState([{ date: todayStr(), start: '09:00', end: '10:00' }])
   const [jobRecur, setJobRecur] = useState<RecurState>(defaultRecur())
+  const [jobReminders, setJobReminders] = useState(true)
 
   // ── Complete job form ──
   const [completeJobId, setCompleteJobId] = useState('')
@@ -317,6 +357,7 @@ export default function AviadminPage() {
   const [clStart, setClStart] = useState('09:00')
   const [clNotes, setClNotes] = useState('')
   const [clRecur, setClRecur] = useState<RecurState>(defaultRecur())
+  const [clReminders, setClReminders] = useState(true)
 
   // ── Customer filter ──
   const [custFilter, setCustFilter] = useState('')
@@ -324,36 +365,92 @@ export default function AviadminPage() {
   const fetchAll = useCallback(async () => {
     setLoading(true)
     try {
-      const [c, ct, j, je, cl] = await Promise.all([
+      const [c, ct, j, je, cl, asg] = await Promise.all([
         fetch('/api/aviadmin/customers').then(r => r.json()),
         fetch('/api/aviadmin/class-types').then(r => r.json()),
         fetch('/api/aviadmin/jobs').then(r => r.json()),
         fetch('/api/aviadmin/job-events').then(r => r.json()),
         fetch('/api/aviadmin/classes').then(r => r.json()),
+        fetch('/api/aviadmin/assignments').then(r => r.json()),
       ])
       setCustomers(Array.isArray(c) ? c : [])
       setClassTypes(Array.isArray(ct) ? ct : [])
       setJobs(Array.isArray(j) ? j : [])
       setJobEvents(Array.isArray(je) ? je : [])
       setClasses(Array.isArray(cl) ? cl : [])
+      setAssignments(Array.isArray(asg) ? asg : [])
     } finally {
       setLoading(false)
     }
   }, [])
 
   useEffect(() => { fetchAll() }, [fetchAll])
+  useEffect(() => { getPushState().then(setPushState) }, [])
+
+  async function handleTogglePush() {
+    setPushBusy(true)
+    try {
+      if (pushState === 'enabled') {
+        setPushState(await disablePush())
+      } else {
+        const next = await enablePush()
+        setPushState(next)
+        if (next === 'unconfigured') {
+          alert('Push notifications are not configured on the server yet (VAPID keys missing).')
+        } else if (next === 'denied') {
+          alert('Notifications are blocked. Enable them in your browser settings for this site.')
+        }
+      }
+    } finally {
+      setPushBusy(false)
+    }
+  }
 
   function resetJobForm() {
     setCustMode('new'); setCustSearch(''); setCustId(''); setCustName(''); setCustPhone(''); setCustAddress('')
     setJobFirstRate(250); setJobAddRate(150); setJobNotes('')
     setJobSlots([{ date: todayStr(), start: '09:00', end: '10:00' }])
-    setJobRecur(defaultRecur())
+    setJobRecur(defaultRecur()); setJobReminders(true)
   }
 
   function resetClassForm() {
     setClTypeId(''); setClNewTypeName(''); setClShowNewType(false)
     setClDuration(1.5); setClDate(todayStr()); setClStart('09:00'); setClNotes('')
-    setClRecur(defaultRecur())
+    setClRecur(defaultRecur()); setClReminders(true)
+  }
+
+  function openNewAssignment(classId: string) {
+    const cl = classes.find(c => c.id === classId)
+    setAsgClassId(classId)
+    setAsgSubject(''); setAsgNotes('')
+    setAsgDate(cl ? cl.start_time.slice(0, 10) : todayStr())
+    setAsgTime('17:00'); setAsgReminders(true)
+    setModal('newAssignment')
+  }
+
+  async function handleSaveAssignment() {
+    if (!asgClassId || !asgSubject.trim() || !asgDate) return
+    setSaving(true)
+    try {
+      await fetch('/api/aviadmin/assignments', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id: uid(), class_id: asgClassId, subject: asgSubject.trim(), notes: asgNotes,
+          due_at: isoFromParts(asgDate, asgTime), reminders_enabled: asgReminders, created_at: new Date().toISOString(),
+        }),
+      })
+      await fetchAll()
+      setModal('classDetail')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  async function handleDeleteAssignment(id: string) {
+    await fetch(`/api/aviadmin/assignments/${id}`, { method: 'DELETE' })
+    await fetchAll()
+    setModal(selectedClass ? 'classDetail' : null)
   }
 
   async function handleSaveJob() {
@@ -385,7 +482,7 @@ export default function AviadminPage() {
           await fetch('/api/aviadmin/job-events', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ id: uid(), job_id: jobId, start_time: isoFromParts(date, base.start), end_time: isoFromParts(date, base.end), series_id: seriesId }),
+            body: JSON.stringify({ id: uid(), job_id: jobId, start_time: isoFromParts(date, base.start), end_time: isoFromParts(date, base.end), series_id: seriesId, reminders_enabled: jobReminders }),
           })
         }
       } else {
@@ -394,7 +491,7 @@ export default function AviadminPage() {
           await fetch('/api/aviadmin/job-events', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ id: uid(), job_id: jobId, start_time: isoFromParts(slot.date, slot.start), end_time: isoFromParts(slot.date, slot.end) }),
+            body: JSON.stringify({ id: uid(), job_id: jobId, start_time: isoFromParts(slot.date, slot.start), end_time: isoFromParts(slot.date, slot.end), reminders_enabled: jobReminders }),
           })
         }
       }
@@ -480,7 +577,7 @@ export default function AviadminPage() {
         await fetch('/api/aviadmin/classes', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ id: uid(), class_type_id: typeId, duration_hours: clDuration, start_time: isoFromParts(date, clStart), end_time: isoFromParts(date, endTime), notes: clNotes, series_id: seriesId }),
+          body: JSON.stringify({ id: uid(), class_type_id: typeId, duration_hours: clDuration, start_time: isoFromParts(date, clStart), end_time: isoFromParts(date, endTime), notes: clNotes, series_id: seriesId, reminders_enabled: clReminders }),
         })
       }
       await fetchAll()
@@ -517,83 +614,230 @@ export default function AviadminPage() {
     setModal('addEvent')
   }
 
-  // ── Calendar Day View ───────────────────────────────────────────────
-  const dayJobEvents = jobEvents.filter(e => isSameDay(calDate, e.start_time))
-  const dayClasses = classes.filter(c => isSameDay(calDate, c.start_time))
+  // ── Calendar data (respecting type filters) ─────────────────────────
+  const calJobEvents = filters.jobs ? jobEvents : []
+  const calClasses = filters.classes ? classes : []
+  const calAssignments = filters.assignments ? assignments : []
+  const jobsOn = (d: Date) => calJobEvents.filter(e => isSameDay(d, e.start_time))
+  const classesOn = (d: Date) => calClasses.filter(c => isSameDay(d, c.start_time))
+  const asgOn = (d: Date) => calAssignments.filter(a => isSameDay(d, a.due_at))
 
-  function renderCalendar() {
+  function shiftCal(dir: number) {
+    const d = new Date(calDate)
+    if (calView === 'day') d.setDate(d.getDate() + dir)
+    else if (calView === 'week') d.setDate(d.getDate() + dir * 7)
+    else d.setMonth(d.getMonth() + dir)
+    setCalDate(d)
+  }
+
+  function calTitle() {
+    if (calView === 'day') return fmtDayFull(calDate)
+    if (calView === 'week') {
+      const days = weekDays(calDate)
+      const a = days[0], b = days[6]
+      return `${a.toLocaleDateString('en-IL', { month: 'short', day: 'numeric' })} – ${b.toLocaleDateString('en-IL', { month: 'short', day: 'numeric' })}`
+    }
+    return calDate.toLocaleDateString('en-IL', { month: 'long', year: 'numeric' })
+  }
+
+  function renderJobBlock(ev: JobEvent, totalH: number, opts?: { compact?: boolean }) {
+    const job = jobs.find(j => j.id === ev.job_id)
+    const top = timeToPixel(ev.start_time)
+    const h = durationToPixels(ev.start_time, ev.end_time)
+    if (top < 0 || top >= totalH) return null
+    const cost = calcCost(ev.start_time, ev.end_time, job?.first_hour_rate ?? 250, job?.additional_hour_rate ?? 150)
+    return (
+      <button key={ev.id} onClick={() => { setSelectedJobEvent(ev); setModal('eventDetail') }}
+        className="absolute left-0.5 right-0.5 bg-teal-50 border-l-4 border-teal-500 rounded-r-lg p-1 text-left overflow-hidden hover:bg-teal-100 transition-colors"
+        style={{ top, height: Math.max(h, opts?.compact ? 18 : SLOT_H) }}>
+        <p className="text-[10px] font-bold text-teal-800 leading-tight truncate">{job?.customer_name ?? '—'}</p>
+        {!opts?.compact && <p className="text-[10px] text-teal-600 leading-tight">{fmtTime(ev.start_time)}–{fmtTime(ev.end_time)}</p>}
+        {!opts?.compact && h >= SLOT_H * 2 && <p className="text-[10px] text-teal-500 mt-0.5">₪{cost.toFixed(0)}</p>}
+      </button>
+    )
+  }
+
+  function renderClassBlock(cl: SchoolClass, totalH: number, opts?: { compact?: boolean }) {
+    const top = timeToPixel(cl.start_time)
+    const h = durationToPixels(cl.start_time, cl.end_time)
+    if (top < 0 || top >= totalH) return null
+    return (
+      <button key={cl.id} onClick={() => { setSelectedClass(cl); setModal('classDetail') }}
+        className="absolute left-0.5 right-0.5 bg-purple-50 border-l-4 border-purple-500 rounded-r-lg p-1 text-left overflow-hidden hover:bg-purple-100 transition-colors"
+        style={{ top: top + 2, height: Math.max(h - 2, opts?.compact ? 18 : SLOT_H) }}>
+        <p className="text-[10px] font-bold text-purple-800 leading-tight truncate">{cl.class_type_name}</p>
+        {!opts?.compact && <p className="text-[10px] text-purple-600 leading-tight">{fmtTime(cl.start_time)}–{fmtTime(cl.end_time)}</p>}
+        {!opts?.compact && h >= SLOT_H * 2 && <p className="text-[10px] text-purple-500 mt-0.5">{cl.duration_hours}h</p>}
+      </button>
+    )
+  }
+
+  function renderAsgBlock(a: Assignment, totalH: number, opts?: { compact?: boolean }) {
+    const top = timeToPixel(a.due_at)
+    if (top < 0 || top >= totalH) return null
+    return (
+      <button key={a.id} onClick={() => { setSelectedAssignment(a); setModal('assignmentDetail') }}
+        className="absolute left-0.5 right-0.5 bg-amber-50 border-l-4 border-amber-500 rounded-r-lg p-1 text-left overflow-hidden hover:bg-amber-100 transition-colors"
+        style={{ top, height: opts?.compact ? 18 : SLOT_H }}>
+        <p className="text-[10px] font-bold text-amber-800 leading-tight truncate">📝 {a.subject}</p>
+        {!opts?.compact && <p className="text-[10px] text-amber-600 leading-tight">due {fmtTime(a.due_at)}</p>}
+      </button>
+    )
+  }
+
+  function renderDayView() {
     const totalH = TOTAL_SLOTS * SLOT_H
     return (
-      <div className="flex flex-col h-full">
-        {/* Day nav */}
-        <div className="flex items-center justify-between px-4 py-3 bg-white border-b border-gray-100 sticky top-[60px] z-10">
-          <button onClick={() => { const d = new Date(calDate); d.setDate(d.getDate() - 1); setCalDate(d) }}
-            className="w-9 h-9 flex items-center justify-center rounded-full bg-gray-100 text-gray-600 text-lg font-bold">‹</button>
-          <div className="text-center">
-            <div className="font-semibold text-gray-800 text-sm">{fmtDayFull(calDate)}</div>
-            <div className="text-xs text-gray-400">{dayJobEvents.length} appt · {dayClasses.length} class</div>
+      <div className="flex-1 overflow-y-auto">
+        <div className="relative flex" style={{ height: totalH }}>
+          <div className="w-12 flex-shrink-0">
+            {TIMES.map((t, i) => (
+              <div key={t} className="absolute flex items-start" style={{ top: i * SLOT_H, height: SLOT_H, left: 0, width: 48 }}>
+                {i % 2 === 0 && <span className="text-[10px] text-gray-400 pl-1 pt-0.5 leading-none">{t}</span>}
+              </div>
+            ))}
           </div>
-          <button onClick={() => { const d = new Date(calDate); d.setDate(d.getDate() + 1); setCalDate(d) }}
-            className="w-9 h-9 flex items-center justify-center rounded-full bg-gray-100 text-gray-600 text-lg font-bold">›</button>
+          <div className="relative flex-1 border-l border-gray-200">
+            {TIMES.map((_, i) => (
+              <div key={i} className={`absolute w-full border-t ${i % 2 === 0 ? 'border-gray-200' : 'border-gray-100'}`} style={{ top: i * SLOT_H }} />
+            ))}
+            {jobsOn(calDate).map(ev => renderJobBlock(ev, totalH))}
+            {classesOn(calDate).map(cl => renderClassBlock(cl, totalH))}
+            {asgOn(calDate).map(a => renderAsgBlock(a, totalH))}
+          </div>
         </div>
+      </div>
+    )
+  }
 
-        {/* Time grid */}
-        <div className="flex-1 overflow-y-auto">
-          <div className="relative flex" style={{ height: totalH }}>
-            {/* Time labels */}
-            <div className="w-12 flex-shrink-0">
-              {TIMES.map((t, i) => (
-                <div key={t} className="absolute flex items-start" style={{ top: i * SLOT_H, height: SLOT_H, left: 0, width: 48 }}>
-                  {i % 2 === 0 && (
-                    <span className="text-[10px] text-gray-400 pl-1 pt-0.5 leading-none">{t}</span>
-                  )}
+  function renderWeekView() {
+    const totalH = TOTAL_SLOTS * SLOT_H
+    const days = weekDays(calDate)
+    const todayKey = todayStr()
+    return (
+      <div className="flex-1 overflow-y-auto">
+        {/* Day headers */}
+        <div className="flex sticky top-0 bg-white z-[5] border-b border-gray-100">
+          <div className="w-9 flex-shrink-0" />
+          {days.map(d => {
+            const isToday = dateStr(d) === todayKey
+            return (
+              <button key={d.toISOString()} onClick={() => { setCalDate(new Date(d)); setCalView('day') }}
+                className="flex-1 py-1.5 text-center">
+                <div className="text-[10px] text-gray-400 leading-none">{WEEKDAYS[d.getDay()]}</div>
+                <div className={`text-xs font-bold mt-0.5 leading-none ${isToday ? 'text-white bg-blue-600 rounded-full w-6 h-6 flex items-center justify-center mx-auto' : 'text-gray-700'}`}>
+                  {d.getDate()}
                 </div>
-              ))}
-            </div>
-
-            {/* Grid lines + events */}
-            <div className="relative flex-1 border-l border-gray-200">
+              </button>
+            )
+          })}
+        </div>
+        <div className="relative flex" style={{ height: totalH }}>
+          <div className="w-9 flex-shrink-0">
+            {TIMES.map((t, i) => (
+              <div key={t} className="absolute" style={{ top: i * SLOT_H, left: 0 }}>
+                {i % 2 === 0 && <span className="text-[9px] text-gray-400 pl-0.5 leading-none">{t.slice(0, 2)}</span>}
+              </div>
+            ))}
+          </div>
+          {days.map(d => (
+            <div key={d.toISOString()} className="relative flex-1 border-l border-gray-200">
               {TIMES.map((_, i) => (
-                <div key={i} className={`absolute w-full border-t ${i % 2 === 0 ? 'border-gray-200' : 'border-gray-100'}`}
-                  style={{ top: i * SLOT_H }} />
+                <div key={i} className={`absolute w-full border-t ${i % 2 === 0 ? 'border-gray-100' : 'border-gray-50'}`} style={{ top: i * SLOT_H }} />
               ))}
-
-              {/* Job events */}
-              {dayJobEvents.map(ev => {
-                const job = jobs.find(j => j.id === ev.job_id)
-                const top = timeToPixel(ev.start_time)
-                const h = durationToPixels(ev.start_time, ev.end_time)
-                const cost = calcCost(ev.start_time, ev.end_time, job?.first_hour_rate ?? 250, job?.additional_hour_rate ?? 150)
-                if (top < 0 || top >= totalH) return null
-                return (
-                  <button key={ev.id} onClick={() => { setSelectedJobEvent(ev); setModal('eventDetail') }}
-                    className="absolute left-1 right-1 bg-teal-50 border-l-4 border-teal-500 rounded-r-lg p-1.5 text-left overflow-hidden hover:bg-teal-100 transition-colors"
-                    style={{ top, height: Math.max(h, SLOT_H) }}>
-                    <p className="text-[11px] font-bold text-teal-800 leading-tight truncate">{job?.customer_name ?? '—'}</p>
-                    <p className="text-[10px] text-teal-600 leading-tight">{fmtTime(ev.start_time)}–{fmtTime(ev.end_time)}</p>
-                    {h >= SLOT_H * 2 && <p className="text-[10px] text-teal-500 mt-0.5">₪{cost.toFixed(0)}</p>}
-                  </button>
-                )
-              })}
-
-              {/* School classes */}
-              {dayClasses.map(cl => {
-                const top = timeToPixel(cl.start_time)
-                const h = durationToPixels(cl.start_time, cl.end_time)
-                if (top < 0 || top >= totalH) return null
-                return (
-                  <button key={cl.id} onClick={() => { setSelectedClass(cl); setModal('classDetail') }}
-                    className="absolute left-1 right-1 bg-purple-50 border-l-4 border-purple-500 rounded-r-lg p-1.5 text-left overflow-hidden hover:bg-purple-100 transition-colors"
-                    style={{ top: top + 4, height: Math.max(h - 4, SLOT_H) }}>
-                    <p className="text-[11px] font-bold text-purple-800 leading-tight truncate">{cl.class_type_name}</p>
-                    <p className="text-[10px] text-purple-600 leading-tight">{fmtTime(cl.start_time)}–{fmtTime(cl.end_time)}</p>
-                    {h >= SLOT_H * 2 && <p className="text-[10px] text-purple-500 mt-0.5">{cl.duration_hours}h</p>}
-                  </button>
-                )
-              })}
+              {jobsOn(d).map(ev => renderJobBlock(ev, totalH, { compact: true }))}
+              {classesOn(d).map(cl => renderClassBlock(cl, totalH, { compact: true }))}
+              {asgOn(d).map(a => renderAsgBlock(a, totalH, { compact: true }))}
             </div>
+          ))}
+        </div>
+      </div>
+    )
+  }
+
+  function renderMonthView() {
+    const cells = monthGrid(calDate)
+    const month = calDate.getMonth()
+    const todayKey = todayStr()
+    return (
+      <div className="flex-1 overflow-y-auto p-2">
+        <div className="grid grid-cols-7 gap-px mb-1">
+          {WEEKDAYS.map(w => <div key={w} className="text-center text-[10px] font-semibold text-gray-400 py-1">{w}</div>)}
+        </div>
+        <div className="grid grid-cols-7 gap-1">
+          {cells.map(d => {
+            const inMonth = d.getMonth() === month
+            const isToday = dateStr(d) === todayKey
+            const nJ = jobsOn(d).length, nC = classesOn(d).length, nA = asgOn(d).length
+            return (
+              <button key={d.toISOString()} onClick={() => { setCalDate(new Date(d)); setCalView('day') }}
+                className={`aspect-square rounded-lg p-1 flex flex-col items-center ${inMonth ? 'bg-white' : 'bg-gray-50'} shadow-sm`}>
+                <span className={`text-[11px] font-semibold ${isToday ? 'text-white bg-blue-600 rounded-full w-5 h-5 flex items-center justify-center' : inMonth ? 'text-gray-700' : 'text-gray-300'}`}>
+                  {d.getDate()}
+                </span>
+                <div className="flex gap-0.5 mt-1 flex-wrap justify-center">
+                  {nJ > 0 && <span className="w-1.5 h-1.5 rounded-full bg-teal-500" />}
+                  {nC > 0 && <span className="w-1.5 h-1.5 rounded-full bg-purple-500" />}
+                  {nA > 0 && <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />}
+                </div>
+              </button>
+            )
+          })}
+        </div>
+        <div className="flex justify-center gap-4 mt-3 text-[10px] text-gray-400">
+          <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-teal-500" /> Jobs</span>
+          <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-purple-500" /> Classes</span>
+          <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-amber-500" /> Assignments</span>
+        </div>
+      </div>
+    )
+  }
+
+  function renderCalendar() {
+    const filterChips: { key: keyof typeof filters; label: string; color: string }[] = [
+      { key: 'jobs', label: 'Jobs', color: 'teal' },
+      { key: 'classes', label: 'Classes', color: 'purple' },
+      { key: 'assignments', label: 'Assignments', color: 'amber' },
+    ]
+    return (
+      <div className="flex flex-col h-full">
+        {/* View toggle + filters */}
+        <div className="bg-white border-b border-gray-100 sticky top-0 z-10">
+          <div className="flex gap-1 px-3 pt-2">
+            {(['day', 'week', 'month'] as const).map(v => (
+              <button key={v} onClick={() => setCalView(v)}
+                className={`flex-1 py-1.5 rounded-lg text-xs font-semibold capitalize ${calView === v ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-500'}`}>
+                {v}
+              </button>
+            ))}
+          </div>
+          {/* Nav */}
+          <div className="flex items-center justify-between px-4 py-2">
+            <button onClick={() => shiftCal(-1)} className="w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 text-gray-600 text-lg font-bold">‹</button>
+            <button onClick={() => setCalDate((() => { const d = new Date(); d.setHours(0, 0, 0, 0); return d })())}
+              className="font-semibold text-gray-800 text-sm">{calTitle()}</button>
+            <button onClick={() => shiftCal(1)} className="w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 text-gray-600 text-lg font-bold">›</button>
+          </div>
+          {/* Filter chips */}
+          <div className="flex gap-1.5 px-3 pb-2">
+            {filterChips.map(c => {
+              const on = filters[c.key]
+              const colorOn = c.color === 'teal' ? 'bg-teal-100 text-teal-700 border-teal-300'
+                : c.color === 'purple' ? 'bg-purple-100 text-purple-700 border-purple-300'
+                : 'bg-amber-100 text-amber-700 border-amber-300'
+              return (
+                <button key={c.key} onClick={() => setFilters(f => ({ ...f, [c.key]: !f[c.key] }))}
+                  className={`flex-1 py-1.5 rounded-full text-[11px] font-semibold border ${on ? colorOn : 'bg-gray-50 text-gray-400 border-gray-200'}`}>
+                  {on ? '✓ ' : ''}{c.label}
+                </button>
+              )
+            })}
           </div>
         </div>
+
+        {calView === 'day' && renderDayView()}
+        {calView === 'week' && renderWeekView()}
+        {calView === 'month' && renderMonthView()}
 
         {/* FABs */}
         <div className="fixed bottom-20 right-4 flex flex-col gap-2 z-20">
@@ -891,6 +1135,18 @@ export default function AviadminPage() {
                 })()}
               </div>
 
+              {/* Reminders */}
+              <div className="flex items-center justify-between bg-gray-50 rounded-xl px-3 py-2.5">
+                <div>
+                  <p className="text-sm font-semibold text-gray-700">🔔 Reminders</p>
+                  <p className="text-[10px] text-gray-400">Push notification before each session</p>
+                </div>
+                <button onClick={() => setJobReminders(v => !v)}
+                  className={`relative w-11 h-6 rounded-full transition-colors ${jobReminders ? 'bg-teal-600' : 'bg-gray-300'}`}>
+                  <span className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-all ${jobReminders ? 'left-[22px]' : 'left-0.5'}`} />
+                </button>
+              </div>
+
               <button onClick={handleSaveJob} disabled={saving || (custMode === 'new' ? !custName.trim() : !custId)}
                 className="w-full py-3.5 bg-teal-600 text-white rounded-xl font-bold text-sm shadow disabled:opacity-50">
                 {saving ? 'Saving…' : 'Create Appointment'}
@@ -1002,6 +1258,18 @@ export default function AviadminPage() {
                 return <p className="text-xs text-purple-600 font-semibold">Creates {n} class{n !== 1 ? 'es' : ''}</p>
               })()}
 
+              {/* Reminders */}
+              <div className="flex items-center justify-between bg-gray-50 rounded-xl px-3 py-2.5">
+                <div>
+                  <p className="text-sm font-semibold text-gray-700">🔔 Reminders</p>
+                  <p className="text-[10px] text-gray-400">Push notification before each class</p>
+                </div>
+                <button onClick={() => setClReminders(v => !v)}
+                  className={`relative w-11 h-6 rounded-full transition-colors ${clReminders ? 'bg-purple-600' : 'bg-gray-300'}`}>
+                  <span className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-all ${clReminders ? 'left-[22px]' : 'left-0.5'}`} />
+                </button>
+              </div>
+
               <button onClick={handleSaveClass} disabled={saving || (!clTypeId && !clNewTypeName.trim()) || !clDate}
                 className="w-full py-3.5 bg-purple-600 text-white rounded-xl font-bold text-sm shadow disabled:opacity-50">
                 {saving ? 'Saving…' : 'Create Class'}
@@ -1052,7 +1320,10 @@ export default function AviadminPage() {
           })()}
 
           {/* ── Class Detail ── */}
-          {modal === 'classDetail' && selectedClass && (
+          {modal === 'classDetail' && selectedClass && (() => {
+            const classAsg = assignments.filter(a => a.class_id === selectedClass.id)
+              .sort((a, b) => a.due_at.localeCompare(b.due_at))
+            return (
             <div className="p-5 space-y-4">
               <h2 className="text-lg font-bold text-gray-800">Class</h2>
               <div className="bg-purple-50 rounded-2xl p-4 space-y-1.5">
@@ -1061,9 +1332,98 @@ export default function AviadminPage() {
                 <p className="text-sm text-purple-600">{selectedClass.duration_hours} hours</p>
               </div>
               {selectedClass.notes && <p className="text-sm text-gray-500 bg-gray-50 rounded-xl p-3">{selectedClass.notes}</p>}
+
+              {/* Assignments */}
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Assignments</label>
+                  <button onClick={() => openNewAssignment(selectedClass.id)}
+                    className="text-xs bg-amber-100 text-amber-700 px-2.5 py-1 rounded-lg font-semibold">+ Add</button>
+                </div>
+                {classAsg.length === 0 ? (
+                  <p className="text-xs text-gray-400">No assignments yet.</p>
+                ) : (
+                  <div className="space-y-1.5">
+                    {classAsg.map(a => (
+                      <button key={a.id} onClick={() => { setSelectedAssignment(a); setModal('assignmentDetail') }}
+                        className="w-full text-left bg-amber-50 rounded-xl px-3 py-2 flex items-center justify-between">
+                        <div className="min-w-0">
+                          <p className="text-sm font-semibold text-amber-800 truncate">📝 {a.subject}</p>
+                          <p className="text-[11px] text-amber-600">due {fmtDate(a.due_at)} · {fmtTime(a.due_at)}</p>
+                        </div>
+                        {a.reminders_enabled && <span className="text-amber-400 text-xs flex-shrink-0">🔔</span>}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+
               <button onClick={() => handleDeleteClass(selectedClass.id)}
                 className="w-full py-2.5 bg-red-50 text-red-600 rounded-xl text-sm font-semibold">
                 Delete class
+              </button>
+            </div>
+            )
+          })()}
+
+          {/* ── New Assignment ── */}
+          {modal === 'newAssignment' && (() => {
+            const cl = classes.find(c => c.id === asgClassId)
+            return (
+              <div className="p-5 space-y-4">
+                <h2 className="text-lg font-bold text-gray-800">New Assignment</h2>
+                {cl && <p className="text-sm text-gray-500">For <span className="font-semibold text-purple-700">{cl.class_type_name}</span></p>}
+                <div>
+                  <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1 block">Subject</label>
+                  <input value={asgSubject} onChange={e => setAsgSubject(e.target.value)} placeholder="e.g. Chapter 4 worksheet" autoFocus
+                    className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-amber-300" />
+                </div>
+                <div>
+                  <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1 block">Notes</label>
+                  <textarea value={asgNotes} onChange={e => setAsgNotes(e.target.value)} placeholder="Details…" rows={2}
+                    className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-amber-300" />
+                </div>
+                <div>
+                  <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1 block">Due date & time</label>
+                  <div className="flex gap-2">
+                    <input type="date" value={asgDate} onChange={e => setAsgDate(e.target.value)}
+                      className="flex-1 px-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-amber-300" />
+                    <input type="time" step="1800" value={asgTime} onChange={e => setAsgTime(e.target.value)}
+                      className="w-28 px-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-amber-300" />
+                  </div>
+                </div>
+                <div className="flex items-center justify-between bg-gray-50 rounded-xl px-3 py-2.5">
+                  <div>
+                    <p className="text-sm font-semibold text-gray-700">🔔 Reminders</p>
+                    <p className="text-[10px] text-gray-400">Push notification before it is due</p>
+                  </div>
+                  <button onClick={() => setAsgReminders(v => !v)}
+                    className={`relative w-11 h-6 rounded-full transition-colors ${asgReminders ? 'bg-amber-500' : 'bg-gray-300'}`}>
+                    <span className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-all ${asgReminders ? 'left-[22px]' : 'left-0.5'}`} />
+                  </button>
+                </div>
+                <button onClick={handleSaveAssignment} disabled={saving || !asgSubject.trim() || !asgDate}
+                  className="w-full py-3.5 bg-amber-500 text-white rounded-xl font-bold text-sm shadow disabled:opacity-50">
+                  {saving ? 'Saving…' : 'Add Assignment'}
+                </button>
+              </div>
+            )
+          })()}
+
+          {/* ── Assignment Detail ── */}
+          {modal === 'assignmentDetail' && selectedAssignment && (
+            <div className="p-5 space-y-4">
+              <h2 className="text-lg font-bold text-gray-800">Assignment</h2>
+              <div className="bg-amber-50 rounded-2xl p-4 space-y-1.5">
+                <p className="font-bold text-amber-800 text-base">📝 {selectedAssignment.subject}</p>
+                {selectedAssignment.class_type_name && <p className="text-sm text-amber-700">{selectedAssignment.class_type_name}</p>}
+                <p className="text-sm text-amber-600">Due {fmtDate(selectedAssignment.due_at)} · {fmtTime(selectedAssignment.due_at)}</p>
+                {selectedAssignment.reminders_enabled && <p className="text-xs text-amber-500">🔔 Reminder on</p>}
+              </div>
+              {selectedAssignment.notes && <p className="text-sm text-gray-500 bg-gray-50 rounded-xl p-3 whitespace-pre-wrap">{selectedAssignment.notes}</p>}
+              <button onClick={() => handleDeleteAssignment(selectedAssignment.id)}
+                className="w-full py-2.5 bg-red-50 text-red-600 rounded-xl text-sm font-semibold">
+                Delete assignment
               </button>
             </div>
           )}
@@ -1132,7 +1492,16 @@ export default function AviadminPage() {
           <h1 className="text-base font-bold leading-tight">Avi Calendar</h1>
           <p className="text-[10px] text-blue-200 leading-none">Appointment & Class Manager</p>
         </div>
-        {loading && <div className="ml-auto w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />}
+        <div className="ml-auto flex items-center gap-2">
+          {loading && <div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />}
+          {pushState !== 'unsupported' && (
+            <button onClick={handleTogglePush} disabled={pushBusy}
+              title={pushState === 'enabled' ? 'Reminders on' : 'Enable reminders'}
+              className={`px-2.5 py-1.5 rounded-full text-xs font-semibold transition-colors ${pushState === 'enabled' ? 'bg-white/25 text-white' : 'bg-white/10 text-blue-100'}`}>
+              {pushBusy ? '…' : pushState === 'enabled' ? '🔔 On' : pushState === 'denied' ? '🔕 Blocked' : '🔔 Off'}
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Page content */}
