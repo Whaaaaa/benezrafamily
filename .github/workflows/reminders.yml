@@ -11,6 +11,9 @@ jobs:
     steps:
       - name: Trigger reminders
         run: |
-          curl -sf \
+          STATUS=$(curl -s -o body.txt -w "%{http_code}" \
             -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
-            "${{ secrets.SITE_URL }}/api/aviadmin/cron/reminders"
+            "${{ secrets.SITE_URL }}/api/aviadmin/cron/reminders")
+          echo "HTTP $STATUS"
+          cat body.txt
+          [ "$STATUS" -ge 200 ] && [ "$STATUS" -lt 300 ]
