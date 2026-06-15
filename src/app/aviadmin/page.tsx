@@ -323,6 +323,10 @@ export default function AviadminPage() {
   const [pushState, setPushState] = useState<PushState>('disabled')
   const [pushBusy, setPushBusy] = useState(false)
 
+  // ── Alert / confirm dialogs ──
+  const [alertMsg, setAlertMsg] = useState<string | null>(null)
+  const [confirmDialog, setConfirmDialog] = useState<{ message: string; onConfirm: () => void | Promise<void> } | null>(null)
+
   // ── New Assignment form ──
   const [asgClassId, setAsgClassId] = useState('')
   const [asgSubject, setAsgSubject] = useState('')
@@ -425,9 +429,9 @@ export default function AviadminPage() {
         const next = await enablePush()
         setPushState(next)
         if (next === 'unconfigured') {
-          alert('Push notifications are not configured on the server yet (VAPID keys missing).')
+          setAlertMsg('Push notifications are not configured on the server yet (VAPID keys missing).')
         } else if (next === 'denied') {
-          alert('Notifications are blocked. Enable them in your browser settings for this site.')
+          setAlertMsg('Notifications are blocked. Enable them in your browser settings for this site.')
         }
       }
     } finally {
@@ -629,16 +633,24 @@ export default function AviadminPage() {
     setModal(null)
   }
 
-  async function handleDeleteJob(id: string) {
-    if (!confirm('Delete this job and all its sessions?')) return
-    await fetch(`/api/aviadmin/jobs/${id}`, { method: 'DELETE' })
-    await fetchAll()
+  function handleDeleteJob(id: string) {
+    setConfirmDialog({
+      message: 'Delete this job and all its sessions?',
+      onConfirm: async () => {
+        await fetch(`/api/aviadmin/jobs/${id}`, { method: 'DELETE' })
+        await fetchAll()
+      },
+    })
   }
 
-  async function handleDeleteCustomer(id: string) {
-    if (!confirm('Delete this client and all their jobs, sessions, and invoices?')) return
-    await fetch(`/api/aviadmin/customers/${id}`, { method: 'DELETE' })
-    await fetchAll()
+  function handleDeleteCustomer(id: string) {
+    setConfirmDialog({
+      message: 'Delete this client and all their jobs, sessions, and invoices?',
+      onConfirm: async () => {
+        await fetch(`/api/aviadmin/customers/${id}`, { method: 'DELETE' })
+        await fetchAll()
+      },
+    })
   }
 
   function openAddEvent(jobId: string) {
@@ -1897,6 +1909,40 @@ export default function AviadminPage() {
 
       {/* Modals */}
       {modal && renderModal()}
+
+      {/* Alert modal */}
+      {alertMsg && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/50" onClick={() => setAlertMsg(null)} />
+          <div className="relative bg-white rounded-2xl shadow-2xl p-6 max-w-sm w-full">
+            <p className="text-sm text-gray-700 mb-5 leading-relaxed">{alertMsg}</p>
+            <button onClick={() => setAlertMsg(null)}
+              className="w-full py-2.5 bg-blue-600 text-white rounded-xl font-semibold text-sm">
+              OK
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Confirm dialog */}
+      {confirmDialog && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/50" onClick={() => setConfirmDialog(null)} />
+          <div className="relative bg-white rounded-2xl shadow-2xl p-6 max-w-sm w-full">
+            <p className="text-sm text-gray-700 mb-5 leading-relaxed">{confirmDialog.message}</p>
+            <div className="flex gap-3">
+              <button onClick={() => setConfirmDialog(null)}
+                className="flex-1 py-2.5 bg-gray-100 text-gray-700 rounded-xl font-semibold text-sm">
+                Cancel
+              </button>
+              <button onClick={() => { const fn = confirmDialog.onConfirm; setConfirmDialog(null); fn() }}
+                className="flex-1 py-2.5 bg-red-600 text-white rounded-xl font-semibold text-sm">
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
