@@ -146,4 +146,50 @@ export async function initDb() {
   }
 }
 
+export async function initAviadDb() {
+  await sql`
+    CREATE TABLE IF NOT EXISTS aviad_customers (
+      id TEXT PRIMARY KEY,
+      name TEXT NOT NULL,
+      phone TEXT NOT NULL DEFAULT '',
+      address TEXT NOT NULL DEFAULT '',
+      created_at TEXT NOT NULL DEFAULT ''
+    )
+  `
+  await sql`
+    CREATE TABLE IF NOT EXISTS aviad_class_types (
+      id TEXT PRIMARY KEY,
+      name TEXT NOT NULL UNIQUE
+    )
+  `
+  await sql`
+    CREATE TABLE IF NOT EXISTS aviad_jobs (
+      id TEXT PRIMARY KEY,
+      customer_id TEXT NOT NULL,
+      notes TEXT NOT NULL DEFAULT '',
+      first_hour_rate NUMERIC NOT NULL DEFAULT 250,
+      additional_hour_rate NUMERIC NOT NULL DEFAULT 150,
+      created_at TEXT NOT NULL DEFAULT ''
+    )
+  `
+  await sql`
+    CREATE TABLE IF NOT EXISTS aviad_job_events (
+      id TEXT PRIMARY KEY,
+      job_id TEXT NOT NULL,
+      start_time TEXT NOT NULL,
+      end_time TEXT NOT NULL
+    )
+  `
+  await sql`
+    CREATE TABLE IF NOT EXISTS aviad_classes (
+      id TEXT PRIMARY KEY,
+      class_type_id TEXT NOT NULL,
+      duration_hours NUMERIC NOT NULL DEFAULT 1.5,
+      start_time TEXT NOT NULL,
+      end_time TEXT NOT NULL,
+      notes TEXT NOT NULL DEFAULT ''
+    )
+  `
+}
+
 export default sql
