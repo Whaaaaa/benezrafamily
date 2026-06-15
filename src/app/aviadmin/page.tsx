@@ -208,6 +208,17 @@ function RecurrenceControls({ value, onChange, accent }: {
   )
 }
 
+function ValidationErrors({ errors }: { errors: string[] }) {
+  if (!errors.length) return null
+  return (
+    <div className="bg-red-50 border border-red-200 rounded-xl p-3 space-y-1.5">
+      {errors.map((e, i) => (
+        <p key={i} className="text-sm font-semibold text-red-700">⚠ {e}</p>
+      ))}
+    </div>
+  )
+}
+
 function fmtTime(iso: string) {
   const d = new Date(iso)
   return d.toLocaleTimeString('en-IL', { hour: '2-digit', minute: '2-digit', hour12: false })
@@ -1429,6 +1440,11 @@ export default function AviadminPage() {
                 </button>
               </div>
 
+              <ValidationErrors errors={[
+                ...(custMode === 'new' && !custName.trim() ? ['Customer name is required.'] : []),
+                ...(custMode === 'existing' && !custId ? ['Please select a customer from the list.'] : []),
+                ...(jobSlots.some(s => s.start && s.end && s.start >= s.end) ? ['Session end time must be after start time.'] : []),
+              ]} />
               <button onClick={handleSaveJob} disabled={saving || (custMode === 'new' ? !custName.trim() : !custId)}
                 className="w-full py-3.5 bg-teal-600 text-white rounded-xl font-bold text-sm shadow disabled:opacity-50">
                 {saving ? 'Saving…' : 'Create Appointment'}
@@ -1466,6 +1482,10 @@ export default function AviadminPage() {
                 const mins = (new Date(isoFromParts(evDate, evEnd)).getTime() - new Date(isoFromParts(evDate, evStart)).getTime()) / 60000
                 return <p className="text-sm text-teal-600 font-semibold">{(mins / 60).toFixed(1)}h → ₪{cost.toFixed(0)}</p>
               })()}
+              <ValidationErrors errors={[
+                ...(!evDate ? ['Please select a date.'] : []),
+                ...(evDate && evStart && evEnd && evStart >= evEnd ? ['End time must be after start time.'] : []),
+              ]} />
               <button onClick={handleAddEvent} disabled={saving}
                 className="w-full py-3.5 bg-teal-600 text-white rounded-xl font-bold text-sm shadow disabled:opacity-50">
                 {saving ? 'Saving…' : 'Add Session'}
@@ -1554,6 +1574,10 @@ export default function AviadminPage() {
                 </button>
               </div>
 
+              <ValidationErrors errors={[
+                ...(!clTypeId && !(clShowNewType && clNewTypeName.trim()) ? ['Please select a class type or enter a new one.'] : []),
+                ...(!clDate ? ['Please select a date.'] : []),
+              ]} />
               <button onClick={handleSaveClass} disabled={saving || (!clTypeId && !clNewTypeName.trim()) || !clDate}
                 className="w-full py-3.5 bg-purple-600 text-white rounded-xl font-bold text-sm shadow disabled:opacity-50">
                 {saving ? 'Saving…' : 'Create Class'}
@@ -1695,6 +1719,10 @@ export default function AviadminPage() {
                     <span className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-all ${asgReminders ? 'left-[22px]' : 'left-0.5'}`} />
                   </button>
                 </div>
+                <ValidationErrors errors={[
+                  ...(!asgSubject.trim() ? ['Please enter a subject for this assignment.'] : []),
+                  ...(!asgDate ? ['Please select a due date.'] : []),
+                ]} />
                 <button onClick={handleSaveAssignment} disabled={saving || !asgSubject.trim() || !asgDate}
                   className="w-full py-3.5 bg-amber-500 text-white rounded-xl font-bold text-sm shadow disabled:opacity-50">
                   {saving ? 'Saving…' : 'Add Assignment'}
@@ -1757,6 +1785,9 @@ export default function AviadminPage() {
                     <p className="text-2xl font-bold text-emerald-700">₪{amount.toFixed(0)}</p>
                   </div>
                 </div>
+                <ValidationErrors errors={[
+                  ...(totalMins <= 0 ? ['Please enter the time worked — it must be at least 1 minute.'] : []),
+                ]} />
                 <button onClick={handleCompleteJob} disabled={saving || totalMins <= 0}
                   className="w-full py-3.5 bg-emerald-600 text-white rounded-xl font-bold text-sm shadow disabled:opacity-50">
                   {saving ? 'Saving…' : `Confirm ${compHours}h ${compMins > 0 ? `${compMins}m` : ''} & create invoice`}
@@ -1795,6 +1826,10 @@ export default function AviadminPage() {
                   const cost = calcCost(isoFromParts(editEventDate, editEventStart), isoFromParts(editEventDate, editEventEnd), job?.first_hour_rate ?? 250, job?.additional_hour_rate ?? 150)
                   return <p className="text-sm text-teal-600 font-semibold">{(mins / 60).toFixed(1)}h → ₪{cost.toFixed(0)}</p>
                 })()}
+                <ValidationErrors errors={[
+                  ...(!editEventDate ? ['Please select a date.'] : []),
+                  ...(editEventDate && editEventStart && editEventEnd && editEventStart >= editEventEnd ? ['End time must be after start time.'] : []),
+                ]} />
                 <button onClick={handleUpdateEvent} disabled={saving}
                   className="w-full py-3.5 bg-teal-600 text-white rounded-xl font-bold text-sm shadow disabled:opacity-50">
                   {saving ? 'Saving…' : 'Save Changes'}
@@ -1844,6 +1879,10 @@ export default function AviadminPage() {
                 <input value={editClassNotes} onChange={e => setEditClassNotes(e.target.value)} placeholder="Optional…"
                   className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-purple-300" />
               </div>
+              <ValidationErrors errors={[
+                ...(!editClassTypeId ? ['Please select a class type.'] : []),
+                ...(!editClassDate ? ['Please select a date.'] : []),
+              ]} />
               <button onClick={handleUpdateClass} disabled={saving || !editClassTypeId || !editClassDate}
                 className="w-full py-3.5 bg-purple-600 text-white rounded-xl font-bold text-sm shadow disabled:opacity-50">
                 {saving ? 'Saving…' : 'Save Changes'}
