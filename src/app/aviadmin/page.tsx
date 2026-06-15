@@ -26,8 +26,8 @@ type Modal = 'newJob' | 'addEvent' | 'newClass' | 'eventDetail' | 'classDetail' 
 
 const DAY_START = 7
 const DAY_END = 21
-const SLOT_H = 48
-const WEEK_SLOT_H = 28
+const SLOT_H = 36
+const WEEK_SLOT_H = 20
 
 function uid() { return crypto.randomUUID() }
 
@@ -635,6 +635,12 @@ export default function AviadminPage() {
     await fetchAll()
   }
 
+  async function handleDeleteCustomer(id: string) {
+    if (!confirm('Delete this client and all their jobs, sessions, and invoices?')) return
+    await fetch(`/api/aviadmin/customers/${id}`, { method: 'DELETE' })
+    await fetchAll()
+  }
+
   function openAddEvent(jobId: string) {
     setAddEventJobId(jobId)
     setEvDate(todayStr())
@@ -901,21 +907,45 @@ export default function AviadminPage() {
         <div className="grid grid-cols-7 gap-px mb-1">
           {WEEKDAYS.map(w => <div key={w} className="text-center text-[10px] font-semibold text-gray-400 py-1">{w}</div>)}
         </div>
-        <div className="grid grid-cols-7 gap-1">
+        <div className="grid grid-cols-7 gap-px">
           {cells.map(d => {
             const inMonth = d.getMonth() === month
             const isToday = dateStr(d) === todayKey
-            const nJ = jobsOn(d).length, nC = classesOn(d).length, nA = asgOn(d).length
+            const dayJobEvs = jobsOn(d)
+            const dayCls = classesOn(d)
+            const dayAsgs = asgOn(d)
+            const mini = [
+              ...dayJobEvs.map(ev => ({
+                id: ev.id,
+                label: jobs.find(j => j.id === ev.job_id)?.customer_name ?? '—',
+                bg: 'bg-teal-100', text: 'text-teal-800', time: ev.start_time,
+              })),
+              ...dayCls.map(cl => ({
+                id: cl.id, label: cl.class_type_name,
+                bg: 'bg-purple-100', text: 'text-purple-800', time: cl.start_time,
+              })),
+              ...dayAsgs.map(a => ({
+                id: a.id, label: a.subject,
+                bg: 'bg-amber-100', text: 'text-amber-800', time: a.due_at,
+              })),
+            ].sort((a, b) => a.time.localeCompare(b.time))
+            const shown = mini.slice(0, 2)
+            const extra = mini.length - shown.length
             return (
               <button key={d.toISOString()} onClick={() => { setCalDate(new Date(d)); setCalView('day') }}
-                className={`aspect-square rounded-lg p-1 flex flex-col items-center ${inMonth ? 'bg-white' : 'bg-gray-50'} shadow-sm`}>
-                <span className={`text-[11px] font-semibold ${isToday ? 'text-white bg-blue-600 rounded-full w-5 h-5 flex items-center justify-center' : inMonth ? 'text-gray-700' : 'text-gray-300'}`}>
+                className={`min-h-[52px] rounded p-1 flex flex-col text-left ${inMonth ? 'bg-white' : 'bg-gray-50'} shadow-sm`}>
+                <span className={`text-[11px] font-semibold leading-none self-center mb-0.5 ${isToday ? 'text-white bg-blue-600 rounded-full w-5 h-5 flex items-center justify-center' : inMonth ? 'text-gray-700' : 'text-gray-300'}`}>
                   {d.getDate()}
                 </span>
-                <div className="flex gap-0.5 mt-1 flex-wrap justify-center">
-                  {nJ > 0 && <span className="w-1.5 h-1.5 rounded-full bg-teal-500" />}
-                  {nC > 0 && <span className="w-1.5 h-1.5 rounded-full bg-purple-500" />}
-                  {nA > 0 && <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />}
+                <div className="w-full space-y-px">
+                  {shown.map(ev => (
+                    <div key={ev.id} className={`text-[8px] leading-tight truncate rounded px-0.5 ${ev.bg} ${ev.text}`}>
+                      {ev.label}
+                    </div>
+                  ))}
+                  {extra > 0 && (
+                    <div className="text-[8px] text-gray-400 leading-none pl-0.5">+{extra}</div>
+                  )}
                 </div>
               </button>
             )
@@ -1195,23 +1225,31 @@ export default function AviadminPage() {
             return s + calcCost(ev.start_time, ev.end_time, job.first_hour_rate, job.additional_hour_rate)
           }, 0)
           return (
-            <Link key={c.id} href={`/aviadmin/customers/${c.id}`}
-              className="block bg-white rounded-2xl shadow-sm p-4 hover:shadow-md transition-shadow">
-              <div className="flex items-start gap-3">
-                <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold text-sm flex-shrink-0">
-                  {c.name.charAt(0).toUpperCase()}
+            <div key={c.id} className="relative bg-white rounded-2xl shadow-sm hover:shadow-md transition-shadow">
+              <Link href={`/aviadmin/customers/${c.id}`} className="block p-4">
+                <div className="flex items-start gap-3">
+                  <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold text-sm flex-shrink-0">
+                    {c.name.charAt(0).toUpperCase()}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-semibold text-gray-800">{c.name}</p>
+                    {c.phone && <p className="text-xs text-gray-500">{c.phone}</p>}
+                    {c.address && <p className="text-xs text-gray-400 truncate">{c.address}</p>}
+                  </div>
+                  <div className="text-right flex-shrink-0 pr-8">
+                    <p className="text-sm font-bold text-teal-600">₪{total.toFixed(0)}</p>
+                    <p className="text-xs text-gray-400">{custJobs.length} job{custJobs.length !== 1 ? 's' : ''}</p>
+                  </div>
                 </div>
-                <div className="flex-1 min-w-0">
-                  <p className="font-semibold text-gray-800">{c.name}</p>
-                  {c.phone && <p className="text-xs text-gray-500">{c.phone}</p>}
-                  {c.address && <p className="text-xs text-gray-400 truncate">{c.address}</p>}
-                </div>
-                <div className="text-right flex-shrink-0">
-                  <p className="text-sm font-bold text-teal-600">₪{total.toFixed(0)}</p>
-                  <p className="text-xs text-gray-400">{custJobs.length} job{custJobs.length !== 1 ? 's' : ''}</p>
-                </div>
-              </div>
-            </Link>
+              </Link>
+              <button
+                onClick={() => handleDeleteCustomer(c.id)}
+                className="absolute top-3 right-3 w-7 h-7 flex items-center justify-center rounded-full text-gray-300 hover:bg-red-50 hover:text-red-500 transition-colors text-lg leading-none"
+                aria-label="Delete client"
+              >
+                ×
+              </button>
+            </div>
           )
         })}
         {filtered.length === 0 && !loading && (

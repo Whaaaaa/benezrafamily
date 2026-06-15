@@ -11,6 +11,8 @@ type JobEvent = { id: string; job_id: string; start_time: string; end_time: stri
 
 interface Props { jobs: Job[]; jobEvents: JobEvent[] }
 
+type MapEntry = { job: Job; event: JobEvent | null }
+
 function todayStr() {
   const d = new Date()
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
@@ -34,7 +36,6 @@ function ensureLeaflet(): Promise<void> {
     }
     const existing = document.getElementById('leaflet-js')
     if (existing) {
-      // already loading – wait for it
       existing.addEventListener('load', () => resolve(), { once: true })
       return
     }
@@ -47,24 +48,40 @@ function ensureLeaflet(): Promise<void> {
 }
 
 export default function MapTab({ jobs, jobEvents }: Props) {
-  const [mapDate, setMapDate] = useState(todayStr)
+  const [startDate, setStartDate] = useState(todayStr)
+  const [endDate, setEndDate] = useState(todayStr)
+  const [showAll, setShowAll] = useState(false)
   const [geocoding, setGeocoding] = useState(false)
   const [noAddress, setNoAddress] = useState<string[]>([])
   const mapElRef = useRef<HTMLDivElement>(null)
   const leafletMapRef = useRef<unknown>(null)
   const geocache = useRef<Record<string, [number, number] | null>>({})
 
-  // Jobs with events on the selected date, sorted by start time
-  const dateEntries = jobEvents
-    .filter(ev => ev.start_time.startsWith(mapDate))
-    .sort((a, b) => a.start_time.localeCompare(b.start_time))
-    .map(ev => ({ event: ev, job: jobs.find(j => j.id === ev.job_id) }))
-    .filter((x): x is { event: JobEvent; job: Job } => Boolean(x.job))
+  const mapEntries: MapEntry[] = showAll
+    ? (() => {
+        const seen = new Set<string>()
+        return jobs
+          .filter(j => {
+            if (!j.customer_address?.trim()) return false
+            if (seen.has(j.customer_id)) return false
+            seen.add(j.customer_id)
+            return true
+          })
+          .map(j => ({ job: j, event: null }))
+      })()
+    : jobEvents
+        .filter(ev => {
+          const d = ev.start_time.slice(0, 10)
+          return d >= startDate && d <= endDate
+        })
+        .sort((a, b) => a.start_time.localeCompare(b.start_time))
+        .map(ev => ({ event: ev, job: jobs.find(j => j.id === ev.job_id)! }))
+        .filter((x): x is MapEntry => Boolean(x.job))
 
   async function geocodeAddress(address: string): Promise<[number, number] | null> {
     if (!address?.trim()) return null
     if (address in geocache.current) return geocache.current[address]
-    await new Promise(r => setTimeout(r, 350)) // Nominatim rate limit
+    await new Promise(r => setTimeout(r, 350))
     try {
       const res = await fetch(
         `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(address)}&format=json&limit=1`,
@@ -89,14 +106,12 @@ export default function MapTab({ jobs, jobEvents }: Props) {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const L = (window as any).L
 
-      // Remove previous map instance
       if (leafletMapRef.current) {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (leafletMapRef.current as any).remove()
         leafletMapRef.current = null
       }
 
-      // Fix default icon paths (broken in bundlers)
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       delete (L.Icon.Default.prototype as any)._getIconUrl
       L.Icon.Default.mergeOptions({
@@ -105,7 +120,7 @@ export default function MapTab({ jobs, jobEvents }: Props) {
         shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
       })
 
-      const map = L.map(mapElRef.current).setView([32.07, 34.79], 11) // Tel Aviv area
+      const map = L.map(mapElRef.current).setView([32.07, 34.79], 11)
       leafletMapRef.current = map
 
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -113,15 +128,15 @@ export default function MapTab({ jobs, jobEvents }: Props) {
         maxZoom: 19,
       }).addTo(map)
 
-      if (dateEntries.length === 0) return
+      if (mapEntries.length === 0) return
 
       setGeocoding(true)
       const missing: string[] = []
       const bounds: [number, number][] = []
 
-      for (let i = 0; i < dateEntries.length; i++) {
+      for (let i = 0; i < mapEntries.length; i++) {
         if (cancelled) break
-        const { event, job } = dateEntries[i]
+        const { event, job } = mapEntries[i]
         const address = job.customer_address?.trim()
 
         const coords = await geocodeAddress(address)
@@ -148,7 +163,7 @@ export default function MapTab({ jobs, jobEvents }: Props) {
             <div style="font-weight:700;font-size:14px;color:#1e293b">${stopNum}. ${job.customer_name}</div>
             ${job.customer_phone ? `<div style="font-size:12px;color:#475569">📞 ${job.customer_phone}</div>` : ''}
             ${address ? `<div style="font-size:12px;color:#475569">📍 ${address}</div>` : ''}
-            <div style="font-size:12px;color:#0d9488;font-weight:600">🕐 ${fmtTime(event.start_time)}–${fmtTime(event.end_time)}</div>
+            ${event ? `<div style="font-size:12px;color:#0d9488;font-weight:600">🕐 ${fmtTime(event.start_time)}–${fmtTime(event.end_time)}</div>` : ''}
           </div>`
 
         L.marker(coords, { icon }).addTo(map).bindPopup(popup)
@@ -170,11 +185,9 @@ export default function MapTab({ jobs, jobEvents }: Props) {
       cancelled = true
       setGeocoding(false)
     }
-  // Re-run when date or data changes
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [mapDate, jobs, jobEvents])
+  }, [startDate, endDate, showAll, jobs, jobEvents])
 
-  // Tear down map on unmount
   useEffect(() => {
     return () => {
       if (leafletMapRef.current) {
@@ -185,20 +198,57 @@ export default function MapTab({ jobs, jobEvents }: Props) {
     }
   }, [])
 
+  function clearFilters() {
+    setShowAll(false)
+    setStartDate(todayStr())
+    setEndDate(todayStr())
+  }
+
   return (
     <div className="flex flex-col" style={{ height: 'calc(100vh - 60px - 56px)' }}>
-      {/* Date filter bar */}
-      <div className="bg-white border-b border-gray-100 px-4 py-3 flex items-center gap-3 flex-shrink-0">
-        <input
-          type="date"
-          value={mapDate}
-          onChange={e => setMapDate(e.target.value)}
-          className="flex-1 px-3 py-2 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
-        />
-        <div className="text-right flex-shrink-0">
-          <p className="text-sm font-bold text-gray-700">{dateEntries.length}</p>
-          <p className="text-[10px] text-gray-400 leading-none">stop{dateEntries.length !== 1 ? 's' : ''}</p>
-        </div>
+      {/* Filter bar */}
+      <div className="bg-white border-b border-gray-100 px-4 py-3 flex-shrink-0">
+        {showAll ? (
+          <div className="flex items-center gap-3">
+            <span className="text-sm font-semibold text-teal-700 flex-1">All Clients</span>
+            <button
+              onClick={clearFilters}
+              className="text-xs px-3 py-1.5 rounded-lg bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors font-medium"
+            >
+              Clear Filters
+            </button>
+            <div className="text-right flex-shrink-0">
+              <p className="text-sm font-bold text-gray-700">{mapEntries.length}</p>
+              <p className="text-[10px] text-gray-400 leading-none">client{mapEntries.length !== 1 ? 's' : ''}</p>
+            </div>
+          </div>
+        ) : (
+          <div className="flex items-center gap-2">
+            <input
+              type="date"
+              value={startDate}
+              onChange={e => setStartDate(e.target.value)}
+              className="flex-1 px-3 py-2 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
+            />
+            <span className="text-gray-400 text-xs font-medium">to</span>
+            <input
+              type="date"
+              value={endDate}
+              onChange={e => setEndDate(e.target.value)}
+              className="flex-1 px-3 py-2 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
+            />
+            <button
+              onClick={() => setShowAll(true)}
+              className="text-xs px-3 py-2 rounded-xl bg-teal-50 text-teal-700 font-semibold hover:bg-teal-100 transition-colors flex-shrink-0"
+            >
+              All
+            </button>
+            <div className="text-right flex-shrink-0">
+              <p className="text-sm font-bold text-gray-700">{mapEntries.length}</p>
+              <p className="text-[10px] text-gray-400 leading-none">stop{mapEntries.length !== 1 ? 's' : ''}</p>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Status strip */}
@@ -215,12 +265,14 @@ export default function MapTab({ jobs, jobEvents }: Props) {
 
       {/* Stop list */}
       <div className="bg-gray-50 border-t border-gray-100 overflow-y-auto flex-shrink-0" style={{ maxHeight: 200 }}>
-        {dateEntries.length === 0 ? (
-          <p className="text-center text-gray-400 text-sm py-4">No appointments on this day.</p>
+        {mapEntries.length === 0 ? (
+          <p className="text-center text-gray-400 text-sm py-4">
+            {showAll ? 'No clients with addresses.' : 'No appointments in this date range.'}
+          </p>
         ) : (
           <div className="divide-y divide-gray-100">
-            {dateEntries.map(({ event, job }, i) => (
-              <Link key={event.id} href={`/aviadmin/customers/${job.customer_id}`}
+            {mapEntries.map(({ event, job }, i) => (
+              <Link key={event?.id ?? job.id} href={`/aviadmin/customers/${job.customer_id}`}
                 className="flex items-center gap-3 px-4 py-2.5 hover:bg-white transition-colors">
                 <div className="w-7 h-7 rounded-full bg-teal-600 text-white text-xs font-bold flex items-center justify-center flex-shrink-0">
                   {i + 1}
@@ -231,9 +283,11 @@ export default function MapTab({ jobs, jobEvents }: Props) {
                     <p className="text-xs text-gray-400 truncate">{job.customer_address}</p>
                   )}
                 </div>
-                <p className="text-xs text-teal-600 font-semibold flex-shrink-0">
-                  {fmtTime(event.start_time)}
-                </p>
+                {event && (
+                  <p className="text-xs text-teal-600 font-semibold flex-shrink-0">
+                    {fmtTime(event.start_time)}
+                  </p>
+                )}
               </Link>
             ))}
           </div>
