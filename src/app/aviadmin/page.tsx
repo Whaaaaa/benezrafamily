@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
 import MapTab from './MapTab'
-import { getPushState, enablePush, disablePush, type PushState } from './push-client'
+import { getPushState, enablePush, disablePush, pushDebugInfo, type PushState } from './push-client'
 
 type Customer = { id: string; name: string; phone: string; address: string; created_at: string }
 type ClassType = { id: string; name: string }
@@ -1494,6 +1494,7 @@ export default function AviadminPage() {
         </div>
         <div className="ml-auto flex items-center gap-2">
           {loading && <div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />}
+          <span className="text-[9px] text-white/60 font-mono">{pushDebugInfo()}</span>
           {pushState !== 'unsupported' && (
             <button onClick={handleTogglePush} disabled={pushBusy}
               title={pushState === 'enabled' ? 'Reminders on' : 'Enable reminders'}

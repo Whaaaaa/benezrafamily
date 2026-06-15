@@ -15,6 +15,16 @@ function supported(): boolean {
   return typeof window !== 'undefined' && 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window
 }
 
+export function pushDebugInfo(): string {
+  if (typeof window === 'undefined') return 'SSR'
+  return [
+    `sw:${'serviceWorker' in navigator}`,
+    `push:${'PushManager' in window}`,
+    `notif:${'Notification' in window}`,
+    `standalone:${(navigator as any).standalone}`,
+  ].join(' ')
+}
+
 export async function getPushState(): Promise<PushState> {
   if (!supported()) return 'unsupported'
   if (Notification.permission === 'denied') return 'denied'
