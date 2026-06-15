@@ -17,8 +17,8 @@ type SchoolClass = {
   duration_hours: number; start_time: string; end_time: string; notes: string; series_id?: string | null
 }
 type Assignment = {
-  id: string; class_id: string; subject: string; notes: string; due_at: string
-  reminders_enabled: boolean; class_type_name: string; class_start_time: string
+  id: string; class_type_id: string; subject: string; notes: string; due_at: string
+  reminders_enabled: boolean; class_type_name: string
 }
 type Tab = 'calendar' | 'jobs' | 'classes' | 'customers' | 'map'
 type CalView = 'day' | 'week' | 'month'
@@ -463,11 +463,10 @@ export default function AviadminPage() {
     setClRecur(defaultRecur()); setClReminders(true)
   }
 
-  function openNewAssignment(classId: string) {
-    const cl = classes.find(c => c.id === classId)
-    setAsgClassId(classId)
+  function openNewAssignment(typeId: string) {
+    setAsgClassId(typeId)
     setAsgSubject(''); setAsgNotes('')
-    setAsgDate(cl ? cl.start_time.slice(0, 10) : todayStr())
+    setAsgDate(todayStr())
     setAsgTime('17:00'); setAsgReminders(true)
     setModal('newAssignment')
   }
@@ -480,7 +479,7 @@ export default function AviadminPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          id: uid(), class_id: asgClassId, subject: asgSubject.trim(), notes: asgNotes,
+          id: uid(), class_type_id: asgClassId, subject: asgSubject.trim(), notes: asgNotes,
           due_at: isoFromParts(asgDate, asgTime), reminders_enabled: asgReminders, created_at: new Date().toISOString(),
         }),
       })
@@ -1069,7 +1068,9 @@ export default function AviadminPage() {
         {Object.entries(grouped).map(([custName, items]) => (
           <div key={custName} className="bg-white rounded-2xl shadow-sm overflow-hidden">
             <div className="bg-teal-50 px-4 py-2 border-b border-teal-100">
-              <p className="font-bold text-teal-800 text-sm">{custName}</p>
+              <Link href={`/aviadmin/customers/${items[0].job.customer_id}`} className="font-bold text-teal-800 text-sm hover:underline">
+                {custName}
+              </Link>
             </div>
             {items.map(({ job, events: evs }) => {
               const total = evs.reduce((s, e) => s + calcCost(e.start_time, e.end_time, job.first_hour_rate, job.additional_hour_rate), 0)
@@ -1156,7 +1157,7 @@ export default function AviadminPage() {
             return next
           })
           const upcoming = group.instances.filter(cl => new Date(cl.start_time) >= new Date())
-          const totalAsg = group.instances.reduce((s, cl) => s + assignments.filter(a => a.class_id === cl.id).length, 0)
+          const totalAsg = assignments.filter(a => a.class_type_id === group.typeId).length
 
           return (
             <div key={group.typeId} className="bg-white rounded-2xl shadow-sm overflow-hidden">
@@ -1179,15 +1180,40 @@ export default function AviadminPage() {
                 <span className="text-gray-400 text-sm ml-1">{isExpanded ? '▲' : '▼'}</span>
               </button>
 
-              {/* Expanded: individual class instances */}
+              {/* Expanded: assignments for this class type + individual instances */}
               {isExpanded && (
                 <div className="border-t border-purple-50">
-                  {group.instances.map(cl => {
-                    const clAsg = assignments.filter(a => a.class_id === cl.id)
+                  {/* Assignments at the class type level */}
+                  {(() => {
+                    const typeAsg = assignments.filter(a => a.class_type_id === group.typeId)
                       .sort((a, b) => a.due_at.localeCompare(b.due_at))
                     return (
+                      <div className="px-4 pt-3 pb-2 space-y-1.5">
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="text-xs font-semibold text-gray-400 uppercase tracking-wide">Assignments</span>
+                          <button onClick={() => openNewAssignment(group.typeId)}
+                            className="text-xs bg-amber-100 text-amber-700 px-2.5 py-1 rounded-lg font-semibold">+ Add</button>
+                        </div>
+                        {typeAsg.length === 0 ? (
+                          <p className="text-xs text-gray-400">No assignments yet.</p>
+                        ) : typeAsg.map(a => (
+                          <button key={a.id}
+                            onClick={() => { setSelectedAssignment(a); setModal('assignmentDetail') }}
+                            className="w-full text-left bg-amber-50 rounded-xl px-3 py-2 flex items-center justify-between">
+                            <div className="min-w-0">
+                              <p className="text-xs font-semibold text-amber-800 truncate">📝 {a.subject}</p>
+                              <p className="text-[11px] text-amber-600">due {fmtDate(a.due_at)} · {fmtTime(a.due_at)}</p>
+                            </div>
+                            {a.reminders_enabled && <span className="text-amber-400 text-xs flex-shrink-0 ml-1">🔔</span>}
+                          </button>
+                        ))}
+                      </div>
+                    )
+                  })()}
+                  {/* Individual class instances */}
+                  <div className="border-t border-purple-50">
+                    {group.instances.map(cl => (
                       <div key={cl.id} className="border-b border-gray-50 last:border-0">
-                        {/* Class row */}
                         <button onClick={() => { setSelectedClass(cl); setModal('classDetail') }}
                           className="w-full text-left px-4 py-3 flex items-center justify-between hover:bg-purple-50 transition-colors">
                           <div className="min-w-0">
@@ -1195,30 +1221,10 @@ export default function AviadminPage() {
                             <p className="text-xs text-gray-400">{fmtTime(cl.start_time)}–{fmtTime(cl.end_time)} · {cl.duration_hours}h</p>
                             {cl.notes && <p className="text-xs text-gray-400 italic truncate">{cl.notes}</p>}
                           </div>
-                          <span className="text-[10px] text-purple-500 ml-2 flex-shrink-0">
-                            {clAsg.length > 0 ? `${clAsg.length} asg` : ''}
-                          </span>
                         </button>
-
-                        {/* Assignments under this class */}
-                        {clAsg.length > 0 && (
-                          <div className="px-4 pb-3 space-y-1.5">
-                            {clAsg.map(a => (
-                              <button key={a.id}
-                                onClick={() => { setSelectedAssignment(a); setModal('assignmentDetail') }}
-                                className="w-full text-left bg-amber-50 rounded-xl px-3 py-2 flex items-center justify-between">
-                                <div className="min-w-0">
-                                  <p className="text-xs font-semibold text-amber-800 truncate">📝 {a.subject}</p>
-                                  <p className="text-[11px] text-amber-600">due {fmtDate(a.due_at)} · {fmtTime(a.due_at)}</p>
-                                </div>
-                                {a.reminders_enabled && <span className="text-amber-400 text-xs flex-shrink-0 ml-1">🔔</span>}
-                              </button>
-                            ))}
-                          </div>
-                        )}
                       </div>
-                    )
-                  })}
+                    ))}
+                  </div>
                 </div>
               )}
             </div>
@@ -1292,7 +1298,7 @@ export default function AviadminPage() {
       <div className="fixed inset-0 z-50 flex items-end">
         <div className="absolute inset-0 bg-black/50" onClick={() => setModal(null)} />
         <div className="relative w-full bg-white rounded-t-3xl max-h-[90vh] overflow-y-auto shadow-2xl">
-          <div className="flex items-center justify-center pt-3 pb-1 relative">
+          <div className="flex items-center justify-center pt-6 pb-1 relative">
             <div className="w-10 h-1 bg-gray-300 rounded-full" />
             <button onClick={() => setModal(null)}
               className="absolute right-4 w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 text-gray-500 text-sm font-bold hover:bg-gray-200">
@@ -1634,7 +1640,7 @@ export default function AviadminPage() {
 
           {/* ── Class Detail ── */}
           {modal === 'classDetail' && selectedClass && (() => {
-            const classAsg = assignments.filter(a => a.class_id === selectedClass.id)
+            const classAsg = assignments.filter(a => a.class_type_id === selectedClass.class_type_id)
               .sort((a, b) => a.due_at.localeCompare(b.due_at))
             return (
             <div className="p-5 space-y-4">
@@ -1650,7 +1656,7 @@ export default function AviadminPage() {
               <div>
                 <div className="flex items-center justify-between mb-2">
                   <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Assignments</label>
-                  <button onClick={() => openNewAssignment(selectedClass.id)}
+                  <button onClick={() => openNewAssignment(selectedClass.class_type_id)}
                     className="text-xs bg-amber-100 text-amber-700 px-2.5 py-1 rounded-lg font-semibold">+ Add</button>
                 </div>
                 {classAsg.length === 0 ? (
@@ -1685,11 +1691,11 @@ export default function AviadminPage() {
 
           {/* ── New Assignment ── */}
           {modal === 'newAssignment' && (() => {
-            const cl = classes.find(c => c.id === asgClassId)
+            const ct = classTypes.find(t => t.id === asgClassId)
             return (
               <div className="p-5 space-y-4">
                 <h2 className="text-lg font-bold text-gray-800">New Assignment</h2>
-                {cl && <p className="text-sm text-gray-500">For <span className="font-semibold text-purple-700">{cl.class_type_name}</span></p>}
+                {ct && <p className="text-sm text-gray-500">For <span className="font-semibold text-purple-700">{ct.name}</span></p>}
                 <div>
                   <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1 block">Subject</label>
                   <input value={asgSubject} onChange={e => setAsgSubject(e.target.value)} placeholder="e.g. Chapter 4 worksheet" autoFocus
