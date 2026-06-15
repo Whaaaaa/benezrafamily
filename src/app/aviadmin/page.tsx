@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
+import MapTab from './MapTab'
 
 type Customer = { id: string; name: string; phone: string; address: string; created_at: string }
 type ClassType = { id: string; name: string }
@@ -14,7 +15,7 @@ type SchoolClass = {
   id: string; class_type_id: string; class_type_name: string
   duration_hours: number; start_time: string; end_time: string; notes: string
 }
-type Tab = 'calendar' | 'jobs' | 'classes' | 'customers'
+type Tab = 'calendar' | 'jobs' | 'classes' | 'customers' | 'map'
 type Modal = 'newJob' | 'addEvent' | 'newClass' | 'eventDetail' | 'classDetail' | null
 
 const DAY_START = 7
@@ -811,6 +812,7 @@ export default function AviadminPage() {
   // ── App shell ────────────────────────────────────────────────────────
   const TAB_CFG: { key: Tab; label: string; emoji: string }[] = [
     { key: 'calendar', label: 'Calendar', emoji: '📅' },
+    { key: 'map', label: 'Map', emoji: '🗺️' },
     { key: 'jobs', label: 'Jobs', emoji: '💼' },
     { key: 'classes', label: 'Classes', emoji: '🎓' },
     { key: 'customers', label: 'Clients', emoji: '👥' },
@@ -829,11 +831,12 @@ export default function AviadminPage() {
       </div>
 
       {/* Page content */}
-      <div className="pb-20">
+      <div className={tab === 'map' ? '' : 'pb-20'}>
         {tab === 'calendar' && renderCalendar()}
         {tab === 'jobs' && renderJobs()}
         {tab === 'classes' && renderClasses()}
         {tab === 'customers' && renderCustomers()}
+        {tab === 'map' && <MapTab jobs={jobs} jobEvents={jobEvents} />}
       </div>
 
       {/* Bottom tab bar */}
