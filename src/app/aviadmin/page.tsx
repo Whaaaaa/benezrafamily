@@ -23,7 +23,7 @@ type Assignment = {
 }
 type Tab = 'calendar' | 'jobs' | 'classes' | 'customers' | 'map' | 'assignments'
 type CalView = 'day' | 'week' | 'month'
-type Modal = 'newJob' | 'addEvent' | 'newClass' | 'eventDetail' | 'classDetail' | 'completeJob' | 'newAssignment' | 'assignmentDetail' | 'editAssignment' | 'editEvent' | 'editClass' | null
+type Modal = 'newJob' | 'addEvent' | 'newClass' | 'eventDetail' | 'classDetail' | 'completeJob' | 'newAssignment' | 'assignmentDetail' | 'editAssignment' | 'editEvent' | 'editClass' | 'editClassType' | null
 
 const DAY_START = 7
 const DAY_END = 21
@@ -414,6 +414,10 @@ export default function AviadminPage() {
   const [editClassDuration, setEditClassDuration] = useState<1.5 | 3>(1.5)
   const [editClassNotes, setEditClassNotes] = useState('')
 
+  // ── Edit Class Type form ──
+  const [ctEditId, setCtEditId] = useState('')
+  const [ctEditName, setCtEditName] = useState('')
+
   const fetchAll = useCallback(async () => {
     setLoading(true)
     try {
@@ -685,10 +689,48 @@ export default function AviadminPage() {
     setModal(null)
   }
 
-  async function handleDeleteClass(id: string) {
-    await fetch(`/api/aviadmin/classes/${id}`, { method: 'DELETE' })
-    await fetchAll()
-    setModal(null)
+  function handleDeleteClass(id: string) {
+    setConfirmDialog({
+      message: 'Delete this class?',
+      onConfirm: async () => {
+        await fetch(`/api/aviadmin/classes/${id}`, { method: 'DELETE' })
+        await fetchAll()
+        setModal(null)
+      },
+    })
+  }
+
+  function openEditClassType(id: string, name: string) {
+    setCtEditId(id)
+    setCtEditName(name)
+    setModal('editClassType')
+  }
+
+  async function handleUpdateClassType() {
+    if (!ctEditId || !ctEditName.trim()) return
+    setSaving(true)
+    try {
+      await fetch(`/api/aviadmin/class-types/${ctEditId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: ctEditName.trim() }),
+      })
+      await fetchAll()
+      setModal(null)
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  function handleDeleteClassType(id: string, name: string) {
+    setConfirmDialog({
+      message: `Delete "${name}" and all its classes and assignments?`,
+      onConfirm: async () => {
+        await fetch(`/api/aviadmin/class-types/${id}`, { method: 'DELETE' })
+        await fetchAll()
+        setModal(null)
+      },
+    })
   }
 
   function handleDeleteJob(id: string) {
@@ -1236,23 +1278,31 @@ export default function AviadminPage() {
           return (
             <div key={group.typeId} className="bg-white rounded-2xl shadow-sm overflow-hidden">
               {/* Group header — tap to expand/collapse */}
-              <button onClick={toggle} className="w-full text-left p-4 flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-purple-100 flex items-center justify-center text-lg flex-shrink-0">🎓</div>
-                <div className="flex-1 min-w-0">
-                  <p className="font-semibold text-gray-800 text-sm">{group.typeName}</p>
-                  <p className="text-xs text-gray-500">
-                    {group.instances.length} class{group.instances.length !== 1 ? 'es' : ''}
-                    {upcoming.length > 0 && ` · ${upcoming.length} upcoming`}
-                    {totalAsg > 0 && ` · ${totalAsg} assignment${totalAsg !== 1 ? 's' : ''}`}
-                  </p>
-                  {upcoming.length > 0 && (
-                    <p className="text-xs text-purple-600 mt-0.5">
-                      Next: {fmtDate(upcoming[0].start_time)} · {fmtTime(upcoming[0].start_time)}
+              <div className="w-full flex items-center gap-2 p-4">
+                <button onClick={toggle} className="flex-1 min-w-0 flex items-center gap-3 text-left">
+                  <div className="w-10 h-10 rounded-xl bg-purple-100 flex items-center justify-center text-lg flex-shrink-0">🎓</div>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-semibold text-gray-800 text-sm">{group.typeName}</p>
+                    <p className="text-xs text-gray-500">
+                      {group.instances.length} class{group.instances.length !== 1 ? 'es' : ''}
+                      {upcoming.length > 0 && ` · ${upcoming.length} upcoming`}
+                      {totalAsg > 0 && ` · ${totalAsg} assignment${totalAsg !== 1 ? 's' : ''}`}
                     </p>
-                  )}
+                    {upcoming.length > 0 && (
+                      <p className="text-xs text-purple-600 mt-0.5">
+                        Next: {fmtDate(upcoming[0].start_time)} · {fmtTime(upcoming[0].start_time)}
+                      </p>
+                    )}
+                  </div>
+                  <span className="text-gray-400 text-sm ml-1">{isExpanded ? '▲' : '▼'}</span>
+                </button>
+                <div className="flex gap-1 flex-shrink-0">
+                  <button onClick={() => openEditClassType(group.typeId, group.typeName)}
+                    className="text-xs bg-purple-100 text-purple-700 px-2 py-1.5 rounded-lg">✏️</button>
+                  <button onClick={() => handleDeleteClassType(group.typeId, group.typeName)}
+                    className="text-xs bg-red-100 text-red-600 px-2 py-1.5 rounded-lg">✕</button>
                 </div>
-                <span className="text-gray-400 text-sm ml-1">{isExpanded ? '▲' : '▼'}</span>
-              </button>
+              </div>
 
               {/* Expanded: assignments for this class type + individual instances */}
               {isExpanded && (
@@ -2024,6 +2074,25 @@ export default function AviadminPage() {
                 ...(!editClassDate ? ['Please select a date.'] : []),
               ]} />
               <button onClick={handleUpdateClass} disabled={saving || !editClassTypeId || !editClassDate}
+                className="w-full py-3.5 bg-purple-600 text-white rounded-xl font-bold text-sm shadow disabled:opacity-50">
+                {saving ? 'Saving…' : 'Save Changes'}
+              </button>
+            </div>
+          )}
+
+          {/* ── Edit Class Type ── */}
+          {modal === 'editClassType' && (
+            <div className="p-5 space-y-4">
+              <h2 className="av-modal-title">Edit Class Type</h2>
+              <div>
+                <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1 block">Name</label>
+                <input value={ctEditName} onChange={e => setCtEditName(e.target.value)} placeholder="e.g. Math"
+                  className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-purple-300" />
+              </div>
+              <ValidationErrors errors={[
+                ...(!ctEditName.trim() ? ['Please enter a name.'] : []),
+              ]} />
+              <button onClick={handleUpdateClassType} disabled={saving || !ctEditName.trim()}
                 className="w-full py-3.5 bg-purple-600 text-white rounded-xl font-bold text-sm shadow disabled:opacity-50">
                 {saving ? 'Saving…' : 'Save Changes'}
               </button>
