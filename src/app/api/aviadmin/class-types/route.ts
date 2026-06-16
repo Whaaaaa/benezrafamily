@@ -9,6 +9,10 @@ export async function GET() {
 export async function POST(req: Request) {
   await initAviadDb()
   const { id, name } = await req.json()
-  await sql`INSERT INTO aviad_class_types (id, name) VALUES (${id}, ${name}) ON CONFLICT (name) DO NOTHING`
-  return Response.json({ ok: true })
+  const rows = await sql`
+    INSERT INTO aviad_class_types (id, name) VALUES (${id}, ${name})
+    ON CONFLICT (name) DO UPDATE SET name = EXCLUDED.name
+    RETURNING id
+  `
+  return Response.json({ ok: true, id: rows[0].id })
 }

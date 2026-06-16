@@ -650,12 +650,13 @@ export default function AviadminPage() {
   async function handleSaveClass() {
     let typeId = clTypeId
     if (clShowNewType && clNewTypeName.trim()) {
-      typeId = uid()
-      await fetch('/api/aviadmin/class-types', {
+      const res = await fetch('/api/aviadmin/class-types', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id: typeId, name: clNewTypeName.trim() }),
+        body: JSON.stringify({ id: uid(), name: clNewTypeName.trim() }),
       })
+      const data = await res.json()
+      typeId = data.id
     }
     if (!typeId || !clDate || !clStart) return
     setSaving(true)
@@ -1205,7 +1206,7 @@ export default function AviadminPage() {
     const groups: Record<string, { typeId: string; typeName: string; instances: SchoolClass[] }> = {}
     for (const cl of classes) {
       if (!groups[cl.class_type_id]) {
-        groups[cl.class_type_id] = { typeId: cl.class_type_id, typeName: cl.class_type_name, instances: [] }
+        groups[cl.class_type_id] = { typeId: cl.class_type_id, typeName: cl.class_type_name || 'Unknown Type', instances: [] }
       }
       groups[cl.class_type_id].instances.push(cl)
     }

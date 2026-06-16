@@ -3,7 +3,7 @@ import sql, { initAviadDb } from '@/lib/db'
 export async function GET() {
   await initAviadDb()
   const rows = await sql`
-    SELECT cl.*, ct.name AS class_type_name
+    SELECT cl.*, COALESCE(ct.name, 'Unknown Type') AS class_type_name
     FROM aviad_classes cl
     LEFT JOIN aviad_class_types ct ON ct.id = cl.class_type_id
     ORDER BY cl.start_time DESC
