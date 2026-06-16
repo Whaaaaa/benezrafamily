@@ -5,6 +5,7 @@ import React, { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
 import MapTab from './MapTab'
 import { getPushState, enablePush, disablePush, type PushState } from './push-client'
+import { AddressAutocomplete, ensureIsraelSuffix } from './AddressAutocomplete'
 
 type Customer = { id: string; name: string; phone: string; address: string; created_at: string }
 type ClassType = { id: string; name: string }
@@ -558,7 +559,7 @@ export default function AviadminPage() {
         await fetch('/api/aviadmin/customers', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ id: finalCustId, name: custName.trim(), phone: custPhone.trim(), address: custAddress.trim(), created_at: new Date().toISOString() }),
+          body: JSON.stringify({ id: finalCustId, name: custName.trim(), phone: custPhone.trim(), address: ensureIsraelSuffix(custAddress), created_at: new Date().toISOString() }),
         })
       }
       const jobId = uid()
@@ -1449,7 +1450,7 @@ export default function AviadminPage() {
                       className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-teal-300" />
                     <input value={custPhone} onChange={e => setCustPhone(e.target.value)} placeholder="Phone number"
                       type="tel" className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-teal-300" />
-                    <input value={custAddress} onChange={e => setCustAddress(e.target.value)} placeholder="Address"
+                    <AddressAutocomplete value={custAddress} onChange={setCustAddress} placeholder="Address"
                       className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-teal-300" />
                   </div>
                 ) : (
