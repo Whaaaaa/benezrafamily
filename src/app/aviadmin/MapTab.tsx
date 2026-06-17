@@ -280,7 +280,15 @@ export default function MapTab({ jobs, jobEvents }: Props) {
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-semibold text-gray-800 truncate">{job.customer_name}</p>
                   {job.customer_address && (
-                    <p className="text-xs text-gray-400 truncate">{job.customer_address}</p>
+                    <a
+                      href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(job.customer_address)}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      onClick={e => e.stopPropagation()}
+                      className="text-xs text-gray-400 truncate hover:text-teal-600 hover:underline block"
+                    >
+                      📍 {job.customer_address}
+                    </a>
                   )}
                 </div>
                 {event && (
