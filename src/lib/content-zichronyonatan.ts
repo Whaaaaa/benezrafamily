@@ -19,33 +19,38 @@ export type Essay = {
 };
 
 export function getAllEssays(): Essay[] {
-  if (!fs.existsSync(CONTENT_DIR)) return [];
-  const essays: Essay[] = [];
-  const parshaDirs = fs
-    .readdirSync(CONTENT_DIR)
-    .filter((f) => fs.statSync(path.join(CONTENT_DIR, f)).isDirectory());
-  for (const dir of parshaDirs) {
-    const dirPath = path.join(CONTENT_DIR, dir);
-    const files = fs.readdirSync(dirPath).filter((f) => f.endsWith(".md"));
-    for (const file of files) {
-      const raw = fs.readFileSync(path.join(dirPath, file), "utf-8");
-      const { data, content } = matter(raw);
-      essays.push({
-        slug: file.replace(/\.md$/, ""),
-        parsha: data.parsha || dir,
-        parshaSlug: dir,
-        book: data.book || "",
-        bookOrder: typeof data.bookOrder === "number" ? data.bookOrder : 9,
-        order: typeof data.order === "number" ? data.order : 999,
-        date: data.date || "",
-        title: data.title || data.parsha || dir,
-        author: data.author || "",
-        placeholder: !!data.placeholder,
-        body: content.trim(),
-      });
+  try {
+    if (!fs.existsSync(CONTENT_DIR)) return [];
+    const essays: Essay[] = [];
+    const parshaDirs = fs
+      .readdirSync(CONTENT_DIR)
+      .filter((f) => fs.statSync(path.join(CONTENT_DIR, f)).isDirectory());
+    for (const dir of parshaDirs) {
+      const dirPath = path.join(CONTENT_DIR, dir);
+      const files = fs.readdirSync(dirPath).filter((f) => f.endsWith(".md"));
+      for (const file of files) {
+        const raw = fs.readFileSync(path.join(dirPath, file), "utf-8");
+        const { data, content } = matter(raw);
+        essays.push({
+          slug: file.replace(/\.md$/, ""),
+          parsha: data.parsha || dir,
+          parshaSlug: dir,
+          book: data.book || "",
+          bookOrder: typeof data.bookOrder === "number" ? data.bookOrder : 9,
+          order: typeof data.order === "number" ? data.order : 999,
+          date: data.date || "",
+          title: data.title || data.parsha || dir,
+          author: data.author || "",
+          placeholder: !!data.placeholder,
+          body: content.trim(),
+        });
+      }
     }
+    return essays;
+  } catch (error) {
+    console.error("Error loading essays from", CONTENT_DIR, error);
+    return [];
   }
-  return essays;
 }
 
 export type ParshaSummary = {
