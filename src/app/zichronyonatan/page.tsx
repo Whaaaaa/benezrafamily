@@ -1,12 +1,5 @@
 import { getBooks, totalStats } from "@/lib/content-zichronyonatan";
 import Link from "next/link";
-import "./styles.css";
-
-export const metadata = {
-  title: "Zichron Yonatan | A Family Torah Archive",
-  description:
-    "Weekly divrei Torah written in loving memory of Yonatan ben Avraham Avinu a\"h, collected across the Torah's parshiot and holidays.",
-};
 
 export default function ZichryonYonatanHome() {
   const books = getBooks();

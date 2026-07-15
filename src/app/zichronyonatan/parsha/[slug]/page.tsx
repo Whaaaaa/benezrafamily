@@ -6,9 +6,14 @@ export function generateStaticParams() {
   return getParshiot().map((p) => ({ slug: p.slug }));
 }
 
-export default function ParshaPage({ params }: { params: { slug: string } }) {
-  const essays = getEssaysForParsha(params.slug);
-  const meta = getParshaMeta(params.slug);
+export default async function ParshaPage({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}) {
+  const { slug } = await params;
+  const essays = getEssaysForParsha(slug);
+  const meta = getParshaMeta(slug);
   if (!meta) return notFound();
 
   const real = essays.filter((e) => !e.placeholder);
