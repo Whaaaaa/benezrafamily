@@ -1,0 +1,252 @@
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;1,9..144,500&family=Source+Serif+4:ital,wght@0,400;0,600;1,400&display=swap');
+
+:root {
+  --zy-ink: #14120f;
+  --zy-paper: #efe8d8;
+  --zy-paper-dim: #e4dcc6;
+  --zy-flame: #c98a3e;
+  --zy-flame-bright: #e3a75e;
+  --zy-muted: #8f8574;
+  --zy-border: rgba(239, 232, 216, 0.14);
+  --zy-border-light: #d9d0b8;
+}
+
+.zy-site-header {
+  padding: 4.5rem 1.5rem 3rem;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+  background: var(--zy-ink);
+  color: var(--zy-paper);
+}
+
+.zy-flame-mark {
+  width: 22px;
+  height: 30px;
+  margin: 0 auto 1.25rem;
+  display: block;
+}
+
+.zy-site-title {
+  font-family: "Fraunces", Georgia, serif;
+  font-size: clamp(2.4rem, 5vw, 3.4rem);
+  font-weight: 600;
+  color: var(--zy-paper);
+  text-decoration: none;
+  letter-spacing: 0.01em;
+  display: inline-block;
+}
+
+.zy-site-title-he {
+  display: block;
+  font-family: "Source Serif 4", serif;
+  font-size: 1.3rem;
+  color: var(--zy-flame-bright);
+  margin-top: 0.4rem;
+  letter-spacing: 0.04em;
+}
+
+.zy-site-subtitle {
+  color: var(--zy-muted);
+  font-style: italic;
+  margin-top: 1rem;
+  max-width: 40rem;
+  margin-left: auto;
+  margin-right: auto;
+  font-size: 0.98rem;
+}
+
+.zy-main {
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 1rem 1.5rem 5rem;
+  background: var(--zy-ink);
+  color: var(--zy-paper);
+  font-family: "Source Serif 4", Georgia, serif;
+  line-height: 1.7;
+}
+
+.zy-site-footer {
+  text-align: center;
+  padding: 3rem 1.5rem 4rem;
+  color: var(--zy-muted);
+  font-size: 0.88rem;
+  border-top: 1px solid var(--zy-border);
+  margin-top: 3rem;
+  background: var(--zy-ink);
+}
+
+.zy-stats-row {
+  display: flex;
+  justify-content: center;
+  gap: 2.5rem;
+  margin: 2.5rem 0 3.5rem;
+  flex-wrap: wrap;
+}
+
+.zy-stat {
+  text-align: center;
+}
+
+.zy-stat-num {
+  display: block;
+  font-family: "Fraunces", serif;
+  font-size: 2rem;
+  color: var(--zy-flame-bright);
+}
+
+.zy-stat-label {
+  color: var(--zy-muted);
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.zy-intro {
+  color: var(--zy-paper-dim);
+  margin-bottom: 0.5rem;
+  max-width: 42rem;
+}
+
+.zy-book-section {
+  margin-top: 3.5rem;
+}
+
+.zy-book-heading {
+  font-family: "Fraunces", serif;
+  font-size: 1.5rem;
+  color: var(--zy-flame-bright);
+  border-bottom: 1px solid var(--zy-border);
+  padding-bottom: 0.6rem;
+  margin-bottom: 1.3rem;
+  display: flex;
+  align-items: baseline;
+  gap: 0.6rem;
+}
+
+.zy-book-heading .zy-book-index {
+  font-size: 0.9rem;
+  color: var(--zy-muted);
+  font-family: "Source Serif 4", serif;
+}
+
+.zy-parsha-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+  gap: 0.7rem;
+}
+
+.zy-parsha-card {
+  display: block;
+  padding: 1rem 1.15rem;
+  border: 1px solid var(--zy-border);
+  border-radius: 3px;
+  background: rgba(239, 232, 216, 0.03);
+  text-decoration: none;
+  color: var(--zy-paper);
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.zy-parsha-card:hover {
+  border-color: var(--zy-flame);
+  background: rgba(201, 138, 62, 0.08);
+}
+
+.zy-parsha-card.zy-is-placeholder {
+  opacity: 0.45;
+}
+
+.zy-parsha-card h3 {
+  margin: 0 0 0.3rem;
+  color: var(--zy-paper);
+  font-family: "Fraunces", serif;
+  font-weight: 500;
+  font-size: 1.05rem;
+}
+
+.zy-parsha-card span {
+  color: var(--zy-muted);
+  font-size: 0.8rem;
+}
+
+.zy-essay {
+  margin-bottom: 3.5rem;
+  padding-bottom: 3rem;
+  border-bottom: 1px solid var(--zy-border);
+}
+
+.zy-essay:last-child {
+  border-bottom: none;
+}
+
+.zy-essay-title {
+  font-family: "Fraunces", serif;
+  font-size: 1.4rem;
+  font-weight: 500;
+  color: var(--zy-flame-bright);
+  margin: 0 0 0.4rem;
+}
+
+.zy-essay-meta {
+  color: var(--zy-muted);
+  font-size: 0.85rem;
+  margin-bottom: 1.5rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.zy-essay-body p {
+  margin: 0 0 1.15rem;
+  color: var(--zy-paper-dim);
+}
+
+.zy-essay-body p:first-of-type::first-letter {
+  font-family: "Fraunces", serif;
+  font-size: 3.1rem;
+  float: left;
+  line-height: 0.8;
+  padding: 0.1rem 0.35rem 0 0;
+  color: var(--zy-flame-bright);
+}
+
+.zy-placeholder-note {
+  color: var(--zy-muted);
+  font-style: italic;
+  font-size: 0.95rem;
+  border-left: 2px solid var(--zy-border);
+  padding-left: 1rem;
+}
+
+.zy-back-link {
+  display: inline-block;
+  margin-bottom: 2rem;
+  color: var(--zy-flame-bright);
+  text-decoration: none;
+  font-size: 0.9rem;
+}
+
+.zy-back-link:hover {
+  text-decoration: underline;
+}
+
+h1.zy-parsha-h1 {
+  font-family: "Fraunces", serif;
+  color: var(--zy-paper);
+  font-size: clamp(2rem, 4.5vw, 2.7rem);
+  margin: 0 0 0.3rem;
+}
+
+.zy-parsha-book-tag {
+  color: var(--zy-muted);
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 2.5rem;
+  display: block;
+}
+
+@media (max-width: 600px) {
+  .zy-stats-row {
+    gap: 1.5rem;
+  }
+}
