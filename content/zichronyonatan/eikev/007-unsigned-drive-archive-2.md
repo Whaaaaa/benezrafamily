@@ -1,0 +1,19 @@
+---
+parsha: "Eikev"
+book: "Devarim"
+bookOrder: 4
+order: 45
+date: "2019"
+title: "Eikev (2019)"
+author: "Unsigned (Drive archive, 2019)"
+source: "Google Drive (full)"
+verbatim: true
+placeholder: false
+---
+This week's parsha is "Eikev," meaning "because." Moshe continues his closing address to Bnei Yisrael, telling them that as long as he has known them they have been sinners -- recounting the golden calf and Korach's rebellion -- before reminding them of their eventual forgiveness and the giving of a second set of tablets. Moshe reassures the people that G-d's forgiveness is bountiful, and "that man does not live on bread alone, but by the utterance of G-d's mouth does man live."
+
+Moshe describes the land of Israel they are soon to enter -- flowing with milk and honey, blessed with the seven species -- and warns of the danger ahead: to destroy the idols worshipped throughout the land, lest the people become haughty and believe "my power and the might of my hand have gotten me this wealth." Through devotion to mitzvot we are brought near to G-d and all His blessings; through idol worship and forgetting G-d in our lives, we may face famine, drought, and worse. Moshe speaks of the coming of Moshiach and the resurrection of the dead.
+
+We have all faced trials in our lives that, once we come through them, seem impossible in retrospect -- and it is this that inspires us to reach new heights. The sages quote G-d as saying, "Open for me a door as small as the point of a needle, and I will open for you a door as wide as the entrance to the Temple."
+
+At the end of a journey it is good practice to recount what we might have done differently, and to name the mercies that carried us through despite the tumult. We are commanded to take the Land by force while simultaneously commanded not to celebrate our own strength or our enemies' downfall -- teaching us that even our most uniquely human capacities are seen through by G-d, and that even our bodily functions are driven by something beyond us for which we cannot take sole credit.

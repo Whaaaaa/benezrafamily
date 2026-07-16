@@ -14,6 +14,8 @@ export type Essay = {
   date: string;
   title: string;
   author: string;
+  source: string;
+  verbatim: boolean;
   placeholder: boolean;
   body: string;
 };
@@ -41,6 +43,8 @@ export function getAllEssays(): Essay[] {
           date: data.date || "",
           title: data.title || data.parsha || dir,
           author: data.author || "",
+          source: data.source || "",
+          verbatim: !!data.verbatim,
           placeholder: !!data.placeholder,
           body: content.trim(),
         });
@@ -61,6 +65,7 @@ export type ParshaSummary = {
   order: number;
   count: number;
   authors: string[];
+  hasVerified: boolean;
 };
 
 export function getParshiot(): ParshaSummary[] {
@@ -69,10 +74,11 @@ export function getParshiot(): ParshaSummary[] {
   for (const e of essays) {
     const existing = map.get(e.parshaSlug);
     if (existing) {
-      existing.count += 1;
+      if (!e.placeholder) existing.count += 1;
       if (e.author && !existing.authors.includes(e.author)) {
         existing.authors.push(e.author);
       }
+      if (e.verbatim) existing.hasVerified = true;
     } else {
       map.set(e.parshaSlug, {
         slug: e.parshaSlug,
@@ -80,8 +86,9 @@ export function getParshiot(): ParshaSummary[] {
         book: e.book,
         bookOrder: e.bookOrder,
         order: e.order,
-        count: 1,
+        count: e.placeholder ? 0 : 1,
         authors: e.author ? [e.author] : [],
+        hasVerified: e.verbatim,
       });
     }
   }
@@ -104,7 +111,7 @@ export function getBooks(): { book: string; bookOrder: number; parshiot: ParshaS
 export function getEssaysForParsha(slug: string): Essay[] {
   return getAllEssays()
     .filter((e) => e.parshaSlug === slug)
-    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    .sort((a, b) => (a.date < b.date ? 1 : -1));
 }
 
 export function getParshaMeta(slug: string): ParshaSummary | undefined {
@@ -112,14 +119,16 @@ export function getParshaMeta(slug: string): ParshaSummary | undefined {
 }
 
 export function totalStats() {
-  const essays = getAllEssays();
+  const essays = getAllEssays().filter((e) => !e.placeholder);
   const authors = new Set<string>();
   essays.forEach((e) => {
     if (e.author) authors.add(e.author);
   });
+  const pendingCount = getAllEssays().filter((e) => e.placeholder).length;
   return {
     essayCount: essays.length,
-    parshaCount: getParshiot().length,
+    parshaCount: new Set(essays.map((e) => e.parshaSlug)).size,
     authorCount: authors.size,
+    pendingCount,
   };
 }

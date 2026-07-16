@@ -1,0 +1,23 @@
+---
+parsha: "Pinchas"
+book: "Bamidbar"
+bookOrder: 3
+order: 41
+date: "July 2023"
+title: "Pinchas (2023)"
+author: "Unsigned (Drive archive, 2023)"
+source: "Google Drive (full)"
+verbatim: true
+placeholder: false
+---
+This week's Parsha is Pinchas, a difficult Parsha dealing with conflict between Jews and Midianite influence. It includes laws of land inheritance among the tribes, Moshe's formal appointment of Yehoshua as his successor, and additional sacrifices commanded for Shabbat and festivals.
+
+Pinchas is himself a difficult figure -- rewarded for publicly killing a tribal leader engaged in an open affair with a Midianite woman, he receives G-d's covenant of peace and priesthood, a fitting reward that reminds us to value peace above all.
+
+A census counts 601,730 men between twenty and sixty; land is divided among tribes and families accordingly. The daughters of Tzelophechad -- with no brother to inherit their father's portion -- petition Moshe directly, and G-d instructs that their case be incorporated permanently into the laws of inheritance: "The daughters of Tzelophechad have spoken correctly."
+
+The daughters of Tzelophechad represent Jewish women's love for Israel; their names remain common in modern Israel today, representing resilient members of a historically disenfranchised group. Unlike their father, remembered mainly for the manner of his death, they are remembered for resilience and the ability to ask, publicly and persistently, for what they need -- showing us that reacting to real needs as they arise, and demanding change in public, is how the status quo actually changes.
+
+Moshe tasks Yehoshua with leading the people into Israel, and the Parsha ends with a full accounting of the additional offerings for Shabbat, Rosh Chodesh, and each festival of the year.
+
+Shabbat Shalom!
