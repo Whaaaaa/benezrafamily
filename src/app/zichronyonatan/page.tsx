@@ -1,10 +1,16 @@
-import { getBooks, totalStats } from "@/lib/content-zichronyonatan";
+import { getBooks, getParshaMeta, getEssaysForParsha } from "@/lib/content-zichronyonatan";
+import { getCurrentParshaSlug } from "@/lib/current-parsha";
 import Link from "next/link";
 import FlameMark from "./FlameMark";
 
 export default function ZichryonYonatanHome() {
   const books = getBooks();
-  const stats = totalStats();
+
+  const currentSlug = getCurrentParshaSlug();
+  const currentMeta = currentSlug ? getParshaMeta(currentSlug) : undefined;
+  const currentEssays = currentSlug
+    ? getEssaysForParsha(currentSlug).filter((e) => e.verbatim && !e.placeholder)
+    : [];
 
   return (
     <>
@@ -14,39 +20,31 @@ export default function ZichryonYonatanHome() {
           Zichron Yonatan
           <span className="zy-site-title-he">זכרון יונתן</span>
         </h1>
-        <p className="zy-site-subtitle">
-          A weekly d&apos;var Torah, begun in Elul 5777 in loving memory of
-          Yonatan ben Avraham Avinu a&quot;h &mdash; carried on since by his
-          family, parsha by parsha, year after year.
-        </p>
+        <div className="zy-header-photo">
+          <img src="/yonatan-photo.jpg" alt="" />
+        </div>
       </header>
 
       <main className="zy-main" id="zy-content">
-        <p className="zy-intro">
-          In Elul 5777, days after losing their Uncle Yonatan, this family
-          began writing a weekly dvar Torah in his memory. Different hands
-          picked it up in different years &mdash; a nephew, a brother, a
-          niece, a friend. This site reproduces each essay{" "}
-          <strong>word-for-word from the original document</strong> &mdash;
-          no summarizing, no rewording. An essay is added here only once it
-          has been re-checked directly against the source in Google Drive or
-          Gmail.
-        </p>
-
-        <div className="zy-stats-row">
-          <div className="zy-stat">
-            <span className="zy-stat-num">{stats.essayCount}</span>
-            <span className="zy-stat-label">Verified essays</span>
-          </div>
-          <div className="zy-stat">
-            <span className="zy-stat-num">{stats.parshaCount}</span>
-            <span className="zy-stat-label">Parshiot covered</span>
-          </div>
-          <div className="zy-stat">
-            <span className="zy-stat-num">{stats.authorCount}</span>
-            <span className="zy-stat-label">Writers</span>
-          </div>
-        </div>
+        {currentMeta && currentEssays.length > 0 && (
+          <section className="zy-featured">
+            <span className="zy-featured-eyebrow">This week&apos;s parsha</span>
+            <h2 className="zy-featured-title">{currentMeta.parsha}</h2>
+            <ul className="zy-featured-list">
+              {currentEssays.map((e) => (
+                <li key={e.slug}>
+                  <Link href={`/zichronyonatan/parsha/${currentSlug}`}>
+                    {e.title}
+                  </Link>
+                  {e.author ? <span> &middot; {e.author}</span> : null}
+                </li>
+              ))}
+            </ul>
+            <Link href={`/zichronyonatan/parsha/${currentSlug}`} className="zy-featured-cta">
+              Read this week&apos;s divrei Torah &rarr;
+            </Link>
+          </section>
+        )}
 
         {books.map((b, bi) => (
           <section className="zy-book-section" key={b.book}>
