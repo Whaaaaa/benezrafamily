@@ -1,4 +1,4 @@
-# Status: 48 of ~90 essays verified word-for-word
+# Status: 54 of ~90 essays verified word-for-word
 
 This site now only shows essays that were **re-fetched fresh from Google
 Drive or Gmail and reproduced verbatim** (word-for-word, no paraphrasing).
@@ -21,12 +21,6 @@ Google Drive `read_file_content`, then add a new `.md` file to
 existing file for the frontmatter format).
 
 Known remaining Drive file IDs (title -- file ID):
-- Terumah (2021) -- 1niK698rkzRmdKg8pHMIBD8dybCDA7OAVgiyepqUyFs8
-- Pinchas (2022, Yehoshua) -- 1WXZqgk6Ba_Uz-chTeajIxF4B96sf9yb0IT-Hx1a4zl0
-- Noach (2023) -- 1kVyGW22Gv8tJYYyYZX9OWSlRoosqBmD750hcc_0SJU0
-- Vayishlach #15 -- 1izATPyxwHjywb5PTUN3a0OVhZcmBRckLUary3in4imQ
-- Re'eh (2021) -- 1QZKwr2vdm3JgPJHxaOkRQq5Zxh526MX5RABAhTb9pq8
-- Shelach (2021) -- 1VooXXUbucc1Gq4fh8VnPcKeQo-1tf-ryqBRS7zLtPcQ
 - Lag Ba'Omer -- 1QVDkrmrNqDDIPRy24iJSTtFqSgyrKo_hInfQLMRR9_s
 - Shemini (2021) -- 1vrR5hsFbwStCQH_YFXZ8y7fbKwyzqZ9-LU6DQmwt3Ws
 - Vayikra (2021) -- 1t2pLBFnqWk60edst_MYdR6Wk_Wq5_pb4v1W4PIfzQ20
