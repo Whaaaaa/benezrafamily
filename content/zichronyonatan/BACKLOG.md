@@ -1,4 +1,4 @@
-# Status: 36 of ~90 essays verified word-for-word
+# Status: 42 of ~90 essays verified word-for-word
 
 This site now only shows essays that were **re-fetched fresh from Google
 Drive or Gmail and reproduced verbatim** (word-for-word, no paraphrasing).
@@ -21,12 +21,6 @@ Google Drive `read_file_content`, then add a new `.md` file to
 existing file for the frontmatter format).
 
 Known remaining Drive file IDs (title -- file ID):
-- Lech Lecha (2017) -- 136Hwz3D59vkA13HVoQ7ZOgSMHgH4EaRdf8MsRVWtulM
-- Vayeira -- 10gDO9lYofwTZwSaTWCotuNQwjIPhDEwj-qecBoj63EU
-- Rosh Hashanah (Yosef, 2017) -- 1ipKYpWonpjDzjDql0GK5Oag47_MbS1ttpJQru2heVNc
-- Shoftim #2 -- 1FVIi0avfvIN3rBMVZ2o8nZNq0cpC_aSYYBVQYaKVIWM
-- Rosh Hashanah #6 -- 1mOs57DI6WEQKR8_Ff7PhnCNPmBEh76dJr4wH7ysn910
-- Eikev #1 (2017) -- 11fXpsFBR6jWjWdZnf4YY0M-1K0iWpuCXVtU-xVTgzws
 - Ki Teitzei -- 1TLglZLvyJPs-JKkiGlYdfSEa482KtytnRR1JJDi1dzI
 - Toldos -- 13FE0YhXoemrrLYUVt2qrLrJPxLP5zTBb_n3DBbWEj_U
 - Chayei Sarah #13 -- 1c9yti6glJfTtTDu-yLOoMn4mZI0qCWypFH1_091eoS0
