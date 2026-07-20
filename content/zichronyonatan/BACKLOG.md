@@ -1,4 +1,4 @@
-# Status: 66 of ~90 essays verified word-for-word
+# Status: 70 essays verified word-for-word
 
 This site now only shows essays that were **re-fetched fresh from Google
 Drive or Gmail and reproduced verbatim** (word-for-word, no paraphrasing).
@@ -12,21 +12,32 @@ essay instead of the original text. That was wrong for a personal archive
 like this, so the whole content set was rebuilt from scratch, re-fetching
 and transcribing each source document exactly.
 
+## Where things stand
+
+Every Drive file ID that had been identified as of the last pass has now
+been fetched, transcribed verbatim, and added. Two items from that list
+were checked and intentionally left out rather than published:
+
+- Shemos stub (2018) -- file 14VsAGBy3q0dxKhtYyCj3Wbc3mcpP5zonzxz2lOFQR2A is
+  a genuine fragment in Drive, cutting off mid-sentence after two lines.
+  Not worth a standalone page; Shemot is already covered by two complete
+  essays (2017 and 2021).
+- Beshalach (2022, "second copy") -- file
+  1uJU4bbql8V5_fta84KZ-1N7ism1KFel17gLvHrW8x1U covers the same Shabbat
+  Shira/Miriam's Song material already on the site as the existing 2022
+  Beshalach essay; treated as a duplicate rather than added again.
+
 ## What's left to do
 
-40 more parshiot/holidays have a known essay in the Drive archive that
-hasn't been re-verified yet in this pass. To finish one: open the file with
-Google Drive `read_file_content`, then add a new `.md` file to
-`content/<parsha-slug>/` with `verbatim: true` and the exact text (see any
-existing file for the frontmatter format).
-
-Known remaining Drive file IDs (title -- file ID):
-- Vayakhel-Pekudei (2020) -- 1pFwtznMh2nNUD6cr2O-_Lmo9huY9hs4-PITTGS-t1_8
-- Mishpatim (2020) -- 1RljsNV-HU4Ao19CTdgnSM-Pky2URNQudk26D_fPgEtY
-- Matot-Masei (2019) -- 1CULEYvVb-Xabo2kTjC7di5v_IOVaHtQtq5pMlbBetpY
-- Shavuot (2018) -- 1XLrg6t30G0RPO2o827wLu1xglAYVPJ7qsEoF8wm_kXs
-- Shemos stub (2018, very short/incomplete in Drive) -- 14VsAGBy3q0dxKhtYyCj3Wbc3mcpP5zonzxz2lOFQR2A
-- Beshalach (2022, second copy) -- 1uJU4bbql8V5_fta84KZ-1N7ism1KFel17gLvHrW8x1U
+15 parshiot/holidays still show a `placeholder: true` page (see the
+`000-pending.md` files) because no Drive or Gmail source has been located
+for them yet in this pass: Behar-Bechukotai, Bechukotai, Chukat, Devarim,
+Naso, Tazria-Metzora, Tu B'Shvat/Shovavim, Tzav, Vaera, Vayeishev,
+Vayigash, Vezot Haberakhah, Yitro, Yom Kippur. To finish one, search Drive
+(`search_files`) and Gmail (`search_threads`) for the parsha name plus
+"Zichron Yonatan", then add a new `.md` file to `content/<parsha-slug>/`
+with `verbatim: true` and the exact text (see any existing file for the
+frontmatter format).
 
 ## Also still unread (not in Drive)
 
