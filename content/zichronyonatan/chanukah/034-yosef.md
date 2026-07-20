@@ -1,0 +1,30 @@
+---
+parsha: "Chanukah"
+book: "Holidays"
+bookOrder: 5
+order: 11
+date: "December 15, 2017"
+title: "Zichron Yonatan -- Chanukah 5778"
+author: "Yosef"
+source: "Google Drive (full)"
+verbatim: true
+placeholder: false
+---
+During the Greek occupation of Israel, they enacted countless decrees targeted at uprooting the Jewish religion. The last straw was when they stopped the Jews from their service in the Beit Hamikdash, the holy temple. Then, a handful of Talmudic scholars, men of the book and not of the sword, decided to wage war against the might and majesty of the Greek empire. In a stunning miracle, these few Rabbi's managed to defeat the Greeks and to regain possession of the temple. To their dismay, they found that all of the pure oil used for lighting the menorah had been defiled, except for one small jug which would only suffice for a single day. Since the process of making new oil would take eight days, they were left with no way to restore the temple service. Still, they lit what oil they had, fully expecting it to go out after a day. Miraculously, that small jug burned for eight full days until they were able to replenish their stock. In thanksgiving for this great miracle, the holiday of Chanukah was established, when every Jewish home lights the menorah and relives the miracles of yesteryear.
+
+The question we must ask ourselves is that the temple was filled with miracles every day of its existence for close to eight-hundred years. There, a heavenly fire descended each day upon the altar, the showbread remained fresh and piping hot for the entire week that it sat on the table, and the entire Jewish nation found enough room to prostrate themselves in the temple courtyard, to list but a few. In fact, there was even a daily miracle quite akin to that of Chanukah -- every day the western candle of the menorah, which had the same amount of oil as the rest of the candles, would be lit first and would continue burning long after the others. For all of these miracles, we don't find that any holiday was established in commemoration. Our sources tell us that the reason these are not celebrated is that we only celebrate miracles on which the existence of the Jewish people hinged. The miracles of Passover created our nation, those of Sukkot ensured our survival in the desert, and those of Shavuot defined us as the nation of the Torah. All of the aforementioned miracles, great as they may have been, were not necessary for our survival and we, therefore, do not make any special remembrance. Why then was a Chanukah created in memory of the oil which burned for seven days, couldn't we have very well survived if the temple service would have waited another week?
+
+An answer to this question lies in the historical setting of the story of Chanukah. This was at the end of the Second Temple Era, right after prophecy had ceased to exist. Until then G-d's presence in the world was obvious for all to see -- prophets communicated His will directly. Now, the era of prophecy had just come to an end and the world was plunged into darkness, into a time when G-d hides his face and cannot be seen by the untrained eye. Understandably, this was a very dark time for the Jews, as they did not know how to proceed in their relationship with G-d.
+
+It was at this time that G-d performed the miracle of Chanukah and proclaimed to the Jewish people that even in the darkest times, He was still there with them, lighting the darkness to show them the way.
+
+This message was absolutely essential for our nation to survive and thrive in this new era of exile, as spirituality became veiled and hidden. Now it would only be possible to carry on with the firm knowledge that even when we cannot feel our loving Father's embrace, He is nevertheless watching over us and guiding us through the darkness.
+
+An American businessman was once vacationing in Israel. He entered the Sbarro pizza shop in Jerusalem to grab a quick bite to eat, anxiously checking his watch so he shouldn't miss his bus. The man in front of him, a total stranger, noticed that he was in a rush and insisted that he take his place in line. The businessman thanked him and gladly stepped ahead, relieved that he would catch his bus after all. He exited the pizzeria with his pizza in hand and just as he emerged, the whole store went up in flames -- the result of a terrorist attack. Meanwhile, the man who had so graciously switched places with him was still inside and was severely injured by the bombing. He accompanied his unlikely savior to the hospital, sitting by his bedside and praying his heart out that this kind man be saved. It was a long healing process, and the businessman soon needed to return home. As he departed, he told his savior that he owed him his life and that he should let him know if there was any way that he could help. A while later, the businessman received a phone call from the son of his savior, informing him that they were coming to New York for an operation. They requested that he be there during the procedure. The businessman readily took off work and accompanied them to the hospital, glad to be able to somehow help out the man who had taken his place in the whole ordeal. During the operation, the news came in that the World Trade Center, where he worked, had been destroyed in the 9/11 attack.
+
+This story really portrays how G-d is there with us even in the darkest of times. Even in the midst of tragedy, when the whole world is up in flames, there too G-d is orchestrating everything with precise attention to detail. We cannot know G-d's reasons for allowing tragedy to strike, but we can know beyond a shadow of a doubt that he has our best interest in mind and that he's holding our hand throughout it all.
+
+So this year, as we light the Chanukah candles, let's take with us this message, that even when our lives are shrouded in darkness, even when things seem bleak and hopeless, even then God is lighting our path and leading us exactly where we need to go.
+
+Good Shabbos and Happy Chanukah,
+Yosef

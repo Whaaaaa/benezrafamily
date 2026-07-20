@@ -1,4 +1,4 @@
-# Status: 25 of ~90 essays verified word-for-word
+# Status: 36 of ~90 essays verified word-for-word
 
 This site now only shows essays that were **re-fetched fresh from Google
 Drive or Gmail and reproduced verbatim** (word-for-word, no paraphrasing).
@@ -21,18 +21,6 @@ Google Drive `read_file_content`, then add a new `.md` file to
 existing file for the frontmatter format).
 
 Known remaining Drive file IDs (title -- file ID):
-- Transformation of a Nation (Pesach/Omer theme) -- 17qnUUZLxzz0bi_zlmc1RkihPg4D3u4qOO2ITDgimKtQ
-- Behar -- 1VNui-cm5zzCVUZoL1tUDy8B45_iFiwOk_vxklHGW_es
-- Korach "The Tyrant's Takeaway" (2018) -- 1MDVEDOViyGRaI_GKF5u3XOi9mIStp1wlJYt0sKSpT4M
-- Shemos -- 1meOIAaKM6z9KuADUe1a8vfNdGO4UpslfmsZtIwiZ37k
-- Vayikra (2018) -- 1hHN_rniP-VBhiwOktxc0Dzgj4sXT4bpNmMFF7mIOrnA
-- Purim 5778 -- 1gc6c5Uw2XfDToZggnJf9TLv4gApcvvMLsR_5mtvcrcY
-- Vayechi -- 19jLSySHfHsE6tHYX6cFFmkNIDwv6iDC8Nm4yYlNKWrQ
-- Noach #10 -- 1KQUfTQlEPmlAiMC5ZQFrTZKgNceLNYkkLe7XOAN8Q0o
-- Bo -- 1advM5TQcsFkzcslXFZ5oucwlrtKgawkr_EkXFwB_HbY
-- Shemot (dup) -- 1v2DNcyvg83JuSKgcu71pKwWm-vfPIwvHK5si-psv4To
-- Chanukah (2017) -- 1Hu1IOpPU6dZTaSDlFxOliNA24NyD0ns5vC2dit17wHE
-- Vayetzei (2017) -- 1oP5oJGByvjwCthrOAWPQPSgs9aC01QyxwU7ZlOdsUVI
 - Lech Lecha (2017) -- 136Hwz3D59vkA13HVoQ7ZOgSMHgH4EaRdf8MsRVWtulM
 - Vayeira -- 10gDO9lYofwTZwSaTWCotuNQwjIPhDEwj-qecBoj63EU
 - Rosh Hashanah (Yosef, 2017) -- 1ipKYpWonpjDzjDql0GK5Oag47_MbS1ttpJQru2heVNc
