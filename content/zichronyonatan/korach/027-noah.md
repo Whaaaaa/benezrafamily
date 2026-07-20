@@ -1,0 +1,28 @@
+---
+parsha: "Korach"
+book: "Bamidbar"
+bookOrder: 3
+order: 38
+date: "June 15, 2018"
+title: "The Tyrant's Takeaway"
+author: "Noah"
+source: "Google Drive (full)"
+verbatim: true
+placeholder: false
+---
+The parsha begins, "And Korach took..." This verse is our introduction to arguably the most infamous event during the travels of our forefathers. In this week's parsha, Korach incites a mutiny against Moses and the leadership he has appointed. He takes special issue with the granting of the priesthood to Aaron. Joining Korach and his cronies are 250 distinguished members of the community, who offer the sacrificial incense to prove their worthiness for the priesthood. The earth opens and swallows the mutineers, and a fire consumes the ketoret-offerers. Among the many questions raised by this chapter in our history, the commentators are puzzled by the first verse. They point out that the verb "took" is not connected to any subsequent article. What could Korach possibly have taken that could explain the coming coup that he would attempt? Furthermore, how did this taking enable a single rabble-rouser to ensnare the leaders of his generation in his divisive scheme?
+
+To understand this and any large scale political situation, we must consider the broader context and mindset in which the Israelites found themselves. During their desert adventure, they were a people constantly on the move. Their lives were left entirely in the hands of God, they had very little control over their futures and they constantly complained about the uncertainty of what was to come. From wishin for chicken to the subversive spies, the Israelites desert misdeeds have a lack of trust and reliance on God as a uniting factor at their cores. They projected unpredictability and instability onto every opportunity and gift given to them by God. Despite having all their needs miraculously taken care of, just the feeling of uncertainty was enough to lead them to err numerous times in the face of the greatest revelation in history. It was amidst this struggle that Korach rose to power. Korach's ascent did not occur in a vacuum, he certainly was not the first person to question Moshe's leadership but somehow his protest ignited the populace to an unprecedented extent. The mindspace and attitude of the generation is one of the first explanations of how Korach was so successful.
+
+In conjunction with this background, Korach waged his rebellion in exceptional ways. While others may have complained about Moshe and the leadership quietly and in private, Korach challenged the institution loudly, publicly, and with derision. While other firebrands were at the fringes of society, Korach was a distinguished and wealthy individual with social standing. These factors greatly increased the reach and appeal of an otherwise questionable message. The commentators point out that while Korach was driven by the desire to be Kohen Gadol his argument against Moshe and Aaron undermined the entire value of this position. Korach railed against a corrupt institution while secretly coveting the very office he claimed was corrupt. How did the greats in the generation fall for this illogical ruse and how did Korach arrive at the point he was comfortable with maintaining this cognitive dissonance?
+
+The Talmud explains that the verse, "Riches hoarded to the misfortune of their owner," refers to Korach. The Talmud explains that even though he had unlimited material means, they could not help him. This statement can be taken on its face value to mean that his wealth could not bail him out of the trouble he caused. Or, the Talmud could be indicating that his wealth couldn't help him achieve the spiritual status he so desperately desired. From this perspective it was greed that drove him to threaten the foundation of his nation. Korach was accustomed to receiving recognition and respect related to his riches. The suggestion that spiritual status is distinct and cannot be purchased drove Korach to relinquish everything in pursuit of this goal. It is understandable that greed blinded Korach but we are still left to wonder how his supporters couldn't see through his transparent scheme.
+
+There is one explanation of Korach's taking that can help answer this final question. Rabbi Eliyahu Monk explains that Korach took the feelings of envy and resentment of his followers. The outrage he expressed was not his own, rather he just echoed the sentiments of each disadvantaged group around him to garner their support for him to push his greedy self-serving agenda. This dishonestly was so effective because there were bits and pieces of legitimate complaints. Each faction could hear what they needed to continue believing Korach was their advocate, fighting tirelessly on their behalf against an oppressive system. They only saw a wealthy charismatic leader that was fearless in the face of authority. Meanwhile, Korach didn't have any honest moral objections to the system, he was driven by only his own greed and honor.
+
+There are many practical lessons to be learned from this incident. Had the Israelites been more content and secure, they might not have been susceptible to scapegoating and panic. Had Korach appreciated his good fortune and wealth he may have been satisfied with his lot in life and not obsessed over what he couldn't have. But perhaps most importantly, had Korach's comrades remained critical of his leadership and genuinely listened to his platform and ideals they may have realized that he was not an advocate but a conman.
+
+We should all merit to be content, appreciative and always critical of authority.
+
+Shabbat Shalom,
+Noah

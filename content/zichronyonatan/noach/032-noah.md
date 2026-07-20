@@ -1,0 +1,37 @@
+---
+parsha: "Noach"
+book: "Bereishit"
+bookOrder: 0
+order: 2
+date: "October 20, 2017"
+title: "Zichron Yonatan -- Parshas Noach 5778"
+author: "Noah"
+source: "Google Drive (full)"
+verbatim: true
+placeholder: false
+---
+This week's parsha is that of my namesake and I have always taken it personally. There is an ongoing theme found in the commentary throughout this parsha that has always been difficult for me to understand and accept. Noach is contrasted to Avraham in multiple places and this almost always results in Noach being viewed as the lesser of the two. I'm sure this wouldn't have bothered to such an extent if my little brother didn't carry the name of the superior biblical example but, alas, this has haunted me. To make matters worse, as great as Noach is made out to be, he is not the Father of the Jewish People like Avraham is. Noach is seen as the patriarch for the world but the especially coveted title of Father of our Nation is reserved for Avraham. Understanding the relationship between these great men can reveal a profound lesson about what it means to be righteous, what it means to be a Jew, and where these principles intersect.
+
+The first words of this week's Parsha say, "These are the offspring of Noach, Noach was a righteous man, perfect in his generations; Noach walked with God." From the Torah's words alone it seems like Noach is the best of the best. In fact, no other person in the Torah is described as "righteous." But, of course, the sages could not take these praises at face value and instead compare them to the exaltations of Avraham. The Torah relates, "Avraham walked before God." While Noach was in lock step with the creator, Avraham was running ahead, enthusiastically looking for the next challenge. Rav Eliyahu Dessler zt"l writes, in an effort to explain this discrepancy, that while Noach is called a man of righteousness, Avraham is a man of kindness. Sure, Noach performed acts of kindness in his Ark, feeding the animals, caring for his family, and ultimately saving humanity, but Noach was motivated to perform these acts because they were the right thing to do. His service did not stem from an overflowing desire to give but was rather a reaction to the needs of others. Avraham, in contrast, did not perform his acts of kindness out of a sense obligation, rather he performed them because of a burning desire to give, regardless of whether it was necessary.
+
+Next, the sages question what is meant by the seeming redundancy of the words, "in his generations." If he was truly a perfect person why does he need to be compared to the sinners of his age? Just say that he's perfect and leave it at that! Rather, the sages say that had he lived in Avraham's generation, which was not nearly as sinful, Noach would not have been special. His greatness was only in direct comparison to the scum running around the world at the same time. While Avraham's greatness is described in an absolute sense, Noach's exists only in relation to those around him.
+
+Finally, to drive the inadequacy of Noach home, the Sages analyze another verse. It says that Noach went into his Ark "Because of the waters of the flood." Rashi says, "Noach was also lacking faith in God, and he believed and didn't believe that the flood would come, so he did not enter the Ark until the waters pushed him into it." This Rashi is especially hard for me to swallow. Noach committed more than a century of his life to building the Ark and preparing for his famous voyage. How can Rashi disregard all of this commitment and in a split second proclaim that Noach lacked faith?
+
+I once heard an alternative understanding that flips Rashi's explanation of Noach's lack of faith on its head and emphasizes our responsibility as Jews. Instead of punctuating Rashi's comment as is typically done, the comma is moved over slightly to reveal a powerful message. Instead of punctuating the verse
+
+"אף נח מקטני אמנה היה, מאמין ואינו מאמין שיבא המבול ולא נכנס לתיבה עד שדחקוהו המים"
+
+Which means that Noach himself was lacking in faith, the comment is changed to read,
+
+".אף נח מקטני אמנה היה מאמין, ואינו מאמין שיבא המבול ולא נכנס לתיבה עד שדחקוהו המים"
+
+Which instead means, "Noach even believed in those who lacked faith, and (because he was confident they would repent) did not enter the Ark until the water pushed him." According to this explanation, Noach did not lack faith, instead, he had too much faith in those around him. Rather than doing what Avraham was famous for and spreading the belief in God and objective morality to others, he sat by and just believed they would repent. This criticism illustrates just how important it is for us to engage the outside world by demonstrating how a people held to higher standard behave. Noach's lack of eagerness to enter the Ark was not a result of too little belief, rather too little ambition to spread this belief to others.
+
+Furthermore, in regard to Noach righteousness existing only relative to his times, we see that a Jew must never compare himself to the world around him when assessing his morality. It is not enough to hold ourselves to the arbitrary and subjective measures of morality that our society imposes upon us. We must always strive to refine our character far beyond what the standards of today are and instead fight to be as loving and compassionate as our forefathers. Noach's relative righteousness is a high standard for the rest of the world but it is a Jew's responsibility to lift the standard, to be a moral light to the nations.
+
+Finally, to understand the relationship between these two characters, we have to understand that they are built upon each other. Avraham only existed and was able to become the Father of our Nation because of Noach's unending commitment to doing what was right. While Noach sets the ideal for the humanity, Avraham sets the ideal for what a Jew can be. The Talmud explains that there are three traits that are the sign of a Jewish Soul. Tractate Yevamot 79b says that the three signs of members of the Jewish People are that they are, "merciful, bashful, and doers of acts of kindness." The kindness referred to here is the same kindness that Avraham exemplified, whereas the righteousness of Noach is not described as an "inherently Jewish" quality. While the rest of the world is commanded to obey the Seven Mitzvot of Children of Noach and to accept these guidelines as the standard for morality, for a Jew our obligation extends much further. We must approach each situation with a burning desire to do what is good and right because of our love for others. It is not enough to be merely do the correct thing, we must exceed expectations and be an example for others.
+
+On a personal level, I feel much better. I now appreciate that my brother's namesake was not in competition with mine, rather he took the values and example that Noach set and put a fresh passion and motivation behind it. Avi makes a huge Kiddush Hashem at his school and on the street, defining to many of his peers what a Jew is. His high ethical standard and passion for helping others is evident to all who meet him. In him, I see shades of Avraham Avinu, excelling with fervor and raising a bar I can only hope I had something to do with setting. God willing, we should all merit to share in Avraham's (and our Avi's) example of being a source of light and inspiration to all those who see us.
+
+Shabbat Shalom, Noah
