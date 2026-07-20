@@ -1,4 +1,4 @@
-# Status: 42 of ~90 essays verified word-for-word
+# Status: 48 of ~90 essays verified word-for-word
 
 This site now only shows essays that were **re-fetched fresh from Google
 Drive or Gmail and reproduced verbatim** (word-for-word, no paraphrasing).
@@ -21,12 +21,6 @@ Google Drive `read_file_content`, then add a new `.md` file to
 existing file for the frontmatter format).
 
 Known remaining Drive file IDs (title -- file ID):
-- Ki Teitzei -- 1TLglZLvyJPs-JKkiGlYdfSEa482KtytnRR1JJDi1dzI
-- Toldos -- 13FE0YhXoemrrLYUVt2qrLrJPxLP5zTBb_n3DBbWEj_U
-- Chayei Sarah #13 -- 1c9yti6glJfTtTDu-yLOoMn4mZI0qCWypFH1_091eoS0
-- Sukkot #8 -- 1EjPSsWj2a1_HM6J2XkTpkF5WZhlae4JJCY-du_6V5EQ
-- Ki Tavo (2017/2020) -- 1PaixbQ4-NE1FtWmvTCuI38t0ah4jOI1XthooEJW_3Ro
-- Shmini Atzeret #9 -- 1Wp6OtjE4Tr_j0hIkD70c5HEUmmvrWZW0aHQFoVSq1h4
 - Terumah (2021) -- 1niK698rkzRmdKg8pHMIBD8dybCDA7OAVgiyepqUyFs8
 - Pinchas (2022, Yehoshua) -- 1WXZqgk6Ba_Uz-chTeajIxF4B96sf9yb0IT-Hx1a4zl0
 - Noach (2023) -- 1kVyGW22Gv8tJYYyYZX9OWSlRoosqBmD750hcc_0SJU0
