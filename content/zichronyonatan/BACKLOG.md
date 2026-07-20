@@ -1,4 +1,4 @@
-# Status: 70 essays verified word-for-word
+# Status: 92 essays verified word-for-word
 
 This site now only shows essays that were **re-fetched fresh from Google
 Drive or Gmail and reproduced verbatim** (word-for-word, no paraphrasing).
@@ -14,9 +14,17 @@ and transcribing each source document exactly.
 
 ## Where things stand
 
-Every Drive file ID that had been identified as of the last pass has now
-been fetched, transcribed verbatim, and added. Two items from that list
-were checked and intentionally left out rather than published:
+A large, previously-untapped source turned up in this pass: a personal
+Gmail archive (benezra.noah@gmail.com, "Zichron Yonatan" weekly Torah
+emails going back to 2017) and a much bigger Drive folder of the same
+material than the small "Zichron Yonaton" shared folder used earlier.
+Searching both located essays for 13 of the 15 parshiot/holidays that
+previously had no known source, plus several bonus essays for parshiot
+already covered (Bamidbar, Balak, Pesach picked up extra entries as a
+byproduct of the search).
+
+Two items were checked earlier and intentionally left out rather than
+published:
 
 - Shemos stub (2018) -- file 14VsAGBy3q0dxKhtYyCj3Wbc3mcpP5zonzxz2lOFQR2A is
   a genuine fragment in Drive, cutting off mid-sentence after two lines.
@@ -29,29 +37,41 @@ were checked and intentionally left out rather than published:
 
 ## What's left to do
 
-15 parshiot/holidays still show a `placeholder: true` page (see the
-`000-pending.md` files) because no Drive or Gmail source has been located
-for them yet in this pass: Behar-Bechukotai, Bechukotai, Chukat, Devarim,
-Naso, Tazria-Metzora, Tu B'Shvat/Shovavim, Tzav, Vaera, Vayeishev,
-Vayigash, Vezot Haberakhah, Yitro, Yom Kippur. To finish one, search Drive
-(`search_files`) and Gmail (`search_threads`) for the parsha name plus
-"Zichron Yonatan", then add a new `.md` file to `content/<parsha-slug>/`
-with `verbatim: true` and the exact text (see any existing file for the
-frontmatter format).
+Only 2 parshiot/holidays still show a `placeholder: true` page:
 
-## Also still unread (not in Drive)
+- **Tu B'Shvat / Shovavim**
+- **Vezot Haberakhah**
+
+Both were searched exhaustively this pass -- Drive title search (multiple
+transliteration spellings: Tu Bishvat, Bshvat, Shevat, Shovavim, Shovevim;
+Vezos, Zos, Haberakhah, Habrachah) and Gmail subject search (same
+variants, `from:benezra.noah@gmail.com`) turned up nothing. It's possible
+no essay was ever written for these two, since Tu B'Shvat is a minor day
+and Vezot Haberakhah (read on Simchat Torah) may be covered instead by the
+existing Simchat Torah / Shmini Atzeret essays. To close these out for
+good, it would help to ask the family directly, or search Gmail without
+the `benezra.noah@gmail.com` sender restriction (other family members --
+kiefferavi@gmail.com, moo.kieffer@gmail.com, freedmanyosef@gmail.com --
+may have written one that was never forwarded to that inbox).
+
+## Also still unread (not fully searched)
 
 - .odt attachments sent directly by email from freedmanyosef@gmail.com (e.g.
   "194 - Naso - Rotten Wealth.odt") -- no attachment-download tool available
   in this session, and no copy found in Drive.
-- A separate, complete 2019-2020 cycle written directly in Gmail message
-  bodies (not saved to Drive) -- confirmed to exist via search but full text
-  not yet pulled for most of it (2 of these -- Bereishit and Chayei Sarah --
-  are done and included above).
+- The Gmail search this pass only scratched the surface of the full
+  "Zichron Yonatan" archive (estimated 200+ matching threads from 2017-2023
+  in benezra.noah@gmail.com's mailbox alone) -- only used to fill the 15
+  gaps above. Many parshiot likely have additional undiscovered essays
+  (different years/authors) sitting in that same inbox if someone wants to
+  keep expanding the archive beyond one essay per parsha.
 
 ## Adding more
 
 Each essay is one `.md` file with YAML frontmatter (parsha, book, order,
 date, title, author, source, verbatim, placeholder) followed by the exact
 essay text. Set `verbatim: true` only once you've checked the text against
-the actual source document.
+the actual source document. Use the Drive/Gmail owner's email as a strong
+signal for uncredited authors -- e.g. everything owned by
+kiefferavi@gmail.com in Drive turned out to be written by "Avi" even when
+unsigned in the text.
