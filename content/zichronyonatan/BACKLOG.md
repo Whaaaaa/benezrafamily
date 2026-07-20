@@ -1,4 +1,4 @@
-# Status: 60 of ~90 essays verified word-for-word
+# Status: 66 of ~90 essays verified word-for-word
 
 This site now only shows essays that were **re-fetched fresh from Google
 Drive or Gmail and reproduced verbatim** (word-for-word, no paraphrasing).
@@ -21,12 +21,6 @@ Google Drive `read_file_content`, then add a new `.md` file to
 existing file for the frontmatter format).
 
 Known remaining Drive file IDs (title -- file ID):
-- Toldos (2020) -- 1HL6QoI1Iwb-7_0iQ5VAA0-ulSdI6Gj0EuxQVnXbQUj4
-- Lech Lecha (2020) -- 1tueNaPoyChP9ecHQSkAPqpLRww9xWhXkeiKA2NrJATw
-- Ki Tavo (2020) -- 1tv1h3zICy5-A_HwVxk39v5KTIsDuVLdTrDA5zGM8FQU
-- Pinchas (2020) -- 1ZTVe1RvzrJTkdBFg3Mhkf5zUEo9R4lLANsQWbPIPiZ0
-- Korach (2020) -- 187a4v8DtS-6pS0rWzYZS9JwIyg4Pc7xJvrGgdI8XCTo
-- Acharei Mot-Kedoshim (2020) -- 1o6uysPEyGNYysxDq6wJteyL-yinsrzlmKEHqRd6pE5k
 - Vayakhel-Pekudei (2020) -- 1pFwtznMh2nNUD6cr2O-_Lmo9huY9hs4-PITTGS-t1_8
 - Mishpatim (2020) -- 1RljsNV-HU4Ao19CTdgnSM-Pky2URNQudk26D_fPgEtY
 - Matot-Masei (2019) -- 1CULEYvVb-Xabo2kTjC7di5v_IOVaHtQtq5pMlbBetpY
