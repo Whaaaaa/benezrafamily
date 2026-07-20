@@ -1,4 +1,4 @@
-# Status: 92 essays verified word-for-word
+# Status: 109 essays verified word-for-word
 
 This site now only shows essays that were **re-fetched fresh from Google
 Drive or Gmail and reproduced verbatim** (word-for-word, no paraphrasing).
@@ -14,16 +14,37 @@ and transcribing each source document exactly.
 
 ## Where things stand
 
-A large, previously-untapped source turned up in this pass: a personal
+A large, previously-untapped source turned up in a recent pass: a personal
 Gmail archive (benezra.noah@gmail.com, "Zichron Yonatan" weekly Torah
-emails going back to 2017) and a much bigger Drive folder of the same
-material than the small "Zichron Yonaton" shared folder used earlier.
-Searching both located essays for 13 of the 15 parshiot/holidays that
-previously had no known source, plus several bonus essays for parshiot
-already covered (Bamidbar, Balak, Pesach picked up extra entries as a
-byproduct of the search).
+emails going back to 2017, 200+ threads) and a much bigger Drive folder of
+the same material than the small "Zichron Yonaton" shared folder used
+earlier. That pass located essays for 13 of the 15 parshiot/holidays that
+previously had no known source.
 
-Two items were checked earlier and intentionally left out rather than
+A follow-up pass then audited the whole Gmail archive for a **subject-line
+mislabeling pattern**: the family's weekly newsletter often reused the
+previous week's email subject (or a stale thread) while writing that
+week's actual essay under a different parsha in the body. Comparing each
+email's subject to its actual internal title/parsha caption surfaced 18
+mislabeled essays across 2019-2023 that would otherwise have been
+misfiled or missed entirely if only the subject line were trusted (e.g. a
+Dec 2023 email subjected "Vayechi" whose body opens "Strangers in a
+Strange Land / Yitro"). All 18 were fetched by full thread body and filed
+under their correct parsha. One more (Naso, "Rotten Wealth") was pulled in
+along the way, resolving a previously-flagged BACKLOG item -- it had been
+blocked on an unreadable .odt attachment, but the same text turned up
+pasted directly in the forwarded email body.
+
+When auditing for mislabeling, note that a mismatch is not always
+resolved in favor of the body text -- one Dec 2023 entry had a generic,
+non-parsha-specific body (a baby-naming reflection) with an internal
+caption reading "Vayigash" that didn't match its own content at all; given
+the subject line ("Vayechi") aligned with the actual calendar date and
+the adjoining week already had a properly-labeled Vayigash essay, it was
+filed under Vayechi instead. Use judgment, not just whichever label came
+first.
+
+Several items were checked earlier and intentionally left out rather than
 published:
 
 - Shemos stub (2018) -- file 14VsAGBy3q0dxKhtYyCj3Wbc3mcpP5zonzxz2lOFQR2A is
@@ -34,6 +55,15 @@ published:
   1uJU4bbql8V5_fta84KZ-1N7ism1KFel17gLvHrW8x1U covers the same Shabbat
   Shira/Miriam's Song material already on the site as the existing 2022
   Beshalach essay; treated as a duplicate rather than added again.
+- Several Gmail resends were skipped as exact duplicates of essays already
+  on the site (identical body text sent again in a later year under a
+  different subject): a 2021 Tazria "resend" (dup of the 2022 Avi essay),
+  a 2021 Shelach "resend" (dup of the existing Avi essay), a 2021 Tisha
+  B'Av "resend" (dup of the 2020 Devarim "Why We Cry" essay), and a 2021
+  Elul "resend" (dup of the 2017 Ki Teitzei "Repentance" essay).
+- Two identically-worded Ki Tisa emails sent minutes apart on March 10,
+  2023 under different titles ("Perspectives on Shabbos" vs "One Heart")
+  -- only one was added, since the body text is word-for-word the same.
 
 ## What's left to do
 
@@ -42,29 +72,30 @@ Only 2 parshiot/holidays still show a `placeholder: true` page:
 - **Tu B'Shvat / Shovavim**
 - **Vezot Haberakhah**
 
-Both were searched exhaustively this pass -- Drive title search (multiple
+Both were searched exhaustively -- Drive title/fullText search (multiple
 transliteration spellings: Tu Bishvat, Bshvat, Shevat, Shovavim, Shovevim;
-Vezos, Zos, Haberakhah, Habrachah) and Gmail subject search (same
-variants, `from:benezra.noah@gmail.com`) turned up nothing. It's possible
-no essay was ever written for these two, since Tu B'Shvat is a minor day
-and Vezot Haberakhah (read on Simchat Torah) may be covered instead by the
-existing Simchat Torah / Shmini Atzeret essays. To close these out for
-good, it would help to ask the family directly, or search Gmail without
-the `benezra.noah@gmail.com` sender restriction (other family members --
-kiefferavi@gmail.com, moo.kieffer@gmail.com, freedmanyosef@gmail.com --
-may have written one that was never forwarded to that inbox).
+Vezos, Zos, Haberakhah, Habrachah, plus the Hebrew phrases טו בשבט and
+וזאת הברכה) and Gmail subject/body search (same variants, with and
+without the `benezra.noah@gmail.com` sender restriction) turned up
+nothing genuine -- only false-positive matches on unrelated essays and
+external community newsletters. Checking what was actually sent during
+the relevant calendar weeks across multiple years (2019, 2020, 2021,
+2022, 2023) confirms these are consistently gap weeks with no essay at
+all, not essays hiding under an unexpected name. It's likely no dedicated
+essay was ever written for either. To close these out for good, it would
+help to ask the family directly, or check whether kiefferavi@gmail.com,
+moo.kieffer@gmail.com, or freedmanyosef@gmail.com's own mailboxes (not
+searchable from this session) have something that was never forwarded to
+benezra.noah@gmail.com.
 
 ## Also still unread (not fully searched)
 
-- .odt attachments sent directly by email from freedmanyosef@gmail.com (e.g.
-  "194 - Naso - Rotten Wealth.odt") -- no attachment-download tool available
-  in this session, and no copy found in Drive.
-- The Gmail search this pass only scratched the surface of the full
-  "Zichron Yonatan" archive (estimated 200+ matching threads from 2017-2023
-  in benezra.noah@gmail.com's mailbox alone) -- only used to fill the 15
-  gaps above. Many parshiot likely have additional undiscovered essays
-  (different years/authors) sitting in that same inbox if someone wants to
-  keep expanding the archive beyond one essay per parsha.
+- The Gmail mislabeling audit and the original source-gap search only
+  covered a portion of the ~200+ "Zichron Yonatan" threads in
+  benezra.noah@gmail.com's mailbox (2017-2023). Many parshiot have
+  additional undiscovered essays (different years/authors) sitting in
+  that same inbox beyond what's already on the site, if someone wants to
+  keep expanding the archive beyond one essay per parsha per author.
 
 ## Adding more
 
@@ -74,4 +105,8 @@ essay text. Set `verbatim: true` only once you've checked the text against
 the actual source document. Use the Drive/Gmail owner's email as a strong
 signal for uncredited authors -- e.g. everything owned by
 kiefferavi@gmail.com in Drive turned out to be written by "Avi" even when
-unsigned in the text.
+unsigned in the text. When auditing Gmail subjects against body content,
+don't assume the body always wins -- check for corroborating evidence
+(does the adjoining week already have this parsha covered? does the
+content actually reference anything specific to the claimed parsha, or is
+it generic enough that the subject's calendar date is the better signal?).
