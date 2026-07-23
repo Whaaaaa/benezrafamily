@@ -259,6 +259,24 @@ a {
   display: flex;
   align-items: baseline;
   gap: 0.65rem;
+  cursor: pointer;
+  list-style: none;
+}
+
+.zy-book-heading::-webkit-details-marker {
+  display: none;
+}
+
+.zy-book-heading::after {
+  content: "+";
+  margin-left: auto;
+  font-family: "Source Serif 4", serif;
+  color: var(--zy-sage);
+  font-size: 1.1rem;
+}
+
+details[open] > .zy-book-heading::after {
+  content: "\2212";
 }
 
 .zy-book-heading .zy-book-index {
@@ -328,6 +346,7 @@ a {
   margin-bottom: 3.25rem;
   padding-bottom: 2.75rem;
   border-bottom: 1px solid var(--zy-border);
+  scroll-margin-top: 1.5rem;
 }
 
 .zy-essay:last-child {
@@ -341,6 +360,20 @@ a {
   font-weight: 600;
   color: var(--zy-navy);
   margin: 0 0 0.4rem;
+  display: flex;
+  align-items: baseline;
+  gap: 0.65rem;
+}
+
+.zy-essay-year {
+  font-family: "Source Serif 4", serif;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--zy-cream);
+  background: var(--zy-gold);
+  border-radius: 999px;
+  padding: 0.15rem 0.6rem;
+  letter-spacing: 0.03em;
 }
 
 .zy-essay-meta {
@@ -351,9 +384,61 @@ a {
   letter-spacing: 0.05em;
 }
 
-.zy-verbatim-tag {
-  color: var(--zy-sage);
+.zy-parsha-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.75rem 1.5rem;
+  margin-bottom: 2.5rem;
+  padding-bottom: 1.25rem;
+  border-bottom: 1px solid var(--zy-border);
+}
+
+.zy-jump-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 0.9rem;
+  font-size: 0.85rem;
+}
+
+.zy-jump-nav-label {
+  color: var(--zy-muted);
   font-weight: 600;
+}
+
+.zy-jump-nav a {
+  color: var(--zy-navy);
+  text-decoration: none;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.zy-jump-nav a:hover {
+  color: var(--zy-gold);
+  text-decoration: underline;
+}
+
+.zy-sort-toggle {
+  font-size: 0.85rem;
+  color: var(--zy-muted);
+  white-space: nowrap;
+}
+
+.zy-sort-toggle a {
+  color: var(--zy-navy);
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.zy-sort-toggle a:hover {
+  color: var(--zy-gold);
+  text-decoration: underline;
+}
+
+.zy-sort-toggle a.zy-sort-active {
+  color: var(--zy-gold);
+  text-decoration: underline;
 }
 
 .zy-essay-body p {
