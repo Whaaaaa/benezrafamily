@@ -1,0 +1,20 @@
+---
+parsha: "Matot-Masei"
+book: "Bamidbar"
+bookOrder: 3
+order: 42
+date: "July 21, 2020"
+title: "Matot-Massei"
+author: "Unsigned (Gmail archive, 2020)"
+source: "Gmail (full)"
+verbatim: true
+placeholder: false
+---
+The daughters of Zelophehad were Mahlah, Noa, Hoglah, Milcah, and Tirzah; they lived in the fortieth year after the exodus from Egypt. Shortly before the Jews entered Israel it was announced that a lot would be cast for each man in a tribe to be assigned a plot of land to be passed to future generations through the male lineage. Zelophehad from the tribe of Menashe, aside from being a dead martyr, had no male lineage. His five daughters had no inheritance, they were bold enough to raise the issue with Moshe. "Our father died in the desert... he died due to his own sin and he had no sons… Give us a landholding among our father's brothers!"
+Moshe brought their case before God. God spoke to Moses saying "The daughters of Zelophehad have spoken correctly. You shall certainly give them a landholding among their father's brothers, and transfer their father's inheritance to them."
+
+Zelophehad means dark shadow, which is a fitting name for a man who died for his own sin. No matter how he died the sages agreed he did it with good intentions. Some say he was part of a band of Jews who after the sin of the spies, despite being warned, took Israel by storm only to be slaughtered by Amalekites and Canaanites. Another opinion says he is the Shabbos wood collector who overheard teens saying Shabbos no longer applied in the desert. In response, he publicly broke Shabbos and was executed for doing so in a ghastly attempt to teach by hypocrisy.
+
+With their father dead, the woman had no choice but to embolden themselves, forcing Moshe to publicly hear their demand for a stake of land. After it was granted to them they faced another struggle, because of their position as Jewish women, their children would absorb the tribal identity of their father. This forced the 5 daughters to marry within their tribe, they duly married their cousins. Only 15 years later an heiress gained permanent stature in the law allowing daughters with bequeathments to retain their own land.
+
+Unlike their father who is remembered solely for his martyrdom, these women embody resilience and the ability to get what they need. They would never self-destruct to be heard and did not have the power to overstep their bounds in an attempt to take what they needed by force. This is why God heard them directly and allowed their struggle to make lasting change. The daughters of Zelophehad represent Jewish women's love for Israel, their names have become common in modern Israel because they represent resilient members of the historically disenfranchised. We are living in a period of unprecedented nationalism, this rise causes for many to feel misplaced and uninvited in places they previously knew as home, this Parsha shows us that going rogue or radicalizing to the death does not help gain traction, rather reacting to needs as they come and demanding change in public spaces is how we go about changing the status quo.
