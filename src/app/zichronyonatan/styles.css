@@ -23,6 +23,13 @@
   --zy-border-on-navy: rgba(250, 245, 232, 0.18);
 }
 
+.zy-root,
+.zy-root *,
+.zy-root *::before,
+.zy-root *::after {
+  box-sizing: border-box;
+}
+
 .zy-root {
   background: var(--zy-cream);
   color: var(--zy-ink);
@@ -32,6 +39,8 @@
   min-height: 100dvh;
   display: flex;
   flex-direction: column;
+  margin: 0;
+  overflow-x: hidden;
 }
 
 .zy-skip-link {
@@ -531,5 +540,20 @@ h1.zy-parsha-h1 {
 
   .zy-main {
     padding: 2.25rem 1.25rem 3.5rem;
+  }
+
+  .zy-parsha-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .zy-parsha-controls {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .zy-jump-nav a,
+  .zy-sort-toggle a {
+    padding: 0.2rem 0;
+    display: inline-block;
   }
 }
