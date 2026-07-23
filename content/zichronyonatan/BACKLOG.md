@@ -1,4 +1,4 @@
-# Status: 117 essays verified word-for-word
+# Status: 241 essays verified word-for-word
 
 This site now only shows essays that were **re-fetched fresh from Google
 Drive or Gmail and reproduced verbatim** (word-for-word, no paraphrasing).
@@ -125,14 +125,61 @@ rather than verbatim:
   text. Its Drive owner is kiefferavi@gmail.com, so its author was also
   corrected from "Unsigned" to "Avi" per the usual owner-email signal.
 
+## Full-archive sweep (every dvar torah, not just one per parsha)
+
+This site was originally curated as one (occasionally two) essay per parsha.
+A later pass changed that: every email with subject "Zichron Yonatan" or
+"Zichron Yonaton" in benezra.noah@gmail.com's mailbox was pulled (232
+original sends after filtering out replies, "Invitation to edit" /
+"Document shared" notices, MailChimp import receipts, and other
+non-essay chrome), matched against the site by parsha + year, and every
+essay not already on the site for that specific year was fetched in full
+and added -- even where the same parsha already had one or two essays
+from other years. This took the count from 117 to 241 essays.
+
+Work was parallelized across 8 batches; each batch independently fetched
+its assigned threads, checked for near-duplicate content already on the
+site before writing, and used the same subject-vs-body mislabeling
+judgment call documented above (three rows had no real parsha in the
+subject at all -- generic "Shabbos HaGadol" / "Shabbos Teshuva" / "Elul"
+labels reused across multiple different weeks -- and were resolved to
+their actual technical parsha from the body content and date).
+
+Because the batches ran concurrently without visibility into each
+other's in-progress writes, a handful of duplicates slipped through and
+were caught in a final full-archive similarity sweep afterward (exact or
+near-exact resends filed under two different parshas/years):
+
+- A "Daughters of Zelophehad" essay sent as Pinchas (2020, Avi) and
+  resent 5 days later mislabeled as Matot-Masei -- kept the Pinchas one.
+- "Lessons of the Lulav" (Noah, 2019) resent unsigned in 2021 -- kept
+  the 2019 original.
+- "Greatness Unveiled" (Yosef, 2020) resent in 2022 -- kept the 2020
+  original.
+- "Why We Cry" (Yosef, Devarim 2020) resent with light rewording under
+  Matot-Masei in 2023 -- kept the 2020 Devarim original.
+
+A programmatic pairwise similarity check (difflib, full-text ratio) was
+run across all 244 files afterward to confirm no other near-duplicates
+remain; every other high-scoring candidate pair turned out to be a false
+positive from shared religious vocabulary and similar essay length, not
+actual overlapping content (confirmed by full-text ratio near zero).
+
+Some rows from the original 232 were legitimate skips rather than
+duplicates or additions: pure administrative/family-photo emails with no
+actual dvar torah content, and a handful of resends already covered by
+the pre-existing dedup notes above.
+
 ## Also still unread (not fully searched)
 
-- The Gmail mislabeling audit and the original source-gap search only
-  covered a portion of the ~200+ "Zichron Yonatan" threads in
-  benezra.noah@gmail.com's mailbox (2017-2023). Many parshiot have
-  additional undiscovered essays (different years/authors) sitting in
-  that same inbox beyond what's already on the site, if someone wants to
-  keep expanding the archive beyond one essay per parsha per author.
+- Coverage is now believed complete for every email under this exact
+  subject line in benezra.noah@gmail.com's mailbox (2017-2023). What's
+  NOT covered: essays that were only ever sent under a completely
+  different subject line (no "Zichron Yonatan"/"Zichron Yonaton" in it
+  at all) would not have been caught by this sweep, nor would anything
+  sitting only in kiefferavi@gmail.com, moo.kieffer@gmail.com, or
+  freedmanyosef@gmail.com's own mailboxes (not searchable from this
+  session).
 
 ## Adding more
 
