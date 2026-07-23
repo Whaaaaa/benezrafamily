@@ -1,4 +1,4 @@
-# Status: 110 essays verified word-for-word
+# Status: 117 essays verified word-for-word
 
 This site now only shows essays that were **re-fetched fresh from Google
 Drive or Gmail and reproduced verbatim** (word-for-word, no paraphrasing).
@@ -67,26 +67,63 @@ published:
 
 ## What's left to do
 
-Only 2 parshiot/holidays still show a `placeholder: true` page:
+Three parshiot/holidays still show a `placeholder: true` page:
 
 - **Tu B'Shvat / Shovavim**
 - **Vezot Haberakhah**
+- **Ha'azinu** -- this one didn't even have a directory until this pass;
+  it had fallen through the cracks entirely (not searched, not
+  placeholder'd, just missing from the parsha grid). A placeholder page
+  now exists so the grid is complete; the actual search for its source
+  essay hasn't been done yet.
 
-Both were searched exhaustively -- Drive title/fullText search (multiple
-transliteration spellings: Tu Bishvat, Bshvat, Shevat, Shovavim, Shovevim;
-Vezos, Zos, Haberakhah, Habrachah, plus the Hebrew phrases טו בשבט and
-וזאת הברכה) and Gmail subject/body search (same variants, with and
-without the `benezra.noah@gmail.com` sender restriction) turned up
-nothing genuine -- only false-positive matches on unrelated essays and
-external community newsletters. Checking what was actually sent during
-the relevant calendar weeks across multiple years (2019, 2020, 2021,
-2022, 2023) confirms these are consistently gap weeks with no essay at
-all, not essays hiding under an unexpected name. It's likely no dedicated
-essay was ever written for either. To close these out for good, it would
-help to ask the family directly, or check whether kiefferavi@gmail.com,
+Tu B'Shvat/Shovavim and Vezot Haberakhah were searched exhaustively --
+Drive title/fullText search (multiple transliteration spellings: Tu
+Bishvat, Bshvat, Shevat, Shovavim, Shovevim; Vezos, Zos, Haberakhah,
+Habrachah, plus the Hebrew phrases טו בשבט and וזאת הברכה) and Gmail
+subject/body search (same variants, with and without the
+`benezra.noah@gmail.com` sender restriction) turned up nothing genuine --
+only false-positive matches on unrelated essays and external community
+newsletters. A second pass took a different angle: instead of searching
+by keyword, it swept the raw calendar date windows for both weeks
+(no subject filter at all) across eight separate years -- 2017, 2018,
+2019, 2020, 2021, 2022, 2023, and 2024. Every single window came back
+either empty or with only unrelated automated mail (SolidWorks
+integration notices, Salesforce follow-ups, test messages) -- never a
+Tu B'Shvat or Vezot Haberakhah essay under any subject. Across two
+independent search strategies and eight years of calendar coverage,
+there is no remaining unturned angle to try from this mailbox and this
+Drive. It's essentially certain no dedicated essay was ever written for
+either. To close these out for good, the only paths left are asking the
+family directly, or checking whether kiefferavi@gmail.com,
 moo.kieffer@gmail.com, or freedmanyosef@gmail.com's own mailboxes (not
 searchable from this session) have something that was never forwarded to
 benezra.noah@gmail.com.
+
+## Latest pass: stragglers and a paraphrasing fix
+
+While re-searching Tu B'Shvat and Vezot Haberakhah, four more genuine
+essays turned up for parshiot the site already had covered (bonus essays,
+not gap-fillers) and one existing entry turned out to be paraphrased
+rather than verbatim:
+
+- **Korach, "Three Lives, One Soul"** (Noah, June 2023) -- a Drive doc
+  ("Untitled document," owned by benezra.noah@gmail.com) tracing a Shelah
+  HaKadosh teaching that Kayin's soul reincarnated through the Egyptian
+  Moshe killed, then Yitro, then Korach. Not a duplicate of the site's
+  three other Korach essays.
+- **Bereishit, "Who Is A Good Wife?"** (Yosef, October 2018) -- from
+  Gmail, on the Netziv's read of "a helpmate against him."
+- **Shmini Atzeret / Simchat Torah, "A Father's Love"** (Yosef, September
+  2018) and **"A Personal Celebration"** (unsigned, October 2019) -- both
+  from Gmail, joining the existing 2017 essay in that combined-reading
+  folder.
+- **Behaalotecha fix**: the existing 2023 entry (file 004) turned out to
+  be paraphrased, not verbatim -- e.g. "teaches us a great deal about
+  living in community" where the source Drive doc actually reads "teach
+  us a lot about living in a community." Replaced with the exact source
+  text. Its Drive owner is kiefferavi@gmail.com, so its author was also
+  corrected from "Unsigned" to "Avi" per the usual owner-email signal.
 
 ## Also still unread (not fully searched)
 
