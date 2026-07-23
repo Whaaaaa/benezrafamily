@@ -57,7 +57,7 @@ const PARSHA_SLUG: Record<string, string> = {
   "Ki Tavo": "ki-tavo",
   Nitzavim: "nitzavim-vayelech",
   Vayeilech: "nitzavim-vayelech",
-  "Ha'azinu": "", // no page exists for this parsha yet
+  "Ha'azinu": "haazinu",
   "Vezot Haberakhah": "vezot-haberakhah",
   // combined readings
   "Achrei Mot-Kedoshim": "acharei-mot-kedoshim",
