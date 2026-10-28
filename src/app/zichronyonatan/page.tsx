@@ -3,6 +3,10 @@ import { getCurrentParshaSlug } from "@/lib/current-parsha";
 import Link from "next/link";
 import FlameMark from "./FlameMark";
 
+// The featured parsha depends on the current date, so re-render daily
+// instead of freezing the page at build time.
+export const revalidate = 86400;
+
 export default function ZichryonYonatanHome() {
   const books = getBooks();
 
