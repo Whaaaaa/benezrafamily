@@ -1,14 +1,16 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { cleanPastedHtml, plainTextToHtml } from "./clean-paste";
-import { useStoredValue } from "../useStoredValue";
+import { useStoredValue } from "./useStoredValue";
 
 type Props = {
   parshaGroups: { book: string; parshiot: { slug: string; parsha: string }[] }[];
   authors: string[];
   defaultParsha: string;
+  // When set, the form edits this uploaded dvar Torah instead of creating one.
+  initial?: { id: string; title: string; author: string; parshaSlug: string; html: string };
 };
 
 const OTHER = "__other__";
@@ -25,18 +27,33 @@ function exec(command: string, value?: string) {
   document.execCommand(command, false, value);
 }
 
-export default function UploadForm({ parshaGroups, authors, defaultParsha }: Props) {
+export default function EssayForm({ parshaGroups, authors, defaultParsha, initial }: Props) {
+  const editing = !!initial;
   const editorRef = useRef<HTMLDivElement>(null);
-  const [title, setTitle] = useState("");
-  const [parsha, setParsha] = useState(defaultParsha);
-  // Defaults to whoever last uploaded from this browser.
-  const [rawAuthor, setAuthorChoice, rememberAuthor] = useStoredValue(LAST_AUTHOR_KEY);
+  const [title, setTitle] = useState(initial?.title ?? "");
+  const [parsha, setParsha] = useState(initial?.parshaSlug ?? defaultParsha);
+  // New uploads default to whoever last uploaded from this browser; edits
+  // start from the saved author (as free text if they're not in the list).
+  const [storedAuthor, setStoredAuthor, rememberAuthor] = useStoredValue(LAST_AUTHOR_KEY);
+  const [editAuthor, setEditAuthor] = useState(
+    initial ? (authors.includes(initial.author) ? initial.author : OTHER) : ""
+  );
+  const rawAuthor = editing ? editAuthor : storedAuthor;
+  const setAuthorChoice = editing ? setEditAuthor : setStoredAuthor;
   const authorChoice = rawAuthor === OTHER || authors.includes(rawAuthor) ? rawAuthor : "";
-  const [otherAuthor, setOtherAuthor] = useState("");
-  const [empty, setEmpty] = useState(true);
+  const [otherAuthor, setOtherAuthor] = useState(
+    initial && !authors.includes(initial.author) ? initial.author : ""
+  );
+  const [empty, setEmpty] = useState(!initial?.html);
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
   const [published, setPublished] = useState<{ url: string; title: string } | null>(null);
+  const [saved, setSaved] = useState<string | null>(null);
+
+  // The editor is uncontrolled (contentEditable), so seed it once.
+  useEffect(() => {
+    if (initial && editorRef.current) editorRef.current.innerHTML = initial.html;
+  }, [initial]);
 
   const author = authorChoice === OTHER ? otherAuthor.trim() : authorChoice;
 
@@ -62,8 +79,10 @@ export default function UploadForm({ parshaGroups, authors, defaultParsha }: Pro
     if (empty) return setError("Paste or type the dvar Torah first.");
 
     setBusy(true);
-    const res = await fetch("/api/zichronyonatan/essays", {
-      method: "POST",
+    setSaved(null);
+    const url = initial ? `/api/zichronyonatan/essays/${initial.id}` : "/api/zichronyonatan/essays";
+    const res = await fetch(url, {
+      method: initial ? "PATCH" : "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         title,
@@ -80,6 +99,10 @@ export default function UploadForm({ parshaGroups, authors, defaultParsha }: Pro
           ? "Your session expired — reload the page and sign in again (copy your text first)."
           : data.error || "Something went wrong."
       );
+      return;
+    }
+    if (editing) {
+      setSaved(data.url);
       return;
     }
     if (authorChoice !== OTHER) rememberAuthor(authorChoice);
@@ -166,7 +189,7 @@ export default function UploadForm({ parshaGroups, authors, defaultParsha }: Pro
             type="text"
             value={otherAuthor}
             onChange={(e) => setOtherAuthor(e.target.value)}
-            autoFocus
+            autoFocus={!editing}
           />
         </label>
       )}
@@ -218,10 +241,15 @@ export default function UploadForm({ parshaGroups, authors, defaultParsha }: Pro
       </div>
 
       {error && <p className="zy-form-error" role="alert">{error}</p>}
+      {saved && (
+        <p className="zy-notice" role="status">
+          Saved &mdash; the site is updated. <Link href={saved}>View it</Link>
+        </p>
+      )}
 
       <div className="zy-actions">
         <button className="zy-button" disabled={busy}>
-          {busy ? "Publishing…" : "Publish"}
+          {busy ? (editing ? "Saving…" : "Publishing…") : editing ? "Save changes" : "Publish"}
         </button>
       </div>
     </form>

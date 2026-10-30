@@ -242,7 +242,12 @@ export default function AdminPanel({ emailReady, weekly, subscribers, essays, lo
       </section>
 
       <section className="zy-admin-section">
-        <h2 className="zy-book-heading">Uploaded divrei Torah</h2>
+        <h2 className="zy-book-heading">
+          Uploaded divrei Torah
+          <Link href="/zichronyonatan/manage" className="zy-heading-link">
+            Manage all &rarr;
+          </Link>
+        </h2>
         {essays.length === 0 ? (
           <p className="zy-form-hint">
             None yet. <Link href="/zichronyonatan/upload">Upload the first one</Link>
@@ -262,6 +267,9 @@ export default function AdminPanel({ emailReady, weekly, subscribers, essays, lo
                 </div>
                 <div className="zy-actions zy-actions-tight">
                   {essayActions(e)}
+                  <Link href={`/zichronyonatan/manage/${e.id}`} className="zy-link-button">
+                    Edit
+                  </Link>
                   <button
                     type="button"
                     className={"zy-link-button" + (confirming === `del-${e.id}` ? " zy-warn" : "")}

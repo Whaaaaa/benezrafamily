@@ -1,9 +1,9 @@
-import { getArchiveParshiot, getAuthors } from "@/lib/content-zichronyonatan";
 import { getCurrentParshaSlug } from "@/lib/current-parsha";
 import { isZyAuthed } from "@/lib/zy-auth";
+import { getEssayFormOptions } from "@/lib/zy-essays";
 import TopBar from "../TopBar";
 import ZyLogin from "../ZyLogin";
-import UploadForm from "./UploadForm";
+import EssayForm from "../EssayForm";
 
 export const metadata = { title: "Upload a Dvar Torah | Zichron Yonatan" };
 
@@ -19,15 +19,7 @@ export default async function UploadPage() {
     );
   }
 
-  const groups = new Map<string, { slug: string; parsha: string }[]>();
-  for (const p of getArchiveParshiot()) {
-    if (!groups.has(p.book)) groups.set(p.book, []);
-    groups.get(p.book)!.push({ slug: p.slug, parsha: p.parsha });
-  }
-
-  // "Unsigned (Drive archive, 2019)" etc. describe where an old essay came
-  // from rather than who wrote it, so they aren't offered for new uploads.
-  const authors = (await getAuthors()).filter((a) => !a.startsWith("Unsigned"));
+  const { parshaGroups, authors } = await getEssayFormOptions();
 
   return (
     <>
@@ -39,8 +31,8 @@ export default async function UploadPage() {
           italics, headings, quotes and Hebrew are kept. It&apos;s published
           the moment you hit Publish.
         </p>
-        <UploadForm
-          parshaGroups={Array.from(groups, ([book, parshiot]) => ({ book, parshiot }))}
+        <EssayForm
+          parshaGroups={parshaGroups}
           authors={authors}
           defaultParsha={getCurrentParshaSlug() || ""}
         />

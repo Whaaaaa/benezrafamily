@@ -6,6 +6,7 @@ export function ZyNav() {
     <nav className="zy-nav" aria-label="Zichron Yonatan">
       <Link href="/zichronyonatan">Archive</Link>
       <Link href="/zichronyonatan/upload">Upload a dvar Torah</Link>
+      <Link href="/zichronyonatan/manage">Manage</Link>
       <Link href="/zichronyonatan/admin">Mailing list</Link>
     </nav>
   );
