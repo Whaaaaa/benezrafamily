@@ -1,8 +1,9 @@
-import { getBooks, getParshaMeta, getEssaysForParsha, displayAuthor } from "@/lib/content-zichronyonatan";
+import { getAllEssays, getBooks, getParshaMeta, getEssaysForParsha, displayAuthor } from "@/lib/content-zichronyonatan";
 import { getCurrentParshaSlug } from "@/lib/current-parsha";
 import Link from "next/link";
 import FlameMark from "./FlameMark";
 import { ZyNav } from "./TopBar";
+import ArchiveSearch, { type SearchItem } from "./ArchiveSearch";
 
 // The featured parsha depends on the current date, so re-render hourly
 // instead of freezing the page at build time; uploads revalidate it
@@ -11,6 +12,19 @@ export const revalidate = 3600;
 
 export default async function ZichryonYonatanHome() {
   const books = await getBooks();
+
+  // Small index for the search box: titles, parshiot, authors and years.
+  const searchItems: SearchItem[] = (await getAllEssays())
+    .filter((e) => e.verbatim && !e.placeholder)
+    .sort((a, b) => a.bookOrder - b.bookOrder || a.order - b.order || b.year.localeCompare(a.year))
+    .map((e) => ({
+      slug: e.slug,
+      title: e.title,
+      parsha: e.parsha,
+      parshaSlug: e.parshaSlug,
+      author: displayAuthor(e.author),
+      year: e.year,
+    }));
 
   const currentSlug = getCurrentParshaSlug();
   const currentMeta = currentSlug ? await getParshaMeta(currentSlug) : undefined;
@@ -51,11 +65,12 @@ export default async function ZichryonYonatanHome() {
               ))}
             </ul>
             <Link href={`/zichronyonatan/parsha/${currentSlug}`} className="zy-featured-cta">
-              Read this week&apos;s divrei Torah &rarr;
+              Read this week&apos;s Divrei Torah &rarr;
             </Link>
           </section>
         )}
 
+        <ArchiveSearch items={searchItems}>
         {books.map((b, bi) => (
           <details className="zy-book-section" key={b.book}>
             <summary className="zy-book-heading">
@@ -90,6 +105,7 @@ export default async function ZichryonYonatanHome() {
             </div>
           </details>
         ))}
+        </ArchiveSearch>
       </main>
     </>
   );

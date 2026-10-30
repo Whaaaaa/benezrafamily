@@ -3,7 +3,7 @@ import "./styles.css";
 export const metadata = {
   title: "Zichron Yonatan | A Family Torah Archive",
   description:
-    "Weekly divrei Torah written in loving memory of Yonatan ben Avraham Avinu a\"h, reproduced word-for-word from the family's original documents.",
+    "Weekly Divrei Torah written in loving memory of Yonatan ben Avraham Avinu a\"h, reproduced word-for-word from the family's original documents.",
 };
 
 export default function ZichronYonatanLayout({

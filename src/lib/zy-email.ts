@@ -6,7 +6,7 @@ import { emailifyHtml, htmlToText } from "@/lib/zy-html";
 
 export const SITE_URL = (process.env.SITE_URL || "https://benezrafamily.vercel.app").replace(/\/$/, "");
 
-// How far back an upload still counts as "this week's" dvar Torah for the
+// How far back an upload still counts as "this week's" Dvar Torah for the
 // weekly email. Covers people who write a week or two ahead.
 const WEEKLY_WINDOW_DAYS = 21;
 
@@ -77,7 +77,7 @@ export function buildEssayEmail(essay: ZyEssayRow, token: string) {
 <title>${esc(essay.title)}</title>
 </head>
 <body style="margin:0;padding:0;background:#faf5e8;">
-<div style="display:none;max-height:0;overflow:hidden;">This week's dvar Torah for ${esc(parsha)}${essay.author ? `, by ${esc(essay.author)}` : ""}.</div>
+<div style="display:none;max-height:0;overflow:hidden;">This week's Dvar Torah for ${esc(parsha)}${essay.author ? `, by ${esc(essay.author)}` : ""}.</div>
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#faf5e8;">
 <tr><td align="center" style="padding:24px 12px;">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:620px;">
@@ -97,7 +97,7 @@ export function buildEssayEmail(essay: ZyEssayRow, token: string) {
 
   <tr><td align="center" style="background:#fffdf8;padding:8px 36px 36px;border-left:1px solid #e6dfcf;border-right:1px solid #e6dfcf;">
     <table role="presentation" cellpadding="0" cellspacing="0"><tr><td style="background:#1c2a44;border-radius:4px;">
-      <a href="${essayUrl}" style="display:inline-block;padding:12px 26px;font-family:${serif};font-size:15px;font-weight:bold;color:#faf5e8;text-decoration:none;">Read more divrei Torah on ${esc(parsha)} &rarr;</a>
+      <a href="${essayUrl}" style="display:inline-block;padding:12px 26px;font-family:${serif};font-size:15px;font-weight:bold;color:#faf5e8;text-decoration:none;">Read more Divrei Torah on ${esc(parsha)} &rarr;</a>
     </td></tr></table>
     <div style="margin-top:14px;font-family:${serif};font-size:14px;"><a href="${SITE_URL}/zichronyonatan" style="color:#a3763f;">Browse the full Zichron Yonatan archive</a></div>
   </td></tr>
@@ -284,7 +284,7 @@ export async function setSendCancelled(sendDate: string, cancelled: boolean) {
 }
 
 /**
- * The dvar Torah a given Friday's email would carry: the most recent upload
+ * The Dvar Torah a given Friday's email would carry: the most recent upload
  * for that Shabbat's parsha (or holiday), uploaded within the last few weeks.
  */
 export async function getWeeklyEssay(sendDate?: string) {

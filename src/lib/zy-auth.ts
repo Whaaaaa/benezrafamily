@@ -3,7 +3,7 @@ import { SignJWT, jwtVerify } from "jose";
 import { timingSafeEqual } from "crypto";
 
 // Zichron Yonatan has its own password (ZY_ADMIN_PASSWORD), separate from the
-// family-site login, so contributors can upload divrei Torah and manage the
+// family-site login, so contributors can upload Divrei Torah and manage the
 // mailing list without getting access to the rest of the site.
 export const ZY_COOKIE = "zy_session";
 const MAX_AGE = 60 * 60 * 24 * 90;

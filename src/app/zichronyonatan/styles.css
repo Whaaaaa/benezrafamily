@@ -571,7 +571,7 @@ h1.zy-parsha-h1 {
   padding-top: 2.75rem;
 }
 
-/* ---- Rich essay bodies (uploaded divrei Torah) ---- */
+/* ---- Rich essay bodies (uploaded Divrei Torah) ---- */
 
 .zy-essay-body blockquote {
   margin: 0 0 1.15rem;
@@ -1039,7 +1039,7 @@ a.zy-list-main:hover {
   color: var(--zy-navy);
 }
 
-/* ---- Manage divrei Torah ---- */
+/* ---- Manage Divrei Torah ---- */
 
 .zy-parsha-book-tag a {
   color: var(--zy-navy);
@@ -1325,4 +1325,94 @@ a.zy-list-main:hover {
   width: 100%;
   margin: 0;
   box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
+}
+
+/* ---- Homepage search ---- */
+
+.zy-search {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.6rem;
+  margin: 0 0 1rem;
+}
+
+.zy-search input,
+.zy-search select {
+  font: inherit;
+  font-size: 0.95rem;
+  color: var(--zy-ink);
+  background: var(--zy-card);
+  border: 1px solid var(--zy-border);
+  border-radius: 5px;
+  padding: 0.5rem 0.75rem;
+}
+
+.zy-search-input {
+  flex: 1 1 16rem;
+  min-width: 0;
+}
+
+.zy-search select {
+  flex: 0 1 auto;
+  max-width: 100%;
+}
+
+.zy-search input:focus,
+.zy-search select:focus {
+  outline: none;
+  border-color: var(--zy-gold);
+  box-shadow: 0 0 0 3px rgba(207, 159, 96, 0.22);
+}
+
+.zy-search-results {
+  margin-top: 1.25rem;
+}
+
+.zy-search-count {
+  color: var(--zy-sage);
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 600;
+  margin: 0 0 0.5rem;
+}
+
+.zy-search-results ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border-top: 1px solid var(--zy-border-soft);
+}
+
+.zy-search-results li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.15rem 1rem;
+  padding: 0.65rem 0;
+  border-bottom: 1px solid var(--zy-border-soft);
+}
+
+.zy-search-results a {
+  color: var(--zy-navy);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.zy-search-results a:hover {
+  color: var(--zy-gold);
+  text-decoration: underline;
+}
+
+.zy-search-results li span {
+  color: var(--zy-muted);
+  font-size: 0.85rem;
+}
+
+@media (max-width: 600px) {
+  .zy-search select {
+    flex: 1 1 45%;
+  }
 }

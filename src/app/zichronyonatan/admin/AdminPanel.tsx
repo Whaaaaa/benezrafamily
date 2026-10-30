@@ -204,7 +204,7 @@ export default function AdminPanel({ emailReady, next, subscribers, essays, log 
           <h2 id="zy-prompt-title">Cancel the next scheduled email?</h2>
           {cancelPrompt.sameAsSent ? (
             <p>
-              The scheduled email on {cancelPrompt.label} would have sent this same dvar Torah. Since it&apos;s
+              The scheduled email on {cancelPrompt.label} would have sent this same Dvar Torah. Since it&apos;s
               already gone out, it won&apos;t be sent twice; cancelling just means nothing goes out that day.
             </p>
           ) : (
@@ -254,7 +254,7 @@ export default function AdminPanel({ emailReady, next, subscribers, essays, log 
         ) : (
           <p className="zy-form-hint">
             Nothing has been uploaded for {next.parsha || "that week"} yet, so nothing will be sent unless one is.{" "}
-            <Link href="/zichronyonatan/upload">Upload a dvar Torah</Link>
+            <Link href="/zichronyonatan/upload">Upload a Dvar Torah</Link>
           </p>
         )}
         <div className="zy-actions">
@@ -335,7 +335,7 @@ export default function AdminPanel({ emailReady, next, subscribers, essays, log 
 
       <section className="zy-admin-section">
         <h2 className="zy-book-heading">
-          Uploaded divrei Torah
+          Uploaded Divrei Torah
           <Link href="/zichronyonatan/manage" className="zy-heading-link">
             Manage all &rarr;
           </Link>

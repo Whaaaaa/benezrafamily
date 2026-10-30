@@ -15,7 +15,7 @@ export default async function ManagePage() {
       <>
         <TopBar />
         <main className="zy-main" id="zy-content">
-          <ZyLogin heading="Manage divrei Torah" />
+          <ZyLogin heading="Manage Divrei Torah" />
         </main>
       </>
     );
@@ -61,9 +61,9 @@ export default async function ManagePage() {
     <>
       <TopBar />
       <main className="zy-main" id="zy-content">
-        <h1 className="zy-parsha-h1">Manage divrei Torah</h1>
+        <h1 className="zy-parsha-h1">Manage Divrei Torah</h1>
         <span className="zy-parsha-book-tag">
-          {essays.length} divrei Torah &middot; {uploadedCount} uploaded on the site &middot;{" "}
+          {essays.length} Divrei Torah &middot; {uploadedCount} uploaded on the site &middot;{" "}
           <Link href="/zichronyonatan/upload">Upload a new one</Link>
         </span>
         <ManageList essays={essays} parshaGroups={parshaGroups} />

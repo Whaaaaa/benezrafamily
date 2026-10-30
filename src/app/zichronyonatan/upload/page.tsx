@@ -13,7 +13,7 @@ export default async function UploadPage() {
       <>
         <TopBar />
         <main className="zy-main" id="zy-content">
-          <ZyLogin heading="Upload a dvar Torah" />
+          <ZyLogin heading="Upload a Dvar Torah" />
         </main>
       </>
     );
@@ -25,7 +25,7 @@ export default async function UploadPage() {
     <>
       <TopBar />
       <main className="zy-main" id="zy-content">
-        <h1 className="zy-parsha-h1">Upload a dvar Torah</h1>
+        <h1 className="zy-parsha-h1">Upload a Dvar Torah</h1>
         <p className="zy-form-hint zy-form-intro">
           Paste it straight from Google Docs, Word, or an email &mdash; bold,
           italics, headings, quotes and Hebrew are kept. It&apos;s published

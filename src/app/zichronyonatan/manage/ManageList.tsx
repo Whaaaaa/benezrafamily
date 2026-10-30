@@ -171,12 +171,12 @@ export default function ManageList({ essays, parshaGroups }: { essays: Essay[]; 
 
       <p className="zy-form-hint">
         {filtered.length === essays.length
-          ? `${essays.length} divrei Torah`
-          : `${filtered.length} of ${essays.length} divrei Torah match`}
+          ? `${essays.length} Divrei Torah`
+          : `${filtered.length} of ${essays.length} Divrei Torah match`}
       </p>
 
       {filtered.length === 0 ? (
-        <p className="zy-form-hint">No divrei Torah match those filters.</p>
+        <p className="zy-form-hint">No Divrei Torah match those filters.</p>
       ) : (
         <ul className="zy-manage-list">
           {shown.map((e) => (

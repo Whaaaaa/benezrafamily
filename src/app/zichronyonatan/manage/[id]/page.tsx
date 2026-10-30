@@ -23,7 +23,7 @@ export default async function EditEssayPage({ params }: { params: Promise<{ id: 
       <>
         <TopBar />
         <main className="zy-main" id="zy-content">
-          <ZyLogin heading="Edit dvar Torah" />
+          <ZyLogin heading="Edit Dvar Torah" />
         </main>
       </>
     );
@@ -42,9 +42,9 @@ export default async function EditEssayPage({ params }: { params: Promise<{ id: 
       <TopBar />
       <main className="zy-main" id="zy-content">
         <Link href="/zichronyonatan/manage" className="zy-back-link">
-          &larr; All divrei Torah
+          &larr; All Divrei Torah
         </Link>
-        <h1 className="zy-parsha-h1">Edit dvar Torah</h1>
+        <h1 className="zy-parsha-h1">Edit Dvar Torah</h1>
         {essay.uploaded ? (
           <p className="zy-form-hint zy-form-intro">
             Uploaded {essay.date}
@@ -58,7 +58,7 @@ export default async function EditEssayPage({ params }: { params: Promise<{ id: 
             From the family archive{essay.date ? `, ${essay.date}` : ""}
             {original?.source ? ` (${original.source})` : ""}. Changes go live as soon as you save; the
             original is kept, so you can always revert.
-            {essay.hidden && <strong> This dvar Torah is currently hidden from the site.</strong>}
+            {essay.hidden && <strong> This Dvar Torah is currently hidden from the site.</strong>}
           </p>
         )}
         <EssayForm

@@ -10,7 +10,7 @@ type Props = {
   parshaGroups: { book: string; parshiot: { slug: string; parsha: string }[] }[];
   authors: string[];
   defaultParsha: string;
-  // When set, the form edits this uploaded dvar Torah instead of creating one.
+  // When set, the form edits this uploaded Dvar Torah instead of creating one.
   initial?: { id: string; title: string; author: string; parshaSlug: string; html: string };
   // Archive essays may be unsigned; new uploads always need an author.
   requireAuthor?: boolean;
@@ -84,7 +84,7 @@ export default function EssayForm({ parshaGroups, authors, defaultParsha, initia
     if (!title.trim()) return setError("Please add a title.");
     if (!parsha) return setError("Please choose a parsha or holiday.");
     if (!author && requireAuthor) return setError("Please choose an author.");
-    if (empty) return setError("Paste or type the dvar Torah first.");
+    if (empty) return setError("Paste or type the Dvar Torah first.");
 
     setBusy(true);
     setSaved(null);
@@ -244,7 +244,7 @@ export default function EssayForm({ parshaGroups, authors, defaultParsha, initia
             role="textbox"
             aria-multiline="true"
             aria-labelledby="zy-editor-label"
-            data-placeholder="Paste the dvar Torah here…"
+            data-placeholder="Paste the Dvar Torah here…"
             onPaste={onPaste}
             onInput={syncEmpty}
           />

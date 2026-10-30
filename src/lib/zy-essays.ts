@@ -3,7 +3,7 @@ import { sanitizeEssayHtml, hasText } from "@/lib/zy-html";
 
 export type EssayInput = { title: string; author: string; parshaSlug: string; html: string };
 
-/** Cleans and validates an uploaded/edited dvar Torah. */
+/** Cleans and validates an uploaded/edited Dvar Torah. */
 export function validateEssayInput(
   raw: Partial<Record<keyof EssayInput, unknown>>,
   // Some archive essays are unsigned, so editing them can't require one.
@@ -19,7 +19,7 @@ export function validateEssayInput(
   if (!getArchiveParshiot().some((p) => p.slug === parshaSlug)) {
     return { ok: false, error: "Please choose a parsha or holiday." };
   }
-  if (!hasText(html)) return { ok: false, error: "The dvar Torah is empty." };
+  if (!hasText(html)) return { ok: false, error: "The Dvar Torah is empty." };
   return { ok: true, value: { title, author, parshaSlug, html } };
 }
 

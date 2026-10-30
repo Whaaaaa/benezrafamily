@@ -68,7 +68,7 @@ export type Essay = {
   verbatim: boolean;
   placeholder: boolean;
   body: string;
-  // `html` is set for divrei Torah uploaded through the site and for archive
+  // `html` is set for Divrei Torah uploaded through the site and for archive
   // essays whose text was edited there; it's sanitized on save and rendered
   // as-is in place of `body`.
   uploaded?: boolean;

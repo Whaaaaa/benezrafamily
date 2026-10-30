@@ -45,7 +45,7 @@ async function run(req: Request) {
     await logEmail({
       kind: "skipped",
       sendDate: today,
-      note: `No dvar Torah uploaded for ${parsha ?? "this week"}`,
+      note: `No Dvar Torah uploaded for ${parsha ?? "this week"}`,
     });
     return Response.json({ ok: true, skipped: "no essay for this week", parsha });
   }

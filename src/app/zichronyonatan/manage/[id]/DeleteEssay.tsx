@@ -24,7 +24,7 @@ export default function DeleteEssay({ id, title }: { id: string; title: string }
 
   return (
     <section className="zy-danger">
-      <h2>Delete this dvar Torah</h2>
+      <h2>Delete this Dvar Torah</h2>
       <p className="zy-form-hint">
         Removes &ldquo;{title}&rdquo; from the site. This can&apos;t be undone.
       </p>
