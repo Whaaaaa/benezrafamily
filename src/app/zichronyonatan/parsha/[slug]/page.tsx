@@ -1,10 +1,13 @@
-import { getEssaysForParsha, getParshiot, getParshaMeta } from "@/lib/content-zichronyonatan";
+import { getEssaysForParsha, getArchiveParshiot, getParshaMeta } from "@/lib/content-zichronyonatan";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import TopBar from "../../TopBar";
 
+// Uploads revalidate their parsha page immediately; this is a fallback.
+export const revalidate = 3600;
+
 export function generateStaticParams() {
-  return getParshiot().map((p) => ({ slug: p.slug }));
+  return getArchiveParshiot().map((p) => ({ slug: p.slug }));
 }
 
 export default async function ParshaPage({
@@ -13,8 +16,8 @@ export default async function ParshaPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const essays = getEssaysForParsha(slug);
-  const meta = getParshaMeta(slug);
+  const essays = await getEssaysForParsha(slug);
+  const meta = await getParshaMeta(slug);
   if (!meta) return notFound();
 
   const verified = essays.filter((e) => e.verbatim && !e.placeholder);
@@ -45,14 +48,23 @@ export default async function ParshaPage({
             <div className="zy-essay-meta">
               {e.date}
               {e.author ? ` · ${e.author}` : ""}
-              {" · "}
-              <span className="zy-verbatim-tag">verbatim, {e.source}</span>
+              {!e.uploaded && (
+                <>
+                  {" · "}
+                  <span className="zy-verbatim-tag">verbatim, {e.source}</span>
+                </>
+              )}
             </div>
-            <div className="zy-essay-body">
-              {e.body.split("\n\n").map((para, i) => (
-                <p key={i}>{para}</p>
-              ))}
-            </div>
+            {e.uploaded ? (
+              // Sanitized against a strict allowlist when it was uploaded.
+              <div className="zy-essay-body" dangerouslySetInnerHTML={{ __html: e.html || "" }} />
+            ) : (
+              <div className="zy-essay-body">
+                {e.body.split("\n\n").map((para, i) => (
+                  <p key={i}>{para}</p>
+                ))}
+              </div>
+            )}
           </article>
         ))}
       </main>

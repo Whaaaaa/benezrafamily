@@ -236,4 +236,36 @@ export async function initAviadDb() {
   await sql`ALTER TABLE aviad_job_events ADD COLUMN IF NOT EXISTS subject TEXT NOT NULL DEFAULT ''`
 }
 
+export async function initZyDb() {
+  await sql`
+    CREATE TABLE IF NOT EXISTS zy_essays (
+      id TEXT PRIMARY KEY,
+      parsha_slug TEXT NOT NULL,
+      title TEXT NOT NULL,
+      author TEXT NOT NULL DEFAULT '',
+      body_html TEXT NOT NULL,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      emailed_at TIMESTAMPTZ
+    )
+  `
+  await sql`
+    CREATE TABLE IF NOT EXISTS zy_subscribers (
+      email TEXT PRIMARY KEY,
+      name TEXT NOT NULL DEFAULT '',
+      token TEXT NOT NULL UNIQUE,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    )
+  `
+  await sql`
+    CREATE TABLE IF NOT EXISTS zy_email_log (
+      id TEXT PRIMARY KEY,
+      essay_id TEXT NOT NULL DEFAULT '',
+      sent_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      recipients INTEGER NOT NULL DEFAULT 0,
+      failures INTEGER NOT NULL DEFAULT 0,
+      note TEXT NOT NULL DEFAULT ''
+    )
+  `
+}
+
 export default sql

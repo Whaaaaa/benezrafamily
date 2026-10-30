@@ -1,1 +1,8 @@
-{}
+{
+  "crons": [
+    {
+      "path": "/api/zichronyonatan/cron/weekly",
+      "schedule": "0 5 * * 5"
+    }
+  ]
+}

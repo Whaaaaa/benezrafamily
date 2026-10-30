@@ -434,9 +434,473 @@ h1.zy-parsha-h1 {
   text-decoration: underline;
 }
 
+/* ---- Menu ---- */
+
+.zy-topbar-inner {
+  flex-wrap: wrap;
+  justify-content: space-between;
+  row-gap: 0.4rem;
+}
+
+.zy-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 1.4rem;
+  font-size: 0.9rem;
+}
+
+.zy-nav a {
+  color: var(--zy-muted-on-navy);
+  text-decoration: none;
+  padding: 0.15rem 0;
+  border-bottom: 1px solid transparent;
+  transition: color 0.15s ease, border-color 0.15s ease;
+}
+
+.zy-nav a:hover {
+  color: var(--zy-cream);
+  border-bottom-color: var(--zy-gold-soft);
+}
+
+.zy-hero-nav {
+  background: var(--zy-navy);
+  padding: 0.85rem 1.5rem 0;
+}
+
+.zy-hero-nav .zy-nav {
+  max-width: 860px;
+  margin: 0 auto;
+  justify-content: flex-end;
+}
+
+.zy-hero-nav + .zy-site-header {
+  padding-top: 2.75rem;
+}
+
+/* ---- Rich essay bodies (uploaded divrei Torah) ---- */
+
+.zy-essay-body blockquote {
+  margin: 0 0 1.15rem;
+  padding: 0.1rem 0 0.1rem 1.1rem;
+  border-left: 3px solid var(--zy-gold-soft);
+  color: var(--zy-slate);
+  font-style: italic;
+}
+
+.zy-essay-body blockquote p {
+  margin-bottom: 0.6rem;
+}
+
+.zy-essay-body ul,
+.zy-essay-body ol {
+  margin: 0 0 1.15rem;
+  padding-left: 1.6rem;
+}
+
+.zy-essay-body li {
+  margin-bottom: 0.35rem;
+}
+
+.zy-essay-body h2,
+.zy-essay-body h3,
+.zy-essay-body h4 {
+  font-family: "Fraunces", serif;
+  color: var(--zy-navy);
+  font-weight: 600;
+  margin: 1.8rem 0 0.7rem;
+  line-height: 1.35;
+}
+
+.zy-essay-body h2 { font-size: 1.3rem; }
+.zy-essay-body h3 { font-size: 1.15rem; }
+.zy-essay-body h4 { font-size: 1.02rem; }
+
+.zy-essay-body a {
+  color: var(--zy-gold);
+}
+
+.zy-essay-body hr {
+  border: none;
+  border-top: 1px solid var(--zy-border);
+  margin: 1.8rem 0;
+}
+
+.zy-essay-body [dir="rtl"] {
+  text-align: right;
+}
+
+.zy-essay-body blockquote[dir="rtl"] {
+  border-left: none;
+  border-right: 3px solid var(--zy-gold-soft);
+  padding: 0.1rem 1.1rem 0.1rem 0;
+}
+
+.zy-essay-body p[dir="rtl"]:first-of-type::first-letter {
+  float: none;
+  font-size: inherit;
+  padding: 0;
+  color: inherit;
+}
+
+/* ---- Forms (upload, login, mailing list) ---- */
+
+.zy-panel {
+  background: var(--zy-card);
+  border: 1px solid var(--zy-border);
+  border-radius: 6px;
+  padding: 1.5rem 1.75rem;
+  box-shadow: 0 1px 2px rgba(28, 42, 68, 0.05);
+}
+
+.zy-login {
+  max-width: 28rem;
+  margin: 1rem auto 0;
+}
+
+.zy-form-hint {
+  color: var(--zy-muted);
+  font-size: 0.95rem;
+  margin: 0 0 1rem;
+}
+
+.zy-form-intro {
+  margin: 0.25rem 0 2rem;
+  max-width: 40rem;
+}
+
+.zy-form-hint a,
+.zy-admin a:not(.zy-button) {
+  color: var(--zy-navy);
+  font-weight: 600;
+}
+
+.zy-upload-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.zy-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  flex: 1;
+  min-width: 0;
+}
+
+.zy-field > span {
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 600;
+  color: var(--zy-sage);
+}
+
+.zy-field-row {
+  display: flex;
+  gap: 1.25rem;
+  flex-wrap: wrap;
+}
+
+.zy-field-row .zy-field {
+  flex: 1 1 14rem;
+}
+
+.zy-field input,
+.zy-field select,
+.zy-field textarea,
+.zy-filter {
+  font: inherit;
+  font-size: 1rem;
+  color: var(--zy-ink);
+  background: var(--zy-card);
+  border: 1px solid var(--zy-border);
+  border-radius: 5px;
+  padding: 0.6rem 0.8rem;
+  width: 100%;
+  box-sizing: border-box;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.zy-field textarea {
+  resize: vertical;
+  line-height: 1.6;
+}
+
+.zy-field input:focus,
+.zy-field select:focus,
+.zy-field textarea:focus,
+.zy-filter:focus,
+.zy-editor:focus {
+  outline: none;
+  border-color: var(--zy-gold);
+  box-shadow: 0 0 0 3px rgba(207, 159, 96, 0.22);
+}
+
+.zy-editor-wrap {
+  border: 1px solid var(--zy-border);
+  border-radius: 6px;
+  background: var(--zy-card);
+  box-shadow: 0 1px 2px rgba(28, 42, 68, 0.05);
+}
+
+.zy-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.15rem;
+  padding: 0.35rem 0.5rem;
+  border-bottom: 1px solid var(--zy-border-soft);
+  background: rgba(250, 245, 232, 0.6);
+  border-radius: 6px 6px 0 0;
+  position: sticky;
+  top: 0;
+  z-index: 2;
+}
+
+.zy-toolbar button {
+  font: inherit;
+  font-size: 0.95rem;
+  min-width: 2.1rem;
+  height: 2.1rem;
+  border: none;
+  background: transparent;
+  color: var(--zy-navy);
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.zy-toolbar button:hover {
+  background: rgba(28, 42, 68, 0.07);
+}
+
+.zy-toolbar-sep {
+  width: 1px;
+  height: 1.3rem;
+  background: var(--zy-border);
+  margin: 0 0.3rem;
+}
+
+.zy-editor {
+  min-height: 22rem;
+  padding: 1.5rem 1.75rem;
+  border-radius: 0 0 6px 6px;
+  border: 1px solid transparent;
+}
+
+.zy-editor p:first-of-type::first-letter {
+  float: none;
+  font-size: inherit;
+  padding: 0;
+  color: inherit;
+  font-family: inherit;
+}
+
+.zy-editor-empty::before {
+  content: attr(data-placeholder);
+  color: var(--zy-muted);
+  font-style: italic;
+  pointer-events: none;
+}
+
+.zy-button {
+  display: inline-block;
+  font: inherit;
+  font-size: 0.95rem;
+  font-weight: 600;
+  background: var(--zy-navy);
+  color: var(--zy-cream);
+  border: 1px solid var(--zy-navy);
+  border-radius: 5px;
+  padding: 0.6rem 1.3rem;
+  cursor: pointer;
+  text-decoration: none;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.zy-button:hover:not(:disabled) {
+  background: var(--zy-navy-deep);
+  border-color: var(--zy-gold);
+}
+
+.zy-button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.zy-button-quiet {
+  background: transparent;
+  color: var(--zy-navy);
+  border-color: var(--zy-border);
+}
+
+.zy-button-quiet:hover:not(:disabled) {
+  background: rgba(28, 42, 68, 0.05);
+  border-color: var(--zy-navy);
+}
+
+.zy-button-small {
+  font-size: 0.82rem;
+  padding: 0.35rem 0.8rem;
+}
+
+.zy-button-warn,
+.zy-button-warn:hover:not(:disabled) {
+  background: var(--zy-gold);
+  border-color: var(--zy-gold);
+}
+
+.zy-link-button {
+  font: inherit;
+  font-size: 0.85rem;
+  background: none;
+  border: none;
+  padding: 0.2rem 0;
+  color: var(--zy-muted);
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.zy-link-button:hover:not(:disabled) {
+  color: var(--zy-navy);
+}
+
+.zy-link-button.zy-warn {
+  color: var(--zy-gold);
+  font-weight: 600;
+}
+
+.zy-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.zy-actions-tight {
+  gap: 0.5rem;
+}
+
+.zy-form-error,
+.zy-notice {
+  font-size: 0.95rem;
+  margin: 0 0 1.25rem;
+  padding: 0.7rem 1rem;
+  border-radius: 5px;
+  border-left: 3px solid;
+}
+
+.zy-form-error {
+  color: #7a3b22;
+  background: #fbeee4;
+  border-color: #b5653d;
+}
+
+.zy-notice {
+  color: #3f4a31;
+  background: #eef1e6;
+  border-color: var(--zy-sage);
+}
+
+.zy-success p {
+  margin: 0 0 1.25rem;
+}
+
+/* ---- Mailing list admin ---- */
+
+.zy-admin-section {
+  margin-top: 3rem;
+}
+
+.zy-admin .zy-featured {
+  margin-bottom: 0;
+}
+
+.zy-admin-line {
+  margin: 0 0 0.35rem;
+}
+
+.zy-admin .zy-featured .zy-actions {
+  margin-bottom: 1.25rem;
+}
+
+.zy-test-field {
+  max-width: 22rem;
+  margin-top: 0.5rem;
+}
+
+.zy-filter {
+  margin: 1.5rem 0 0;
+  max-width: 22rem;
+}
+
+.zy-list {
+  list-style: none;
+  padding: 0;
+  margin: 1.25rem 0 0;
+  border-top: 1px solid var(--zy-border-soft);
+}
+
+.zy-list > li {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem 1rem;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid var(--zy-border-soft);
+}
+
+.zy-list > li > div:first-child {
+  flex: 1 1 16rem;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.zy-list-main {
+  color: var(--zy-ink);
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+a.zy-list-main {
+  text-decoration: none;
+}
+
+a.zy-list-main:hover {
+  text-decoration: underline;
+}
+
+.zy-list-sub {
+  color: var(--zy-muted);
+  font-size: 0.85rem;
+  overflow-wrap: anywhere;
+}
+
+.zy-list-date {
+  white-space: nowrap;
+}
+
+.zy-signout {
+  margin-top: 3rem;
+  text-align: right;
+}
+
 @media (max-width: 600px) {
   .zy-stats-row {
     gap: 1.5rem;
+  }
+
+  .zy-hero-nav .zy-nav {
+    justify-content: center;
+  }
+
+  .zy-editor {
+    padding: 1.1rem 1.1rem;
+  }
+
+  .zy-panel {
+    padding: 1.25rem;
   }
 
   .zy-site-header {
@@ -446,4 +910,8 @@ h1.zy-parsha-h1 {
   .zy-main {
     padding: 2.25rem 1.25rem 3.5rem;
   }
+}
+
+.zy-panel .zy-field + .zy-button {
+  margin-top: 1rem;
 }

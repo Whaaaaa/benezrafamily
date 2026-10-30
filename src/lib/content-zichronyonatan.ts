@@ -1,6 +1,7 @@
 import fs from "fs";
 import path from "path";
 import matter from "gray-matter";
+import sql from "@/lib/db";
 
 const CONTENT_DIR = path.join(process.cwd(), "content/zichronyonatan");
 
@@ -18,9 +19,14 @@ export type Essay = {
   verbatim: boolean;
   placeholder: boolean;
   body: string;
+  // Set only for divrei Torah uploaded through the site (stored in the DB).
+  // `html` is sanitized at upload time and rendered as-is.
+  uploaded?: boolean;
+  html?: string;
+  createdAt?: string;
 };
 
-export function getAllEssays(): Essay[] {
+function getArchiveEssays(): Essay[] {
   try {
     if (!fs.existsSync(CONTENT_DIR)) return [];
     const essays: Essay[] = [];
@@ -57,6 +63,69 @@ export function getAllEssays(): Essay[] {
   }
 }
 
+export function formatEssayDate(d: Date): string {
+  return d.toLocaleDateString("en-US", {
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+    timeZone: "Asia/Jerusalem",
+  });
+}
+
+type UploadedRow = {
+  id: string;
+  parsha_slug: string;
+  title: string;
+  author: string;
+  body_html: string;
+  created_at: string | Date;
+};
+
+async function getUploadedEssays(archive: Essay[]): Promise<Essay[]> {
+  if (!process.env.DATABASE_URL) return [];
+  let rows: UploadedRow[];
+  try {
+    rows = (await sql`
+      SELECT id, parsha_slug, title, author, body_html, created_at
+      FROM zy_essays ORDER BY created_at DESC
+    `) as UploadedRow[];
+  } catch {
+    // Table not created yet (no uploads so far) or DB unreachable — the
+    // archive still renders from the markdown files.
+    return [];
+  }
+  return rows.map((r) => {
+    // Uploads are always filed under an existing parsha, so borrow its
+    // display name and book ordering from the archive.
+    const meta = archive.find((e) => e.parshaSlug === r.parsha_slug);
+    const created = new Date(r.created_at);
+    return {
+      slug: r.id,
+      parsha: meta?.parsha || r.parsha_slug,
+      parshaSlug: r.parsha_slug,
+      book: meta?.book || "",
+      bookOrder: meta?.bookOrder ?? 9,
+      order: meta?.order ?? 999,
+      date: formatEssayDate(created),
+      title: r.title,
+      author: r.author,
+      source: "Uploaded",
+      verbatim: true,
+      placeholder: false,
+      body: "",
+      uploaded: true,
+      html: r.body_html,
+      createdAt: created.toISOString(),
+    };
+  });
+}
+
+export async function getAllEssays(): Promise<Essay[]> {
+  const archive = getArchiveEssays();
+  const uploaded = await getUploadedEssays(archive);
+  return [...uploaded, ...archive];
+}
+
 export type ParshaSummary = {
   slug: string;
   parsha: string;
@@ -68,8 +137,7 @@ export type ParshaSummary = {
   hasVerified: boolean;
 };
 
-export function getParshiot(): ParshaSummary[] {
-  const essays = getAllEssays();
+function summarize(essays: Essay[]): ParshaSummary[] {
   const map = new Map<string, ParshaSummary>();
   for (const e of essays) {
     const existing = map.get(e.parshaSlug);
@@ -97,8 +165,19 @@ export function getParshiot(): ParshaSummary[] {
   );
 }
 
-export function getBooks(): { book: string; bookOrder: number; parshiot: ParshaSummary[] }[] {
-  const parshiot = getParshiot();
+export async function getParshiot(): Promise<ParshaSummary[]> {
+  return summarize(await getAllEssays());
+}
+
+/** Parsha list from the markdown archive only — no DB round trip. */
+export function getArchiveParshiot(): ParshaSummary[] {
+  return summarize(getArchiveEssays());
+}
+
+export async function getBooks(): Promise<
+  { book: string; bookOrder: number; parshiot: ParshaSummary[] }[]
+> {
+  const parshiot = await getParshiot();
   const map = new Map<string, { book: string; bookOrder: number; parshiot: ParshaSummary[] }>();
   for (const p of parshiot) {
     const key = p.book;
@@ -108,23 +187,37 @@ export function getBooks(): { book: string; bookOrder: number; parshiot: ParshaS
   return Array.from(map.values()).sort((a, b) => a.bookOrder - b.bookOrder);
 }
 
-export function getEssaysForParsha(slug: string): Essay[] {
-  return getAllEssays()
+function essayTime(e: Essay): number {
+  const t = Date.parse(e.createdAt || e.date);
+  return Number.isNaN(t) ? 0 : t;
+}
+
+export async function getEssaysForParsha(slug: string): Promise<Essay[]> {
+  return (await getAllEssays())
     .filter((e) => e.parshaSlug === slug)
-    .sort((a, b) => (a.date < b.date ? 1 : -1));
+    .sort((a, b) => essayTime(b) - essayTime(a));
 }
 
-export function getParshaMeta(slug: string): ParshaSummary | undefined {
-  return getParshiot().find((p) => p.slug === slug);
+export async function getParshaMeta(slug: string): Promise<ParshaSummary | undefined> {
+  return (await getParshiot()).find((p) => p.slug === slug);
 }
 
-export function totalStats() {
-  const essays = getAllEssays().filter((e) => !e.placeholder);
+export async function getAuthors(): Promise<string[]> {
+  const authors = new Set<string>();
+  for (const e of await getAllEssays()) {
+    if (e.author && !e.placeholder) authors.add(e.author);
+  }
+  return Array.from(authors).sort((a, b) => a.localeCompare(b));
+}
+
+export async function totalStats() {
+  const all = await getAllEssays();
+  const essays = all.filter((e) => !e.placeholder);
   const authors = new Set<string>();
   essays.forEach((e) => {
     if (e.author) authors.add(e.author);
   });
-  const pendingCount = getAllEssays().filter((e) => e.placeholder).length;
+  const pendingCount = all.filter((e) => e.placeholder).length;
   return {
     essayCount: essays.length,
     parshaCount: new Set(essays.map((e) => e.parshaSlug)).size,

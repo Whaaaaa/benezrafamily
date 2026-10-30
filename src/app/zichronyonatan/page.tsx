@@ -2,18 +2,26 @@ import { getBooks, getParshaMeta, getEssaysForParsha } from "@/lib/content-zichr
 import { getCurrentParshaSlug } from "@/lib/current-parsha";
 import Link from "next/link";
 import FlameMark from "./FlameMark";
+import { ZyNav } from "./TopBar";
 
-export default function ZichryonYonatanHome() {
-  const books = getBooks();
+// Re-render hourly so "this week's parsha" rolls over; uploads revalidate
+// this page immediately.
+export const revalidate = 3600;
+
+export default async function ZichryonYonatanHome() {
+  const books = await getBooks();
 
   const currentSlug = getCurrentParshaSlug();
-  const currentMeta = currentSlug ? getParshaMeta(currentSlug) : undefined;
+  const currentMeta = currentSlug ? await getParshaMeta(currentSlug) : undefined;
   const currentEssays = currentSlug
-    ? getEssaysForParsha(currentSlug).filter((e) => e.verbatim && !e.placeholder)
+    ? (await getEssaysForParsha(currentSlug)).filter((e) => e.verbatim && !e.placeholder)
     : [];
 
   return (
     <>
+      <div className="zy-hero-nav">
+        <ZyNav />
+      </div>
       <header className="zy-site-header">
         <FlameMark />
         <h1 className="zy-site-title">
