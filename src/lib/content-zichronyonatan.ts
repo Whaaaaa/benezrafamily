@@ -5,6 +5,51 @@ import sql from "@/lib/db";
 
 const CONTENT_DIR = path.join(process.cwd(), "content/zichronyonatan");
 
+const MONTHS = [
+  "January", "February", "March", "April", "May", "June",
+  "July", "August", "September", "October", "November", "December",
+];
+
+/** Best-effort chronological sort key for the free-text `date` field. */
+function parseDateForSort(date: string): number {
+  if (!date) return 0;
+
+  let m = date.match(/(\d{4})-(\d{2})-(\d{2})/);
+  if (m) return new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3])).getTime();
+
+  m = date.match(/^([A-Za-z]+)\s+(\d{1,2}),\s*(\d{4})$/);
+  if (m) {
+    const mi = MONTHS.indexOf(m[1]);
+    if (mi >= 0) return new Date(Number(m[3]), mi, Number(m[2])).getTime();
+  }
+
+  m = date.match(/^([A-Za-z]+)\s+(\d{4})$/);
+  if (m) {
+    const mi = MONTHS.indexOf(m[1]);
+    if (mi >= 0) return new Date(Number(m[2]), mi, 1).getTime();
+  }
+
+  m = date.match(/(\d{4})/);
+  if (m) return new Date(Number(m[1]), 0, 1).getTime();
+
+  return 0;
+}
+
+/** Pulls just the year out of the free-text `date` field, for display. */
+function extractYear(date: string): string {
+  const m = date.match(/(\d{4})/);
+  return m ? m[1] : "";
+}
+
+/**
+ * "Unsigned (Gmail archive, 2019)" / "Unsigned (Drive archive, 2018)" are
+ * internal sourcing notes, not meant for display -- collapse to "Unsigned".
+ */
+export function displayAuthor(author: string): string {
+  if (!author) return "";
+  return author.replace(/^(Unsigned)\s*\(.*\)$/, "$1");
+}
+
 export type Essay = {
   slug: string;
   parsha: string;
@@ -13,6 +58,7 @@ export type Essay = {
   bookOrder: number;
   order: number;
   date: string;
+  year: string;
   title: string;
   author: string;
   source: string;
@@ -39,6 +85,7 @@ function getArchiveEssays(): Essay[] {
       for (const file of files) {
         const raw = fs.readFileSync(path.join(dirPath, file), "utf-8");
         const { data, content } = matter(raw);
+        const date = data.date || "";
         essays.push({
           slug: file.replace(/\.md$/, ""),
           parsha: data.parsha || dir,
@@ -46,7 +93,8 @@ function getArchiveEssays(): Essay[] {
           book: data.book || "",
           bookOrder: typeof data.bookOrder === "number" ? data.bookOrder : 9,
           order: typeof data.order === "number" ? data.order : 999,
-          date: data.date || "",
+          date,
+          year: extractYear(date),
           title: data.title || data.parsha || dir,
           author: data.author || "",
           source: data.source || "",
@@ -99,6 +147,7 @@ async function getUploadedEssays(archive: Essay[]): Promise<Essay[]> {
     // display name and book ordering from the archive.
     const meta = archive.find((e) => e.parshaSlug === r.parsha_slug);
     const created = new Date(r.created_at);
+    const date = formatEssayDate(created);
     return {
       slug: r.id,
       parsha: meta?.parsha || r.parsha_slug,
@@ -106,7 +155,8 @@ async function getUploadedEssays(archive: Essay[]): Promise<Essay[]> {
       book: meta?.book || "",
       bookOrder: meta?.bookOrder ?? 9,
       order: meta?.order ?? 999,
-      date: formatEssayDate(created),
+      date,
+      year: extractYear(date),
       title: r.title,
       author: r.author,
       source: "Uploaded",
@@ -134,6 +184,7 @@ export type ParshaSummary = {
   order: number;
   count: number;
   authors: string[];
+  years: string[];
   hasVerified: boolean;
 };
 
@@ -141,10 +192,14 @@ function summarize(essays: Essay[]): ParshaSummary[] {
   const map = new Map<string, ParshaSummary>();
   for (const e of essays) {
     const existing = map.get(e.parshaSlug);
+    const displayed = displayAuthor(e.author);
     if (existing) {
       if (!e.placeholder) existing.count += 1;
-      if (e.author && !existing.authors.includes(e.author)) {
-        existing.authors.push(e.author);
+      if (displayed && !existing.authors.includes(displayed)) {
+        existing.authors.push(displayed);
+      }
+      if (e.year && !e.placeholder && !existing.years.includes(e.year)) {
+        existing.years.push(e.year);
       }
       if (e.verbatim) existing.hasVerified = true;
     } else {
@@ -155,14 +210,15 @@ function summarize(essays: Essay[]): ParshaSummary[] {
         bookOrder: e.bookOrder,
         order: e.order,
         count: e.placeholder ? 0 : 1,
-        authors: e.author ? [e.author] : [],
+        authors: displayed ? [displayed] : [],
+        years: e.year && !e.placeholder ? [e.year] : [],
         hasVerified: e.verbatim,
       });
     }
   }
-  return Array.from(map.values()).sort((a, b) =>
-    a.bookOrder !== b.bookOrder ? a.bookOrder - b.bookOrder : a.order - b.order
-  );
+  return Array.from(map.values())
+    .map((p) => ({ ...p, years: p.years.sort() }))
+    .sort((a, b) => (a.bookOrder !== b.bookOrder ? a.bookOrder - b.bookOrder : a.order - b.order));
 }
 
 export async function getParshiot(): Promise<ParshaSummary[]> {
@@ -187,15 +243,21 @@ export async function getBooks(): Promise<
   return Array.from(map.values()).sort((a, b) => a.bookOrder - b.bookOrder);
 }
 
+export type EssaySort = "date" | "author";
+
 function essayTime(e: Essay): number {
-  const t = Date.parse(e.createdAt || e.date);
-  return Number.isNaN(t) ? 0 : t;
+  return e.createdAt ? Date.parse(e.createdAt) : parseDateForSort(e.date);
 }
 
-export async function getEssaysForParsha(slug: string): Promise<Essay[]> {
-  return (await getAllEssays())
-    .filter((e) => e.parshaSlug === slug)
-    .sort((a, b) => essayTime(b) - essayTime(a));
+export async function getEssaysForParsha(slug: string, sort: EssaySort = "date"): Promise<Essay[]> {
+  const essays = (await getAllEssays()).filter((e) => e.parshaSlug === slug);
+  if (sort === "author") {
+    return essays.sort((a, b) => {
+      const byAuthor = displayAuthor(a.author).localeCompare(displayAuthor(b.author));
+      return byAuthor !== 0 ? byAuthor : essayTime(b) - essayTime(a);
+    });
+  }
+  return essays.sort((a, b) => essayTime(b) - essayTime(a));
 }
 
 export async function getParshaMeta(slug: string): Promise<ParshaSummary | undefined> {
@@ -215,7 +277,8 @@ export async function totalStats() {
   const essays = all.filter((e) => !e.placeholder);
   const authors = new Set<string>();
   essays.forEach((e) => {
-    if (e.author) authors.add(e.author);
+    const displayed = displayAuthor(e.author);
+    if (displayed) authors.add(displayed);
   });
   const pendingCount = all.filter((e) => e.placeholder).length;
   return {

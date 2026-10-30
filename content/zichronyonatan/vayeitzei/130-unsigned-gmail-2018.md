@@ -1,0 +1,16 @@
+---
+parsha: "Vayeitzei"
+book: "Bereishit"
+bookOrder: 0
+order: 7
+date: "November 16, 2018"
+title: "Jacob's Ladder"
+author: "Unsigned (Gmail archive, 2018)"
+source: "Gmail (full)"
+verbatim: true
+placeholder: false
+---
+This weeks Parsha “Vayeitzei” means “And He Left.” Yaakov leaves his hometown of Be’er Sheva to go to his uncle Lavan. On his way to Charan he has a famous vision which remains in the imaginations of all Jews. Alone and fleeing his birthplace Yaakov puts his head on a stone for the night. As he dreams a ladder connecting heaven and earth floated angels up and down to God's heavenly throne and back to earth. The basic perspective is a connection between heaven and earth. Earth, practicality, and physicality. Heaven, spirituality and holiness. Although heaven and earth are far, we have an opportunity at all times to connect the two. The zohar tells us that the ladder in yaakov's dream represents prayer.
+
+Following this interpretation, the angels represent the words we say in prayer, we say them with purpose and they deliver our longing and dedication to Hashem. The angels descending the ladder bring God’s blessings to the whole round world. Our prayers resound through all divides. Prayer has an order, and steps to it, like rungs on a ladder each small upward motion, amounts to great heights. We start our morning service thanking God for returning our souls and not depriving us of life. By the end of Amidah we ask for the rebuilding of the temple and add our own supplication for personal help may it be financial, interpersonal, or really anything. By the end of prayers at the height of our service, we have approached the Holy Throne. When
+jacob awoke he saw this famous exchange of angels and knew what he had to do. Yaakov resolved to give ten percent of his money to charity. Yaakov said to god “of whatever you give me I will give you a tenth”. That simply Yaakov intertwined his financial fate with that of his religious practice. Since yaakov's commitment we have been donating a tenth of our wealth and in return we are reimbursed. I hope we all remember to say “thank you, and please” but kindly don't forget to say “please and thank you”. When we want God's help to get us something we start by recognizing what we have already received. “Modeh Ani” the prayer upon rising means - “I'm thankful” after we thank God for breathing life into our souls we can make greater pleas. The word for thank “modeh” also translates to “I admit” and “I Surrender” Yaakovs maariv service says please and thank you. The prayer Maariv AravIm means blessed are you who night's the night, or to be fair darkens the evenings. A sunset is as magical as sunrise in a blast of color we remember and foresee our time, watching the sun on the horizon, it seems perfectly timed for our viewing. The difference is when night falls we don't want to know if you're thankful, acknowledging, or throwing your hands up in surrender. We have had a whole day of that! The hebrew word erev is close to the english word eve, as in evening. The hebrew root erev means to mix together. God spreads light out over the darkness in the morning. Over the course of the day he mixes the light and the dark together in the evening we return to pitch black. A bracha for brighter tomorrows!

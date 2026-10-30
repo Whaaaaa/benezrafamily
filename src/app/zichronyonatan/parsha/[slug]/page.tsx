@@ -1,4 +1,10 @@
-import { getEssaysForParsha, getArchiveParshiot, getParshaMeta } from "@/lib/content-zichronyonatan";
+import {
+  getEssaysForParsha,
+  getArchiveParshiot,
+  getParshaMeta,
+  displayAuthor,
+  type EssaySort,
+} from "@/lib/content-zichronyonatan";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import TopBar from "../../TopBar";
@@ -12,11 +18,16 @@ export function generateStaticParams() {
 
 export default async function ParshaPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ slug: string }>;
+  searchParams: Promise<{ sort?: string }>;
 }) {
   const { slug } = await params;
-  const essays = await getEssaysForParsha(slug);
+  const { sort: sortParam } = await searchParams;
+  const sort: EssaySort = sortParam === "author" ? "author" : "date";
+
+  const essays = await getEssaysForParsha(slug, sort);
   const meta = await getParshaMeta(slug);
   if (!meta) return notFound();
 
@@ -42,18 +53,46 @@ export default async function ParshaPage({
           </p>
         )}
 
+        {verified.length > 1 && (
+          <div className="zy-parsha-controls">
+            <nav className="zy-jump-nav" aria-label="Jump to an essay">
+              <span className="zy-jump-nav-label">Jump to:</span>
+              {verified.map((e) => (
+                <a key={e.slug} href={`#${e.slug}`}>
+                  {sort === "author"
+                    ? `${displayAuthor(e.author) || "Unsigned"} (${e.year})`
+                    : `${e.year}${displayAuthor(e.author) ? ` – ${displayAuthor(e.author)}` : ""}`}
+                </a>
+              ))}
+            </nav>
+            <div className="zy-sort-toggle">
+              Sort by:{" "}
+              <Link
+                href={`/zichronyonatan/parsha/${slug}`}
+                className={sort === "date" ? "zy-sort-active" : ""}
+              >
+                Year
+              </Link>{" "}
+              ·{" "}
+              <Link
+                href={`/zichronyonatan/parsha/${slug}?sort=author`}
+                className={sort === "author" ? "zy-sort-active" : ""}
+              >
+                Author
+              </Link>
+            </div>
+          </div>
+        )}
+
         {verified.map((e) => (
-          <article key={e.slug} className="zy-essay">
-            <h2 className="zy-essay-title">{e.title}</h2>
+          <article key={e.slug} id={e.slug} className="zy-essay">
+            <h2 className="zy-essay-title">
+              {e.title}
+              {e.year ? <span className="zy-essay-year">{e.year}</span> : null}
+            </h2>
             <div className="zy-essay-meta">
               {e.date}
-              {e.author ? ` · ${e.author}` : ""}
-              {!e.uploaded && (
-                <>
-                  {" · "}
-                  <span className="zy-verbatim-tag">verbatim, {e.source}</span>
-                </>
-              )}
+              {displayAuthor(e.author) ? ` · ${displayAuthor(e.author)}` : ""}
             </div>
             {e.uploaded ? (
               // Sanitized against a strict allowlist when it was uploaded.
