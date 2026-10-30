@@ -279,6 +279,20 @@ export async function initZyDb() {
       note TEXT NOT NULL DEFAULT ''
     )
   `
+  // kind: 'scheduled' | 'manual' | 'test' | 'skipped' | 'cancelled'.
+  // send_date is the Israel-time Friday a scheduled run was for, which also
+  // keeps the two weekly cron runs (DST) from both sending.
+  await sql`ALTER TABLE zy_email_log ADD COLUMN IF NOT EXISTS kind TEXT NOT NULL DEFAULT ''`
+  await sql`ALTER TABLE zy_email_log ADD COLUMN IF NOT EXISTS title TEXT NOT NULL DEFAULT ''`
+  await sql`ALTER TABLE zy_email_log ADD COLUMN IF NOT EXISTS send_date TEXT`
+  await sql`ALTER TABLE zy_email_log ADD COLUMN IF NOT EXISTS failed_list TEXT NOT NULL DEFAULT ''`
+  // Fridays (Israel date, YYYY-MM-DD) whose scheduled email was cancelled.
+  await sql`
+    CREATE TABLE IF NOT EXISTS zy_schedule_skips (
+      send_date TEXT PRIMARY KEY,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    )
+  `
 }
 
 export default sql

@@ -19,11 +19,15 @@ type Props = {
 const OTHER = "__other__";
 const LAST_AUTHOR_KEY = "zy-last-author";
 
-// Mirrors the weekly cron in vercel.json (Fridays 05:00 UTC).
+// The weekly email goes out Fridays at 3:00 PM Israel time (see vercel.json).
 function beforeWeeklySend() {
-  const now = new Date();
-  const day = now.getUTCDay();
-  return day < 5 || (day === 5 && now.getUTCHours() < 5);
+  const parts = Object.fromEntries(
+    new Intl.DateTimeFormat("en-US", { timeZone: "Asia/Jerusalem", weekday: "short", hour: "2-digit", hourCycle: "h23" })
+      .formatToParts(new Date())
+      .map((p) => [p.type, p.value])
+  );
+  const day = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].indexOf(parts.weekday);
+  return day < 5 || (day === 5 && Number(parts.hour) < 15);
 }
 
 function exec(command: string, value?: string) {
@@ -131,7 +135,7 @@ export default function EssayForm({ parshaGroups, authors, defaultParsha, initia
         <p>
           It&apos;s live on the site now.
           {parsha === defaultParsha && beforeWeeklySend() &&
-            " Since it's for this week, it will also go out to the mailing list on Friday morning."}
+            " Since it's for this week, it will also go out to the mailing list on Friday at 3:00 PM Israel time."}
         </p>
         <div className="zy-actions">
           <Link href={published.url} className="zy-button">

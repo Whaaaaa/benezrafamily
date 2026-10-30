@@ -170,31 +170,144 @@ export async function sendEssay(
   return { sent, failed };
 }
 
-export async function sendEssayToList(essay: ZyEssayRow, note: string) {
+export type LogKind = "scheduled" | "manual" | "test" | "skipped" | "cancelled";
+
+export async function logEmail(entry: {
+  kind: LogKind;
+  essay?: Pick<ZyEssayRow, "id" | "title"> | null;
+  recipients?: number;
+  failed?: string[];
+  note?: string;
+  sendDate?: string | null;
+}) {
+  await sql`
+    INSERT INTO zy_email_log (id, kind, essay_id, title, recipients, failures, failed_list, note, send_date)
+    VALUES (
+      ${crypto.randomUUID()}, ${entry.kind}, ${entry.essay?.id ?? ""}, ${entry.essay?.title ?? ""},
+      ${entry.recipients ?? 0}, ${entry.failed?.length ?? 0}, ${(entry.failed ?? []).join(", ")},
+      ${entry.note ?? ""}, ${entry.sendDate ?? null}
+    )
+  `;
+}
+
+export async function sendEssayToList(
+  essay: ZyEssayRow,
+  kind: "scheduled" | "manual",
+  sendDate: string | null = null
+) {
   await initZyDb();
   const subs = (await sql`SELECT email, name, token FROM zy_subscribers ORDER BY email`) as Subscriber[];
   const { sent, failed } = await sendEssay(essay, subs);
   await sql`UPDATE zy_essays SET emailed_at = NOW() WHERE id = ${essay.id}`;
-  await sql`
-    INSERT INTO zy_email_log (id, essay_id, recipients, failures, note)
-    VALUES (${crypto.randomUUID()}, ${essay.id}, ${sent}, ${failed.length}, ${note})
-  `;
+  await logEmail({ kind, essay, recipients: sent, failed, sendDate });
   return { sent, failed };
 }
 
-/**
- * The dvar Torah the weekly email should carry: the most recent upload for
- * the coming Shabbat's parsha (or holiday), uploaded within the last few weeks.
- */
-export async function getWeeklyEssay(now: Date = new Date()) {
+// ---- Schedule: Fridays at 3:00 PM Israel time ----
+//
+// Vercel crons run in UTC and Israel switches between UTC+2 and UTC+3, so
+// vercel.json fires at both 12:00 and 13:00 UTC on Fridays. Whichever run
+// lands in the send window (Israel time) sends; the log's send_date keeps
+// the other from sending again.
+
+const TZ = "Asia/Jerusalem";
+export const SEND_HOUR = 15; // 3 PM Israel
+const SEND_WINDOW_END = SEND_HOUR + 2; // tolerate a late cron run
+
+export function israelParts(d: Date) {
+  const parts = Object.fromEntries(
+    new Intl.DateTimeFormat("en-US", {
+      timeZone: TZ,
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      weekday: "short",
+      hour: "2-digit",
+      hourCycle: "h23",
+    })
+      .formatToParts(d)
+      .map((p) => [p.type, p.value])
+  );
+  return {
+    date: `${parts.year}-${parts.month}-${parts.day}`,
+    weekday: parts.weekday as string,
+    hour: Number(parts.hour),
+  };
+}
+
+export function inSendWindow(now: Date = new Date()) {
+  const p = israelParts(now);
+  return p.weekday === "Fri" && p.hour >= SEND_HOUR && p.hour < SEND_WINDOW_END;
+}
+
+/** Whether a scheduled run already happened (sent, skipped or cancelled) for that Friday. */
+async function scheduledRunDone(sendDate: string) {
+  const rows = await sql`
+    SELECT 1 FROM zy_email_log
+    WHERE send_date = ${sendDate} AND kind IN ('scheduled', 'skipped', 'cancelled')
+    LIMIT 1
+  `;
+  return rows.length > 0;
+}
+
+export function sendDateLabel(sendDate: string) {
+  const d = new Date(`${sendDate}T12:00:00Z`);
+  const day = d.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", timeZone: "UTC" });
+  return `${day} at 3:00 PM Israel time`;
+}
+
+/** The Friday (Israel date) of the next scheduled email that hasn't run yet. */
+export async function getNextSendDate(now: Date = new Date()): Promise<string> {
   await initZyDb();
-  const slug = getCurrentParshaSlug(now);
-  if (!slug) return { slug: null, parsha: null, essay: null };
-  const since = new Date(now.getTime() - WEEKLY_WINDOW_DAYS * 86400000);
+  for (let i = 0; i < 15; i++) {
+    const p = israelParts(new Date(now.getTime() + i * 86400000));
+    if (p.weekday !== "Fri") continue;
+    if (i === 0 && p.hour >= SEND_WINDOW_END) continue;
+    if (await scheduledRunDone(p.date)) continue;
+    return p.date;
+  }
+  throw new Error("Could not find the next Friday");
+}
+
+export async function isSendCancelled(sendDate: string) {
+  const rows = await sql`SELECT 1 FROM zy_schedule_skips WHERE send_date = ${sendDate}`;
+  return rows.length > 0;
+}
+
+export async function setSendCancelled(sendDate: string, cancelled: boolean) {
+  await initZyDb();
+  if (cancelled) {
+    await sql`INSERT INTO zy_schedule_skips (send_date) VALUES (${sendDate}) ON CONFLICT DO NOTHING`;
+  } else {
+    await sql`DELETE FROM zy_schedule_skips WHERE send_date = ${sendDate}`;
+  }
+}
+
+/**
+ * The dvar Torah a given Friday's email would carry: the most recent upload
+ * for that Shabbat's parsha (or holiday), uploaded within the last few weeks.
+ */
+export async function getWeeklyEssay(sendDate?: string) {
+  await initZyDb();
+  const date = sendDate || (await getNextSendDate());
+  const friday = new Date(`${date}T12:00:00Z`);
+  const slug = getCurrentParshaSlug(friday);
+  if (!slug) return { sendDate: date, slug: null, parsha: null, essay: null };
+  const since = new Date(friday.getTime() - WEEKLY_WINDOW_DAYS * 86400000);
   const rows = (await sql`
     SELECT * FROM zy_essays
     WHERE parsha_slug = ${slug} AND created_at >= ${since.toISOString()}
     ORDER BY created_at DESC LIMIT 1
   `) as ZyEssayRow[];
-  return { slug, parsha: parshaName(slug), essay: rows[0] ?? null };
+  return { sendDate: date, slug, parsha: parshaName(slug), essay: rows[0] ?? null };
+}
+
+/** Everything the admin page needs to describe the next scheduled email. */
+export async function getNextScheduled() {
+  const weekly = await getWeeklyEssay();
+  return {
+    ...weekly,
+    label: sendDateLabel(weekly.sendDate),
+    cancelled: await isSendCancelled(weekly.sendDate),
+  };
 }

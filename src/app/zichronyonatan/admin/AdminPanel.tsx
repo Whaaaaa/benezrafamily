@@ -15,22 +15,52 @@ type EssayInfo = {
   emailed: string | null;
 };
 
+type LogEntry = {
+  id: string;
+  when: string;
+  kind: string;
+  title: string | null;
+  recipients: number;
+  failures: number;
+  failedList: string;
+  note: string;
+};
+
+type NextInfo = {
+  sendDate: string;
+  label: string;
+  parsha: string | null;
+  cancelled: boolean;
+};
+
 type Props = {
   emailReady: boolean;
-  weekly: { parsha: string | null; essay: EssayInfo | null };
+  next: NextInfo & { essay: EssayInfo | null };
   subscribers: { email: string; name: string; added: string }[];
   essays: EssayInfo[];
-  log: { when: string; title: string | null; recipients: number; failures: number; note: string }[];
+  log: LogEntry[];
 };
+
+// Shown after a manual send, offering to cancel the next scheduled email.
+type CancelPrompt = NextInfo & { essayTitle: string | null; sameAsSent: boolean };
 
 const TEST_EMAIL_KEY = "zy-test-email";
 
-export default function AdminPanel({ emailReady, weekly, subscribers, essays, log }: Props) {
+const KIND_LABEL: Record<string, string> = {
+  scheduled: "Scheduled",
+  manual: "Manual",
+  test: "Test",
+  skipped: "Skipped",
+  cancelled: "Cancelled",
+};
+
+export default function AdminPanel({ emailReady, next, subscribers, essays, log }: Props) {
   const router = useRouter();
   const [testEmail, setTestEmail, rememberTestEmail] = useStoredValue(TEST_EMAIL_KEY);
   const [notice, setNotice] = useState<{ kind: "ok" | "error"; text: string } | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
   const [confirming, setConfirming] = useState<string | null>(null);
+  const [cancelPrompt, setCancelPrompt] = useState<CancelPrompt | null>(null);
 
   const [pasted, setPasted] = useState("");
   const [filter, setFilter] = useState("");
@@ -73,6 +103,20 @@ export default function AdminPanel({ emailReady, weekly, subscribers, essays, lo
     if (data) {
       const failed = data.failed?.length ? ` ${data.failed.length} failed: ${data.failed.join(", ")}` : "";
       setNotice({ kind: failed ? "error" : "ok", text: `“${essay.title}” sent to ${data.sent} subscribers.${failed}` });
+      if (data.next && !data.next.cancelled) setCancelPrompt(data.next);
+    }
+  }
+
+  async function setScheduledCancelled(sendDate: string, cancelled: boolean) {
+    const data = await call(`sched-${sendDate}`, "/api/zichronyonatan/schedule", "POST", { sendDate, cancelled });
+    setCancelPrompt(null);
+    if (data) {
+      setNotice({
+        kind: "ok",
+        text: cancelled
+          ? "The next scheduled email is cancelled. You can restore it from the top of this page."
+          : "The next scheduled email is back on.",
+      });
     }
   }
 
@@ -154,28 +198,76 @@ export default function AdminPanel({ emailReady, weekly, subscribers, essays, lo
         </p>
       )}
 
-      <section className="zy-featured">
-        <span className="zy-featured-eyebrow">This Friday&apos;s email</span>
-        <h2 className="zy-featured-title">{weekly.parsha || "No parsha page this week"}</h2>
-        {weekly.essay ? (
+      {cancelPrompt && (
+        <div className="zy-modal-backdrop">
+        <div className="zy-panel zy-prompt" role="alertdialog" aria-modal="true" aria-labelledby="zy-prompt-title">
+          <h2 id="zy-prompt-title">Cancel the next scheduled email?</h2>
+          {cancelPrompt.sameAsSent ? (
+            <p>
+              The scheduled email on {cancelPrompt.label} would have sent this same dvar Torah. Since it&apos;s
+              already gone out, it won&apos;t be sent twice; cancelling just means nothing goes out that day.
+            </p>
+          ) : (
+            <p>
+              The next scheduled email goes out {cancelPrompt.label}
+              {cancelPrompt.essayTitle
+                ? ` with “${cancelPrompt.essayTitle}” (${cancelPrompt.parsha}).`
+                : `, with whatever is uploaded for ${cancelPrompt.parsha || "that week"} by then (nothing yet).`}
+            </p>
+          )}
+          <div className="zy-actions">
+            <button
+              type="button"
+              className="zy-button"
+              disabled={!!busy}
+              onClick={() => setScheduledCancelled(cancelPrompt.sendDate, true)}
+            >
+              Yes, cancel it
+            </button>
+            <button type="button" className="zy-button zy-button-quiet" onClick={() => setCancelPrompt(null)}>
+              No, keep it
+            </button>
+          </div>
+        </div>
+        </div>
+      )}
+
+      <section className={"zy-featured" + (next.cancelled ? " zy-is-cancelled" : "")}>
+        <span className="zy-featured-eyebrow">Next scheduled email &middot; {next.label}</span>
+        <h2 className="zy-featured-title">{next.parsha || "No parsha page that week"}</h2>
+        {next.cancelled ? (
+          <p className="zy-form-hint">
+            <strong>Cancelled</strong> &mdash; nothing will go out on {next.label}.
+          </p>
+        ) : next.essay ? (
           <>
             <p className="zy-admin-line">
-              <strong>{weekly.essay.title}</strong> &middot; {weekly.essay.author} &middot; uploaded{" "}
-              {weekly.essay.uploaded}
+              <strong>{next.essay.title}</strong> &middot; {next.essay.author} &middot; uploaded{" "}
+              {next.essay.uploaded}
             </p>
             <p className="zy-form-hint">
-              {weekly.essay.emailed
-                ? `Already sent to the list on ${weekly.essay.emailed} — the Friday email won't send it again.`
-                : `Goes out automatically Friday morning to ${subscribers.length} subscriber${subscribers.length === 1 ? "" : "s"}.`}
+              {next.essay.emailed
+                ? `Already sent to the list on ${next.essay.emailed}, so the scheduled email won't send it again.`
+                : `Goes out automatically to ${subscribers.length} subscriber${subscribers.length === 1 ? "" : "s"}.`}
             </p>
-            {essayActions(weekly.essay)}
           </>
         ) : (
           <p className="zy-form-hint">
-            Nothing has been uploaded for {weekly.parsha || "this week"} yet, so nothing will be sent.{" "}
+            Nothing has been uploaded for {next.parsha || "that week"} yet, so nothing will be sent unless one is.{" "}
             <Link href="/zichronyonatan/upload">Upload a dvar Torah</Link>
           </p>
         )}
+        <div className="zy-actions">
+          {next.essay && !next.cancelled && essayActions(next.essay)}
+          <button
+            type="button"
+            className="zy-link-button"
+            disabled={!!busy}
+            onClick={() => setScheduledCancelled(next.sendDate, !next.cancelled)}
+          >
+            {next.cancelled ? "Restore this scheduled email" : "Cancel this scheduled email"}
+          </button>
+        </div>
         <label className="zy-field zy-test-field">
           <span>Send tests to</span>
           <input
@@ -285,26 +377,63 @@ export default function AdminPanel({ emailReady, weekly, subscribers, essays, lo
         )}
       </section>
 
-      {log.length > 0 && (
-        <section className="zy-admin-section">
-          <h2 className="zy-book-heading">Send history</h2>
-          <ul className="zy-list">
-            {log.map((l, i) => (
-              <li key={i}>
-                <div>
-                  <span className="zy-list-main">{l.title || l.note}</span>
-                  <span className="zy-list-sub">
-                    {l.title
-                      ? `${l.note} · ${l.recipients} sent${l.failures ? ` · ${l.failures} failed` : ""}`
-                      : ""}
-                  </span>
-                </div>
-                <span className="zy-list-sub zy-list-date">{l.when}</span>
-              </li>
-            ))}
-          </ul>
-        </section>
-      )}
+      <section className="zy-admin-section">
+        <h2 className="zy-book-heading">Email log</h2>
+        <p className="zy-form-hint">
+          {"Every email sent from the site. "}
+          <strong>Scheduled</strong>
+          {" went out automatically on Friday at 3 PM; "}
+          <strong>Manual</strong>
+          {" was sent with “Send to list now”. Times are Israel time."}
+        </p>
+        {log.length === 0 ? (
+          <p className="zy-form-hint">Nothing has been sent yet.</p>
+        ) : (
+          <div className="zy-table-wrap">
+            <table className="zy-log-table">
+              <thead>
+                <tr>
+                  <th>When</th>
+                  <th>Type</th>
+                  <th>Dvar Torah</th>
+                  <th>Result</th>
+                </tr>
+              </thead>
+              <tbody>
+                {log.map((l) => (
+                  <tr key={l.id} className={`zy-log-${l.kind}`}>
+                    <td className="zy-log-when">{l.when}</td>
+                    <td>
+                      <span className={`zy-kind zy-kind-${l.kind}`}>{KIND_LABEL[l.kind] || l.kind}</span>
+                    </td>
+                    <td>{l.title || <span className="zy-list-sub">&mdash;</span>}</td>
+                    <td>
+                      {l.kind === "scheduled" || l.kind === "manual" ? (
+                        <>
+                          Sent to {l.recipients} subscriber{l.recipients === 1 ? "" : "s"}
+                          {l.failures > 0 && (
+                            <span className="zy-log-failed" title={l.failedList}>
+                              {" "}
+                              &middot; {l.failures} failed
+                            </span>
+                          )}
+                        </>
+                      ) : l.kind === "test" ? (
+                        <>
+                          {l.note}
+                          {l.failures > 0 && <span className="zy-log-failed"> &middot; failed</span>}
+                        </>
+                      ) : (
+                        <span className="zy-list-sub">{l.note}</span>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </section>
 
       <p className="zy-signout">
         <button type="button" className="zy-link-button" onClick={signOut}>

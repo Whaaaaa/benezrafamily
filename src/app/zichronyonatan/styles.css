@@ -1196,3 +1196,133 @@ a.zy-list-main:hover {
 .zy-admin .zy-book-heading::after {
   content: none;
 }
+
+/* ---- Mailing list: schedule + email log ---- */
+
+.zy-prompt {
+  border-left: 4px solid var(--zy-gold);
+  margin-bottom: 1.5rem;
+}
+
+.zy-prompt h2 {
+  font-family: "Fraunces", serif;
+  font-size: 1.15rem;
+  color: var(--zy-navy);
+  margin: 0 0 0.5rem;
+}
+
+.zy-prompt p {
+  margin: 0 0 1rem;
+}
+
+.zy-featured.zy-is-cancelled {
+  border-left-color: var(--zy-muted);
+  background: transparent;
+  border-style: dashed;
+}
+
+.zy-featured .zy-test-field {
+  margin-top: 1.25rem;
+}
+
+.zy-table-wrap {
+  overflow-x: auto;
+  border: 1px solid var(--zy-border);
+  border-radius: 6px;
+  background: var(--zy-card);
+}
+
+.zy-log-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.zy-log-table th {
+  text-align: left;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--zy-sage);
+  font-weight: 600;
+  padding: 0.65rem 0.9rem;
+  border-bottom: 1px solid var(--zy-border);
+  white-space: nowrap;
+}
+
+.zy-log-table td {
+  padding: 0.65rem 0.9rem;
+  border-bottom: 1px solid var(--zy-border-soft);
+  vertical-align: top;
+  line-height: 1.5;
+}
+
+.zy-log-table tr:last-child td {
+  border-bottom: none;
+}
+
+.zy-log-when {
+  white-space: nowrap;
+  color: var(--zy-muted);
+}
+
+.zy-log-skipped td,
+.zy-log-cancelled td,
+.zy-log-test td {
+  color: var(--zy-muted);
+}
+
+.zy-kind {
+  display: inline-block;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-weight: 600;
+  border-radius: 3px;
+  padding: 0.1rem 0.5rem;
+  white-space: nowrap;
+}
+
+.zy-kind-scheduled {
+  background: var(--zy-navy);
+  color: var(--zy-cream);
+}
+
+.zy-kind-manual {
+  background: var(--zy-gold);
+  color: var(--zy-cream);
+}
+
+.zy-kind-test {
+  background: rgba(77, 107, 138, 0.12);
+  color: var(--zy-slate);
+}
+
+.zy-kind-skipped,
+.zy-kind-cancelled {
+  background: rgba(108, 98, 82, 0.12);
+  color: var(--zy-muted);
+}
+
+.zy-log-failed {
+  color: #b5653d;
+  font-weight: 600;
+}
+
+.zy-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  background: rgba(16, 26, 44, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.25rem;
+}
+
+.zy-modal-backdrop .zy-prompt {
+  max-width: 32rem;
+  width: 100%;
+  margin: 0;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
+}

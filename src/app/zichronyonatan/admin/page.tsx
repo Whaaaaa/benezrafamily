@@ -1,7 +1,7 @@
 import sql, { initZyDb } from "@/lib/db";
 import { isZyAuthed } from "@/lib/zy-auth";
 import { getArchiveParshiot, formatEssayDate } from "@/lib/content-zichronyonatan";
-import { emailConfigured, getWeeklyEssay, type ZyEssayRow } from "@/lib/zy-email";
+import { emailConfigured, getNextScheduled, type ZyEssayRow } from "@/lib/zy-email";
 import TopBar from "../TopBar";
 import ZyLogin from "../ZyLogin";
 import AdminPanel from "./AdminPanel";
@@ -21,23 +21,28 @@ export default async function AdminPage() {
   }
 
   await initZyDb();
-  const [subRows, essayRows, logRows, weekly] = await Promise.all([
+  const [subRows, essayRows, logRows, next] = await Promise.all([
     sql`SELECT email, name, created_at FROM zy_subscribers ORDER BY created_at DESC, email`,
     sql`SELECT * FROM zy_essays ORDER BY created_at DESC LIMIT 25`,
     sql`
-      SELECT l.sent_at, l.recipients, l.failures, l.note, e.title
+      SELECT l.id, l.sent_at, l.kind, l.recipients, l.failures, l.failed_list, l.note, l.send_date,
+             COALESCE(NULLIF(l.title, ''), e.title) AS title
       FROM zy_email_log l LEFT JOIN zy_essays e ON e.id = l.essay_id
-      ORDER BY l.sent_at DESC LIMIT 12
+      ORDER BY l.sent_at DESC LIMIT 60
     `,
-    getWeeklyEssay(),
+    getNextScheduled(),
   ]);
   const subscribers = subRows as { email: string; name: string; created_at: string }[];
   const essays = essayRows as ZyEssayRow[];
   const log = logRows as {
+    id: string;
     sent_at: string;
+    kind: string;
     recipients: number;
     failures: number;
+    failed_list: string;
     note: string;
+    send_date: string | null;
     title: string | null;
   }[];
 
@@ -61,21 +66,32 @@ export default async function AdminPage() {
         <span className="zy-parsha-book-tag">Zichron Yonatan weekly email</span>
         <AdminPanel
           emailReady={emailConfigured()}
-          weekly={{
-            parsha: weekly.parsha,
-            essay: weekly.essay ? toEssay(weekly.essay) : null,
+          next={{
+            sendDate: next.sendDate,
+            label: next.label,
+            parsha: next.parsha,
+            cancelled: next.cancelled,
+            essay: next.essay ? toEssay(next.essay) : null,
           }}
           subscribers={subscribers.map((s) => ({ email: s.email, name: s.name, added: fmt(s.created_at) }))}
           essays={essays.map(toEssay)}
           log={log.map((l) => ({
+            id: l.id,
             when: new Date(l.sent_at).toLocaleString("en-US", {
               timeZone: "Asia/Jerusalem",
-              dateStyle: "medium",
-              timeStyle: "short",
+              weekday: "short",
+              month: "short",
+              day: "numeric",
+              year: "numeric",
+              hour: "numeric",
+              minute: "2-digit",
             }),
+            // Rows from before the log had a kind column.
+            kind: l.kind || (l.note.startsWith("weekly") ? (l.recipients ? "scheduled" : "skipped") : "manual"),
             title: l.title,
             recipients: l.recipients,
             failures: l.failures,
+            failedList: l.failed_list,
             note: l.note,
           }))}
         />
