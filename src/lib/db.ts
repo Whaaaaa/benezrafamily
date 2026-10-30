@@ -286,6 +286,15 @@ export async function initZyDb() {
   await sql`ALTER TABLE zy_email_log ADD COLUMN IF NOT EXISTS title TEXT NOT NULL DEFAULT ''`
   await sql`ALTER TABLE zy_email_log ADD COLUMN IF NOT EXISTS send_date TEXT`
   await sql`ALTER TABLE zy_email_log ADD COLUMN IF NOT EXISTS failed_list TEXT NOT NULL DEFAULT ''`
+  // Public sign-ups waiting for the person to click the confirmation link.
+  await sql`
+    CREATE TABLE IF NOT EXISTS zy_pending_subscribers (
+      token TEXT PRIMARY KEY,
+      email TEXT NOT NULL,
+      name TEXT NOT NULL DEFAULT '',
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    )
+  `
   // Fridays (Israel date, YYYY-MM-DD) whose scheduled email was cancelled.
   await sql`
     CREATE TABLE IF NOT EXISTS zy_schedule_skips (

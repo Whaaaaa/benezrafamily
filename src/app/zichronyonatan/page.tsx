@@ -4,6 +4,7 @@ import Link from "next/link";
 import FlameMark from "./FlameMark";
 import { ZyNav } from "./TopBar";
 import ArchiveSearch, { type SearchItem } from "./ArchiveSearch";
+import SubscribeForm from "./SubscribeForm";
 
 // The featured parsha depends on the current date, so re-render hourly
 // instead of freezing the page at build time; uploads revalidate it
@@ -106,6 +107,8 @@ export default async function ZichryonYonatanHome() {
           </details>
         ))}
         </ArchiveSearch>
+
+        <SubscribeForm />
       </main>
     </>
   );

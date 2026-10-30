@@ -311,3 +311,62 @@ export async function getNextScheduled() {
     cancelled: await isSendCancelled(weekly.sendDate),
   };
 }
+
+// ---- Public sign-up confirmation (double opt-in) ----
+
+export async function sendConfirmationEmail(email: string, name: string, token: string) {
+  if (!emailConfigured()) throw new Error("Email is not configured (SMTP_USER / SMTP_PASS)");
+  const confirmUrl = `${SITE_URL}/zichronyonatan/confirm?token=${encodeURIComponent(token)}`;
+  const serif = "Georgia, 'Times New Roman', serif";
+  const greeting = name ? `Shalom ${esc(name)},` : "Shalom,";
+
+  const html = `<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="color-scheme" content="light"><title>Confirm your subscription</title></head>
+<body style="margin:0;padding:0;background:#faf5e8;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#faf5e8;">
+<tr><td align="center" style="padding:24px 12px;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;">
+  <tr><td align="center" style="background:#1c2a44;padding:30px 24px 26px;border-radius:6px 6px 0 0;">
+    <div style="font-family:${serif};font-size:26px;font-weight:bold;color:#faf5e8;">Zichron Yonatan</div>
+    <div style="font-family:${serif};font-size:16px;color:#cf9f60;margin-top:6px;" dir="rtl">זכרון יונתן</div>
+  </td></tr>
+  <tr><td style="background:#fffdf8;padding:30px 34px;border-left:1px solid #e6dfcf;border-right:1px solid #e6dfcf;font-family:${serif};font-size:17px;line-height:1.7;color:#23304a;">
+    <p style="margin:0 0 16px;">${greeting}</p>
+    <p style="margin:0 0 22px;">Please confirm that you&rsquo;d like to receive the weekly Zichron Yonatan Dvar Torah by email, every Friday before Shabbat.</p>
+    <table role="presentation" cellpadding="0" cellspacing="0"><tr><td style="background:#1c2a44;border-radius:4px;">
+      <a href="${confirmUrl}" style="display:inline-block;padding:12px 26px;font-family:${serif};font-size:15px;font-weight:bold;color:#faf5e8;text-decoration:none;">Confirm my subscription</a>
+    </td></tr></table>
+    <p style="margin:22px 0 0;font-size:14px;color:#6c6252;">If you didn&rsquo;t sign up, just ignore this email &mdash; you won&rsquo;t be added.</p>
+  </td></tr>
+  <tr><td align="center" style="background:#1c2a44;border-top:3px solid #a3763f;padding:22px 28px;border-radius:0 0 6px 6px;font-family:${serif};font-size:13px;line-height:1.6;color:#b7c3d8;">
+    The learning on this site should be a merit for the neshama of Yonatan ben Avraham Avinu a&quot;h.
+  </td></tr>
+</table>
+</td></tr>
+</table>
+</body>
+</html>`;
+
+  const text = [
+    name ? `Shalom ${name},` : "Shalom,",
+    "",
+    "Please confirm that you'd like to receive the weekly Zichron Yonatan Dvar Torah by email, every Friday before Shabbat:",
+    confirmUrl,
+    "",
+    "If you didn't sign up, just ignore this email - you won't be added.",
+  ].join("\n");
+
+  const t = transport();
+  try {
+    await t.sendMail({
+      from: fromAddress(),
+      to: email,
+      subject: "Confirm your Zichron Yonatan subscription",
+      html,
+      text,
+    });
+  } finally {
+    t.close();
+  }
+}
