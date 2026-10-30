@@ -5,7 +5,9 @@ export type EssayInput = { title: string; author: string; parshaSlug: string; ht
 
 /** Cleans and validates an uploaded/edited dvar Torah. */
 export function validateEssayInput(
-  raw: Partial<Record<keyof EssayInput, unknown>>
+  raw: Partial<Record<keyof EssayInput, unknown>>,
+  // Some archive essays are unsigned, so editing them can't require one.
+  { requireAuthor = true } = {}
 ): { ok: true; value: EssayInput } | { ok: false; error: string } {
   const title = String(raw.title || "").trim();
   const author = String(raw.author || "").trim();
@@ -13,7 +15,7 @@ export function validateEssayInput(
   const html = sanitizeEssayHtml(String(raw.html || ""));
 
   if (!title) return { ok: false, error: "Please add a title." };
-  if (!author) return { ok: false, error: "Please choose an author." };
+  if (!author && requireAuthor) return { ok: false, error: "Please choose an author." };
   if (!getArchiveParshiot().some((p) => p.slug === parshaSlug)) {
     return { ok: false, error: "Please choose a parsha or holiday." };
   }

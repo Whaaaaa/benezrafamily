@@ -1,10 +1,8 @@
 import Link from "next/link";
-import sql, { initZyDb } from "@/lib/db";
 import { isZyAuthed } from "@/lib/zy-auth";
-import { formatEssayDate, getArchiveParshiot } from "@/lib/content-zichronyonatan";
+import { formatEssayDate, getAllEssays, displayAuthor } from "@/lib/content-zichronyonatan";
 import { getEssayFormOptions } from "@/lib/zy-essays";
 import { htmlToText } from "@/lib/zy-html";
-import type { ZyEssayRow } from "@/lib/zy-email";
 import TopBar from "../TopBar";
 import ZyLogin from "../ZyLogin";
 import ManageList from "./ManageList";
@@ -23,25 +21,41 @@ export default async function ManagePage() {
     );
   }
 
-  await initZyDb();
-  const rows = (await sql`SELECT * FROM zy_essays ORDER BY created_at DESC`) as ZyEssayRow[];
-  const { parshaGroups } = await getEssayFormOptions();
-  const parshaNames = Object.fromEntries(getArchiveParshiot().map((p) => [p.slug, p.parsha]));
+  const [all, { parshaGroups }] = await Promise.all([
+    getAllEssays({ includeHidden: true }),
+    getEssayFormOptions(),
+  ]);
 
-  const essays = rows.map((e) => {
-    const text = htmlToText(e.body_html);
-    return {
-      id: e.id,
-      title: e.title,
-      author: e.author,
-      parshaSlug: e.parsha_slug,
-      parsha: parshaNames[e.parsha_slug] || e.parsha_slug,
-      uploaded: formatEssayDate(new Date(e.created_at)),
-      emailed: e.emailed_at ? formatEssayDate(new Date(e.emailed_at)) : null,
-      words: text.split(/\s+/).filter(Boolean).length,
-      excerpt: text.replace(/\s+/g, " ").slice(0, 220),
-    };
-  });
+  // Site uploads first (newest first), then the archive in parsha order.
+  const ordered = all
+    .filter((e) => !e.placeholder)
+    .sort((a, b) => {
+      if (!!a.uploaded !== !!b.uploaded) return a.uploaded ? -1 : 1;
+      if (a.uploaded) return Date.parse(b.createdAt!) - Date.parse(a.createdAt!);
+      if (a.bookOrder !== b.bookOrder) return a.bookOrder - b.bookOrder;
+      if (a.order !== b.order) return a.order - b.order;
+      return (b.year || "").localeCompare(a.year || "");
+    });
+
+  const essays = ordered.map((e) => {
+      const text = (e.html ? htmlToText(e.html) : e.body).replace(/\s+/g, " ").trim();
+      return {
+        id: e.id,
+        title: e.title,
+        author: displayAuthor(e.author) || "Unsigned",
+        parshaSlug: e.parshaSlug,
+        parsha: e.parsha,
+        date: e.date,
+        uploaded: !!e.uploaded,
+        edited: !!e.edited,
+        hidden: !!e.hidden,
+        emailed: e.emailedAt ? formatEssayDate(new Date(e.emailedAt)) : null,
+        words: text.split(" ").filter(Boolean).length,
+        excerpt: text.slice(0, 220),
+      };
+    });
+
+  const uploadedCount = essays.filter((e) => e.uploaded).length;
 
   return (
     <>
@@ -49,7 +63,7 @@ export default async function ManagePage() {
       <main className="zy-main" id="zy-content">
         <h1 className="zy-parsha-h1">Manage divrei Torah</h1>
         <span className="zy-parsha-book-tag">
-          {essays.length} uploaded &middot;{" "}
+          {essays.length} divrei Torah &middot; {uploadedCount} uploaded on the site &middot;{" "}
           <Link href="/zichronyonatan/upload">Upload a new one</Link>
         </span>
         <ManageList essays={essays} parshaGroups={parshaGroups} />

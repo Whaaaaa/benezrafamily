@@ -94,8 +94,9 @@ export default async function ParshaPage({
               {e.date}
               {displayAuthor(e.author) ? ` · ${displayAuthor(e.author)}` : ""}
             </div>
-            {e.uploaded ? (
-              // Sanitized against a strict allowlist when it was uploaded.
+            {e.html ? (
+              // Uploaded or edited on the site; sanitized against a strict
+              // allowlist when it was saved.
               <div className="zy-essay-body" dangerouslySetInnerHTML={{ __html: e.html || "" }} />
             ) : (
               <div className="zy-essay-body">

@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { cleanPastedHtml, plainTextToHtml } from "./clean-paste";
 import { useStoredValue } from "./useStoredValue";
 
@@ -11,6 +12,8 @@ type Props = {
   defaultParsha: string;
   // When set, the form edits this uploaded dvar Torah instead of creating one.
   initial?: { id: string; title: string; author: string; parshaSlug: string; html: string };
+  // Archive essays may be unsigned; new uploads always need an author.
+  requireAuthor?: boolean;
 };
 
 const OTHER = "__other__";
@@ -27,7 +30,8 @@ function exec(command: string, value?: string) {
   document.execCommand(command, false, value);
 }
 
-export default function EssayForm({ parshaGroups, authors, defaultParsha, initial }: Props) {
+export default function EssayForm({ parshaGroups, authors, defaultParsha, initial, requireAuthor = true }: Props) {
+  const router = useRouter();
   const editing = !!initial;
   const editorRef = useRef<HTMLDivElement>(null);
   const [title, setTitle] = useState(initial?.title ?? "");
@@ -75,12 +79,14 @@ export default function EssayForm({ parshaGroups, authors, defaultParsha, initia
     setError("");
     if (!title.trim()) return setError("Please add a title.");
     if (!parsha) return setError("Please choose a parsha or holiday.");
-    if (!author) return setError("Please choose an author.");
+    if (!author && requireAuthor) return setError("Please choose an author.");
     if (empty) return setError("Paste or type the dvar Torah first.");
 
     setBusy(true);
     setSaved(null);
-    const url = initial ? `/api/zichronyonatan/essays/${initial.id}` : "/api/zichronyonatan/essays";
+    const url = initial
+      ? `/api/zichronyonatan/essays/${encodeURIComponent(initial.id)}`
+      : "/api/zichronyonatan/essays";
     const res = await fetch(url, {
       method: initial ? "PATCH" : "POST",
       headers: { "Content-Type": "application/json" },
@@ -103,6 +109,7 @@ export default function EssayForm({ parshaGroups, authors, defaultParsha, initia
     }
     if (editing) {
       setSaved(data.url);
+      router.refresh();
       return;
     }
     if (authorChoice !== OTHER) rememberAuthor(authorChoice);

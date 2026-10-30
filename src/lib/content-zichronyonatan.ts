@@ -51,6 +51,9 @@ export function displayAuthor(author: string): string {
 }
 
 export type Essay = {
+  // Stable id used by the manage pages: the zy_essays id for uploads,
+  // archiveId(dir, slug) for markdown essays.
+  id: string;
   slug: string;
   parsha: string;
   parshaSlug: string;
@@ -65,12 +68,41 @@ export type Essay = {
   verbatim: boolean;
   placeholder: boolean;
   body: string;
-  // Set only for divrei Torah uploaded through the site (stored in the DB).
-  // `html` is sanitized at upload time and rendered as-is.
+  // `html` is set for divrei Torah uploaded through the site and for archive
+  // essays whose text was edited there; it's sanitized on save and rendered
+  // as-is in place of `body`.
   uploaded?: boolean;
   html?: string;
   createdAt?: string;
+  emailedAt?: string;
+  // Archive essays only: edited through the site / hidden from the site.
+  edited?: boolean;
+  hidden?: boolean;
 };
+
+const ARCHIVE_PREFIX = "a~";
+
+export function archiveId(dir: string, slug: string) {
+  return `${ARCHIVE_PREFIX}${dir}~${slug}`;
+}
+
+export function isArchiveId(id: string) {
+  return id.startsWith(ARCHIVE_PREFIX);
+}
+
+function escapeHtml(s: string) {
+  return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+
+/** The markdown archive's plain paragraphs as HTML, for the editor. */
+export function archiveBodyToHtml(body: string): string {
+  return body
+    .split("\n\n")
+    .map((p) => p.trim())
+    .filter(Boolean)
+    .map((p) => `<p>${escapeHtml(p)}</p>`)
+    .join("");
+}
 
 function getArchiveEssays(): Essay[] {
   try {
@@ -86,8 +118,10 @@ function getArchiveEssays(): Essay[] {
         const raw = fs.readFileSync(path.join(dirPath, file), "utf-8");
         const { data, content } = matter(raw);
         const date = data.date || "";
+        const slug = file.replace(/\.md$/, "");
         essays.push({
-          slug: file.replace(/\.md$/, ""),
+          id: archiveId(dir, slug),
+          slug,
           parsha: data.parsha || dir,
           parshaSlug: dir,
           book: data.book || "",
@@ -100,7 +134,8 @@ function getArchiveEssays(): Essay[] {
           source: data.source || "",
           verbatim: !!data.verbatim,
           placeholder: !!data.placeholder,
-          body: content.trim(),
+          // Normalize CRLF (Windows checkouts) so paragraph splitting works.
+          body: content.replace(/\r\n?/g, "\n").trim(),
         });
       }
     }
@@ -127,14 +162,33 @@ type UploadedRow = {
   author: string;
   body_html: string;
   created_at: string | Date;
+  emailed_at: string | Date | null;
 };
+
+type OverrideRow = {
+  id: string;
+  parsha_slug: string | null;
+  title: string | null;
+  author: string | null;
+  body_html: string | null;
+  hidden: boolean;
+};
+
+type ParshaInfo = { parsha: string; book: string; bookOrder: number; order: number };
+
+// Uploads and recategorized essays are always filed under a parsha that
+// exists in the archive, so they borrow its display name and ordering.
+function parshaInfo(archive: Essay[], slug: string): ParshaInfo | undefined {
+  const e = archive.find((a) => a.parshaSlug === slug);
+  return e && { parsha: e.parsha, book: e.book, bookOrder: e.bookOrder, order: e.order };
+}
 
 async function getUploadedEssays(archive: Essay[]): Promise<Essay[]> {
   if (!process.env.DATABASE_URL) return [];
   let rows: UploadedRow[];
   try {
     rows = (await sql`
-      SELECT id, parsha_slug, title, author, body_html, created_at
+      SELECT id, parsha_slug, title, author, body_html, created_at, emailed_at
       FROM zy_essays ORDER BY created_at DESC
     `) as UploadedRow[];
   } catch {
@@ -143,12 +197,11 @@ async function getUploadedEssays(archive: Essay[]): Promise<Essay[]> {
     return [];
   }
   return rows.map((r) => {
-    // Uploads are always filed under an existing parsha, so borrow its
-    // display name and book ordering from the archive.
-    const meta = archive.find((e) => e.parshaSlug === r.parsha_slug);
+    const meta = parshaInfo(archive, r.parsha_slug);
     const created = new Date(r.created_at);
     const date = formatEssayDate(created);
     return {
+      id: r.id,
       slug: r.id,
       parsha: meta?.parsha || r.parsha_slug,
       parshaSlug: r.parsha_slug,
@@ -166,14 +219,54 @@ async function getUploadedEssays(archive: Essay[]): Promise<Essay[]> {
       uploaded: true,
       html: r.body_html,
       createdAt: created.toISOString(),
+      emailedAt: r.emailed_at ? new Date(r.emailed_at).toISOString() : undefined,
     };
   });
 }
 
-export async function getAllEssays(): Promise<Essay[]> {
+async function getOverrides(): Promise<Map<string, OverrideRow>> {
+  if (!process.env.DATABASE_URL) return new Map();
+  try {
+    const rows = (await sql`SELECT * FROM zy_archive_overrides`) as OverrideRow[];
+    return new Map(rows.map((r) => [r.id, r]));
+  } catch {
+    return new Map(); // table not created yet: nothing has been edited
+  }
+}
+
+function applyOverride(e: Essay, o: OverrideRow | undefined, archive: Essay[]): Essay {
+  if (!o) return e;
+  const moved = o.parsha_slug && o.parsha_slug !== e.parshaSlug ? parshaInfo(archive, o.parsha_slug) : undefined;
+  return {
+    ...e,
+    ...(moved && o.parsha_slug ? { ...moved, parshaSlug: o.parsha_slug } : {}),
+    title: o.title ?? e.title,
+    author: o.author ?? e.author,
+    html: o.body_html ?? undefined,
+    edited: o.parsha_slug !== null || o.title !== null || o.author !== null || o.body_html !== null,
+    hidden: o.hidden,
+  };
+}
+
+/**
+ * Every essay: uploads plus the markdown archive with any site edits applied.
+ * Hidden archive essays are left out unless `includeHidden` (manage pages).
+ */
+export async function getAllEssays({ includeHidden = false } = {}): Promise<Essay[]> {
   const archive = getArchiveEssays();
-  const uploaded = await getUploadedEssays(archive);
-  return [...uploaded, ...archive];
+  const [uploaded, overrides] = await Promise.all([getUploadedEssays(archive), getOverrides()]);
+  const merged = archive.map((e) => applyOverride(e, overrides.get(e.id), archive));
+  return [...uploaded, ...(includeHidden ? merged : merged.filter((e) => !e.hidden))];
+}
+
+/** The original (unedited) markdown essay for an archive id. */
+export function getOriginalArchiveEssay(id: string): Essay | undefined {
+  return getArchiveEssays().find((e) => e.id === id);
+}
+
+/** One essay by id (uploaded or archive, hidden included), for editing. */
+export async function getManagedEssay(id: string): Promise<Essay | undefined> {
+  return (await getAllEssays({ includeHidden: true })).find((e) => e.id === id);
 }
 
 export type ParshaSummary = {

@@ -256,6 +256,19 @@ export async function initZyDb() {
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     )
   `
+  // Edits to essays from the markdown archive (content/zichronyonatan),
+  // which can't be written at runtime. NULL columns mean "use the original".
+  await sql`
+    CREATE TABLE IF NOT EXISTS zy_archive_overrides (
+      id TEXT PRIMARY KEY,
+      parsha_slug TEXT,
+      title TEXT,
+      author TEXT,
+      body_html TEXT,
+      hidden BOOLEAN NOT NULL DEFAULT FALSE,
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    )
+  `
   await sql`
     CREATE TABLE IF NOT EXISTS zy_email_log (
       id TEXT PRIMARY KEY,

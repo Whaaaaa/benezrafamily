@@ -1139,3 +1139,60 @@ a.zy-list-main:hover {
   color: var(--zy-navy);
   margin: 0 0 0.35rem;
 }
+
+.zy-manage-filters .zy-field {
+  flex: 1 1 10rem;
+}
+
+.zy-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin-top: 0.4rem;
+}
+
+.zy-tag {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-weight: 600;
+  color: var(--zy-slate);
+  background: rgba(77, 107, 138, 0.1);
+  border-radius: 3px;
+  padding: 0.1rem 0.45rem;
+}
+
+.zy-tag-gold {
+  color: var(--zy-gold);
+  background: rgba(207, 159, 96, 0.16);
+}
+
+.zy-tag-muted {
+  color: var(--zy-muted);
+  background: rgba(108, 98, 82, 0.12);
+}
+
+.zy-manage-item.zy-is-hidden {
+  background: transparent;
+  border-style: dashed;
+  box-shadow: none;
+}
+
+.zy-manage-item.zy-is-hidden .zy-manage-title {
+  color: var(--zy-muted);
+}
+
+.zy-show-more {
+  text-align: center;
+  margin-top: 1.5rem;
+}
+
+/* Section headings on the admin pages reuse .zy-book-heading but aren't
+   collapsible <summary>s. */
+.zy-admin .zy-book-heading {
+  cursor: default;
+}
+
+.zy-admin .zy-book-heading::after {
+  content: none;
+}
