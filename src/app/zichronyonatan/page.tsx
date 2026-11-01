@@ -109,18 +109,15 @@ export default async function ZichryonYonatanHome() {
                         <span className="zy-placeholder-tag">Pending re-verification</span>
                       )}
                     </Link>
-                    {parshaEssays.length > 1 && (
-                      <details className="zy-card-essays">
-                        <summary>Jump to an essay</summary>
-                        <ul>
-                          {parshaEssays.map((e) => (
-                            <li key={e.slug}>
-                              <Link href={`/zichronyonatan/parsha/${p.slug}#${e.slug}`}>{e.title}</Link>
-                              <span>{[e.year, e.author].filter(Boolean).join(" · ")}</span>
-                            </li>
-                          ))}
-                        </ul>
-                      </details>
+                    {parshaEssays.length > 0 && (
+                      <ul className="zy-card-essays" aria-label={`Divrei Torah on ${p.parsha}`}>
+                        {parshaEssays.map((e) => (
+                          <li key={e.slug}>
+                            <Link href={`/zichronyonatan/parsha/${p.slug}#${e.slug}`}>{e.title}</Link>
+                            <span>{[e.year, e.author].filter(Boolean).join(" · ")}</span>
+                          </li>
+                        ))}
+                      </ul>
                     )}
                   </div>
                 );

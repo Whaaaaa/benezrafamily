@@ -354,26 +354,10 @@ details[open] > .zy-book-heading::after {
 .zy-card-essays {
   position: relative;
   z-index: 1;
-  margin-top: 0.6rem;
-  padding-top: 0.5rem;
-  border-top: 1px solid var(--zy-border);
-}
-
-.zy-card-essays summary {
-  cursor: pointer;
-  color: var(--zy-slate);
-  font-size: 0.8rem;
-  font-weight: 600;
-}
-
-.zy-card-essays summary:hover {
-  color: var(--zy-navy);
-}
-
-.zy-card-essays ul {
   list-style: none;
-  margin: 0.5rem 0 0;
-  padding: 0;
+  margin: 0.6rem 0 0;
+  padding: 0.35rem 0 0;
+  border-top: 1px solid var(--zy-border);
 }
 
 .zy-card-essays li {
