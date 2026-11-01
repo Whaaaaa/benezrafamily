@@ -7,6 +7,7 @@ import {
   isSendCancelled,
   logEmail,
   sendEssayToList,
+  sentManuallyThisWeek,
 } from "@/lib/zy-email";
 
 export const maxDuration = 300;
@@ -40,15 +41,32 @@ async function run(req: Request) {
     return Response.json({ ok: true, skipped: "cancelled" });
   }
 
-  const { parsha, essay } = await getWeeklyEssay(today);
+  const { parsha, essay, republished } = await getWeeklyEssay(today);
   if (!essay) {
     await logEmail({
       kind: "skipped",
       sendDate: today,
-      note: `No Dvar Torah uploaded for ${parsha ?? "this week"}`,
+      note: `No Dvar Torah uploaded or marked to republish for ${parsha ?? "this week"}`,
     });
     return Response.json({ ok: true, skipped: "no essay for this week", parsha });
   }
+
+  if (republished) {
+    // Nothing new was uploaded, so re-send the front of the parsha's
+    // republish queue -- unless one already went out by hand this week.
+    if (await sentManuallyThisWeek(today)) {
+      await logEmail({
+        kind: "skipped",
+        essay,
+        sendDate: today,
+        note: "Nothing new uploaded, and a Dvar Torah was already sent to the list manually this week",
+      });
+      return Response.json({ ok: true, skipped: "already sent manually this week", parsha });
+    }
+    const { sent, failed } = await sendEssayToList(essay, "scheduled", today, "Republished from the archive");
+    return Response.json({ ok: true, parsha, essay: essay.title, republished: true, sent, failed });
+  }
+
   if (essay.emailed_at) {
     await logEmail({
       kind: "skipped",

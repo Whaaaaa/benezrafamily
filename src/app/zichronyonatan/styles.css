@@ -332,6 +332,74 @@ details[open] > .zy-book-heading::after {
   font-size: 0.82rem;
 }
 
+/* The card is a <div> so it can hold the essay list; the parsha link
+   stretches over the whole card, with the list layered above it. */
+.zy-parsha-card {
+  position: relative;
+}
+
+.zy-parsha-card-link {
+  display: block;
+  color: inherit;
+  text-decoration: none;
+}
+
+.zy-parsha-card-link::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+}
+
+.zy-card-essays {
+  position: relative;
+  z-index: 1;
+  margin-top: 0.6rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid var(--zy-border);
+}
+
+.zy-card-essays summary {
+  cursor: pointer;
+  color: var(--zy-slate);
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.zy-card-essays summary:hover {
+  color: var(--zy-navy);
+}
+
+.zy-card-essays ul {
+  list-style: none;
+  margin: 0.5rem 0 0;
+  padding: 0;
+}
+
+.zy-card-essays li {
+  padding: 0.3rem 0;
+  line-height: 1.3;
+}
+
+.zy-card-essays li + li {
+  border-top: 1px dashed var(--zy-border);
+}
+
+.zy-card-essays a {
+  display: block;
+  color: var(--zy-navy);
+  font-size: 0.88rem;
+  text-decoration: none;
+}
+
+.zy-card-essays a:hover {
+  text-decoration: underline;
+}
+
+.zy-card-essays li span {
+  font-size: 0.75rem;
+}
+
 .zy-parsha-card.zy-is-placeholder {
   border-style: dashed;
   background: transparent;
@@ -1165,6 +1233,11 @@ a.zy-list-main:hover {
 .zy-tag-gold {
   color: var(--zy-gold);
   background: rgba(207, 159, 96, 0.16);
+}
+
+.zy-tag-sage {
+  color: var(--zy-sage);
+  background: rgba(111, 125, 92, 0.14);
 }
 
 .zy-tag-muted {

@@ -16,11 +16,13 @@ type Essay = {
   edited: boolean;
   hidden: boolean;
   emailed: string | null;
+  republish: boolean;
+  republished: string | null;
   words: number;
   excerpt: string;
 };
 
-type Show = "all" | "uploaded" | "archive" | "edited" | "hidden";
+type Show = "all" | "uploaded" | "archive" | "edited" | "hidden" | "republish";
 const PAGE = 30;
 
 export default function ManageList({ essays, parshaGroups }: { essays: Essay[]; parshaGroups: ParshaGroup[] }) {
@@ -49,7 +51,8 @@ export default function ManageList({ essays, parshaGroups }: { essays: Essay[]; 
           (show === "uploaded" && e.uploaded) ||
           (show === "archive" && !e.uploaded) ||
           (show === "edited" && e.edited) ||
-          (show === "hidden" && e.hidden)) &&
+          (show === "hidden" && e.hidden) ||
+          (show === "republish" && e.republish)) &&
         (!parshaFilter || e.parshaSlug === parshaFilter) &&
         (!authorFilter || e.author === authorFilter) &&
         (!q || e.title.toLowerCase().includes(q) || e.excerpt.toLowerCase().includes(q))
@@ -110,6 +113,17 @@ export default function ManageList({ essays, parshaGroups }: { essays: Essay[]; 
     }
   }
 
+  async function setRepublish(e: Essay, republish: boolean) {
+    if (await request(`rep-${e.id}`, essayUrl(e), "PATCH", { republish })) {
+      setNotice({
+        kind: "ok",
+        text: republish
+          ? `“${e.title}” can now be re-sent by the weekly email when nothing new is uploaded for ${e.parsha}.`
+          : `“${e.title}” won't be re-sent by the weekly email.`,
+      });
+    }
+  }
+
   return (
     <div className="zy-admin">
       {notice && (
@@ -165,6 +179,7 @@ export default function ManageList({ essays, parshaGroups }: { essays: Essay[]; 
             <option value="archive">Family archive</option>
             <option value="edited">Edited on the site</option>
             <option value="hidden">Hidden</option>
+            <option value="republish">Marked to republish</option>
           </select>
         </label>
       </div>
@@ -194,6 +209,11 @@ export default function ManageList({ essays, parshaGroups }: { essays: Essay[]; 
                   <span className="zy-tag">{e.uploaded ? "Uploaded on the site" : "Family archive"}</span>
                   {e.edited && <span className="zy-tag zy-tag-gold">Edited</span>}
                   {e.hidden && <span className="zy-tag zy-tag-muted">Hidden from the site</span>}
+                  {e.republish && (
+                    <span className="zy-tag zy-tag-sage">
+                      Republish{e.republished ? ` · last re-sent ${e.republished}` : ""}
+                    </span>
+                  )}
                 </span>
               </div>
               <p className="zy-manage-excerpt">
@@ -236,6 +256,15 @@ export default function ManageList({ essays, parshaGroups }: { essays: Essay[]; 
                       View
                     </Link>
                   )}
+                  <button
+                    type="button"
+                    className="zy-link-button"
+                    disabled={!!busy}
+                    onClick={() => setRepublish(e, !e.republish)}
+                    title="Lets the weekly email re-send this when nothing new is uploaded for its parsha"
+                  >
+                    {busy === `rep-${e.id}` ? "Saving…" : e.republish ? "Don't republish" : "Republish"}
+                  </button>
                   {e.uploaded ? (
                     <button
                       type="button"

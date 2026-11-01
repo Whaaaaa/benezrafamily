@@ -3,6 +3,7 @@ import sql, { initZyDb } from "@/lib/db";
 import { getCurrentParshaSlug } from "@/lib/current-parsha";
 import { getArchiveParshiot, formatEssayDate } from "@/lib/content-zichronyonatan";
 import { emailifyHtml, htmlToText } from "@/lib/zy-html";
+import { essayToEmailRow, getRepublishPick, markRepublishSent } from "@/lib/zy-republish";
 
 export const SITE_URL = (process.env.SITE_URL || "https://benezrafamily.vercel.app").replace(/\/$/, "");
 
@@ -18,6 +19,8 @@ export type ZyEssayRow = {
   body_html: string;
   created_at: string | Date;
   emailed_at: string | Date | null;
+  // Set for archive essays, whose date is free text rather than an upload time.
+  date_label?: string;
 };
 
 export type Subscriber = { email: string; name: string; token: string };
@@ -64,7 +67,7 @@ export function buildEssayEmail(essay: ZyEssayRow, token: string) {
   const parsha = parshaName(essay.parsha_slug);
   const essayUrl = `${SITE_URL}/zichronyonatan/parsha/${essay.parsha_slug}`;
   const unsubUrl = unsubscribeUrl(token);
-  const date = formatEssayDate(new Date(essay.created_at));
+  const date = essay.date_label ?? formatEssayDate(new Date(essay.created_at));
   const meta = [date, essay.author].filter(Boolean).join(" · ");
   const serif = "Georgia, 'Times New Roman', serif";
 
@@ -193,13 +196,17 @@ export async function logEmail(entry: {
 export async function sendEssayToList(
   essay: ZyEssayRow,
   kind: "scheduled" | "manual",
-  sendDate: string | null = null
+  sendDate: string | null = null,
+  note = ""
 ) {
   await initZyDb();
   const subs = (await sql`SELECT email, name, token FROM zy_subscribers ORDER BY email`) as Subscriber[];
   const { sent, failed } = await sendEssay(essay, subs);
   await sql`UPDATE zy_essays SET emailed_at = NOW() WHERE id = ${essay.id}`;
-  await logEmail({ kind, essay, recipients: sent, failed, sendDate });
+  // A list send of a republish-marked essay, scheduled or manual, moves it to
+  // the back of its parsha's queue.
+  await markRepublishSent(essay.id);
+  await logEmail({ kind, essay, recipients: sent, failed, sendDate, note });
   return { sent, failed };
 }
 
@@ -286,20 +293,44 @@ export async function setSendCancelled(sendDate: string, cancelled: boolean) {
 /**
  * The Dvar Torah a given Friday's email would carry: the most recent upload
  * for that Shabbat's parsha (or holiday), uploaded within the last few weeks.
+ * Failing that, the front of the parsha's republish queue (`republished`) --
+ * only essays marked "Republish" on the manage page are ever re-sent.
  */
-export async function getWeeklyEssay(sendDate?: string) {
+export async function getWeeklyEssay(sendDate?: string): Promise<{
+  sendDate: string;
+  slug: string | null;
+  parsha: string | null;
+  essay: ZyEssayRow | null;
+  republished: boolean;
+}> {
   await initZyDb();
   const date = sendDate || (await getNextSendDate());
   const friday = new Date(`${date}T12:00:00Z`);
   const slug = getCurrentParshaSlug(friday);
-  if (!slug) return { sendDate: date, slug: null, parsha: null, essay: null };
+  if (!slug) return { sendDate: date, slug: null, parsha: null, essay: null, republished: false };
   const since = new Date(friday.getTime() - WEEKLY_WINDOW_DAYS * 86400000);
   const rows = (await sql`
     SELECT * FROM zy_essays
     WHERE parsha_slug = ${slug} AND created_at >= ${since.toISOString()}
     ORDER BY created_at DESC LIMIT 1
   `) as ZyEssayRow[];
-  return { sendDate: date, slug, parsha: parshaName(slug), essay: rows[0] ?? null };
+  const parsha = parshaName(slug);
+  if (rows[0]) return { sendDate: date, slug, parsha, essay: rows[0], republished: false };
+  const pick = await getRepublishPick(slug);
+  return { sendDate: date, slug, parsha, essay: pick ? essayToEmailRow(pick) : null, republished: !!pick };
+}
+
+/**
+ * Whether a Dvar Torah already went to the whole list by hand in the week
+ * before a Friday, so the republish fallback doesn't send a second one.
+ */
+export async function sentManuallyThisWeek(sendDate: string) {
+  const friday = new Date(`${sendDate}T12:00:00Z`);
+  const since = new Date(friday.getTime() - 6 * 86400000);
+  const rows = await sql`
+    SELECT 1 FROM zy_email_log WHERE kind = 'manual' AND sent_at >= ${since.toISOString()} LIMIT 1
+  `;
+  return rows.length > 0;
 }
 
 /** Everything the admin page needs to describe the next scheduled email. */

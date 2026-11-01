@@ -35,7 +35,7 @@ type NextInfo = {
 
 type Props = {
   emailReady: boolean;
-  next: NextInfo & { essay: EssayInfo | null };
+  next: NextInfo & { essay: EssayInfo | null; republished: boolean };
   subscribers: { email: string; name: string; added: string }[];
   essays: EssayInfo[];
   log: LogEntry[];
@@ -239,6 +239,20 @@ export default function AdminPanel({ emailReady, next, subscribers, essays, log 
           <p className="zy-form-hint">
             <strong>Cancelled</strong> &mdash; nothing will go out on {next.label}.
           </p>
+        ) : next.essay && next.republished ? (
+          <>
+            <p className="zy-admin-line">
+              <strong>{next.essay.title}</strong>
+              {next.essay.author ? <> &middot; {next.essay.author}</> : null}
+              {next.essay.uploaded ? <> &middot; {next.essay.uploaded}</> : null}
+            </p>
+            <p className="zy-form-hint">
+              Nothing new has been uploaded for {next.parsha}, so this one from the archive is next in line among
+              those marked to republish. It goes to the back of the line once it&apos;s sent. Uploading a new one
+              before Friday sends that instead.{" "}
+              <Link href="/zichronyonatan/manage">Manage Divrei Torah</Link>
+            </p>
+          </>
         ) : next.essay ? (
           <>
             <p className="zy-admin-line">
@@ -253,8 +267,10 @@ export default function AdminPanel({ emailReady, next, subscribers, essays, log 
           </>
         ) : (
           <p className="zy-form-hint">
-            Nothing has been uploaded for {next.parsha || "that week"} yet, so nothing will be sent unless one is.{" "}
-            <Link href="/zichronyonatan/upload">Upload a Dvar Torah</Link>
+            Nothing has been uploaded for {next.parsha || "that week"} yet, and none of its Divrei Torah are marked
+            to republish, so nothing will be sent unless one is.{" "}
+            <Link href="/zichronyonatan/upload">Upload a Dvar Torah</Link> &middot;{" "}
+            <Link href="/zichronyonatan/manage">Mark one to republish</Link>
           </p>
         )}
         <div className="zy-actions">
@@ -411,6 +427,7 @@ export default function AdminPanel({ emailReady, next, subscribers, essays, log 
                       {l.kind === "scheduled" || l.kind === "manual" ? (
                         <>
                           Sent to {l.recipients} subscriber{l.recipients === 1 ? "" : "s"}
+                          {l.note && <span className="zy-list-sub"> &middot; {l.note}</span>}
                           {l.failures > 0 && (
                             <span className="zy-log-failed" title={l.failedList}>
                               {" "}

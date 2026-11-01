@@ -295,6 +295,16 @@ export async function initZyDb() {
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     )
   `
+  // Divrei Torah (upload or archive id) marked on the manage page as fair
+  // game for the weekly email when nothing new was uploaded. Each parsha's
+  // queue runs never-sent first, then least recently sent.
+  await sql`
+    CREATE TABLE IF NOT EXISTS zy_republish (
+      essay_id TEXT PRIMARY KEY,
+      marked_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      last_sent_at TIMESTAMPTZ
+    )
+  `
   // Fridays (Israel date, YYYY-MM-DD) whose scheduled email was cancelled.
   await sql`
     CREATE TABLE IF NOT EXISTS zy_schedule_skips (

@@ -27,6 +27,13 @@ export default async function ZichryonYonatanHome() {
       year: e.year,
     }));
 
+  // Each parsha card can jump straight to one of its essays (newest first).
+  const essaysByParsha = new Map<string, SearchItem[]>();
+  for (const item of searchItems) {
+    if (!essaysByParsha.has(item.parshaSlug)) essaysByParsha.set(item.parshaSlug, []);
+    essaysByParsha.get(item.parshaSlug)!.push(item);
+  }
+
   const currentSlug = getCurrentParshaSlug();
   const currentMeta = currentSlug ? await getParshaMeta(currentSlug) : undefined;
   const currentEssays = currentSlug
@@ -84,23 +91,38 @@ export default async function ZichryonYonatanHome() {
                   p.years.length > 1
                     ? `${p.years[0]}–${p.years[p.years.length - 1]}`
                     : p.years[0];
+                const parshaEssays = essaysByParsha.get(p.slug) ?? [];
                 return (
-                  <Link
+                  <div
                     key={p.slug}
-                    href={`/zichronyonatan/parsha/${p.slug}`}
                     className={"zy-parsha-card" + (!p.hasVerified ? " zy-is-placeholder" : "")}
                   >
-                    <h3>{p.parsha}</h3>
-                    {p.hasVerified ? (
-                      <span>
-                        {p.count} essay{p.count === 1 ? "" : "s"}
-                        {yearRange ? ` · ${yearRange}` : ""}
-                        {p.authors.length ? ` · ${p.authors.join(", ")}` : ""}
-                      </span>
-                    ) : (
-                      <span className="zy-placeholder-tag">Pending re-verification</span>
+                    <Link href={`/zichronyonatan/parsha/${p.slug}`} className="zy-parsha-card-link">
+                      <h3>{p.parsha}</h3>
+                      {p.hasVerified ? (
+                        <span>
+                          {p.count} essay{p.count === 1 ? "" : "s"}
+                          {yearRange ? ` · ${yearRange}` : ""}
+                          {p.authors.length ? ` · ${p.authors.join(", ")}` : ""}
+                        </span>
+                      ) : (
+                        <span className="zy-placeholder-tag">Pending re-verification</span>
+                      )}
+                    </Link>
+                    {parshaEssays.length > 1 && (
+                      <details className="zy-card-essays">
+                        <summary>Jump to an essay</summary>
+                        <ul>
+                          {parshaEssays.map((e) => (
+                            <li key={e.slug}>
+                              <Link href={`/zichronyonatan/parsha/${p.slug}#${e.slug}`}>{e.title}</Link>
+                              <span>{[e.year, e.author].filter(Boolean).join(" · ")}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </details>
                     )}
-                  </Link>
+                  </div>
                 );
               })}
             </div>

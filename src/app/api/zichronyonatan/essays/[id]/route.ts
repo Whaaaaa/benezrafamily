@@ -10,6 +10,7 @@ import {
   isArchiveId,
 } from "@/lib/content-zichronyonatan";
 import type { ZyEssayRow } from "@/lib/zy-email";
+import { setRepublish } from "@/lib/zy-republish";
 
 function revalidate(...slugs: string[]) {
   revalidatePath("/zichronyonatan");
@@ -79,6 +80,13 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
   const { id } = await params;
   const patch = await req.json();
 
+  // `{ republish }` alone marks/unmarks it for the weekly email's fallback.
+  if (typeof patch.republish === "boolean") {
+    if (!(await getManagedEssay(id))) return Response.json({ error: "Dvar Torah not found" }, { status: 404 });
+    await setRepublish(id, patch.republish);
+    return Response.json({ ok: true });
+  }
+
   if (isArchiveId(id)) return patchArchive(id, patch);
 
   const rows = (await sql`SELECT * FROM zy_essays WHERE id = ${id}`) as ZyEssayRow[];
@@ -115,6 +123,7 @@ export async function DELETE(_req: Request, { params }: { params: Promise<{ id: 
   const rows = (await sql`DELETE FROM zy_essays WHERE id = ${id} RETURNING parsha_slug`) as {
     parsha_slug: string;
   }[];
+  await setRepublish(id, false);
   if (rows[0]) revalidate(rows[0].parsha_slug);
   else revalidatePath("/zichronyonatan");
   return Response.json({ ok: true });

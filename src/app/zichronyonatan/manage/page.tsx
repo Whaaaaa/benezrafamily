@@ -2,6 +2,7 @@ import Link from "next/link";
 import { isZyAuthed } from "@/lib/zy-auth";
 import { formatEssayDate, getAllEssays, displayAuthor } from "@/lib/content-zichronyonatan";
 import { getEssayFormOptions } from "@/lib/zy-essays";
+import { getRepublishMap } from "@/lib/zy-republish";
 import { htmlToText } from "@/lib/zy-html";
 import TopBar from "../TopBar";
 import ZyLogin from "../ZyLogin";
@@ -21,9 +22,10 @@ export default async function ManagePage() {
     );
   }
 
-  const [all, { parshaGroups }] = await Promise.all([
+  const [all, { parshaGroups }, republish] = await Promise.all([
     getAllEssays({ includeHidden: true }),
     getEssayFormOptions(),
+    getRepublishMap(),
   ]);
 
   // Site uploads first (newest first), then the archive in parsha order.
@@ -39,6 +41,7 @@ export default async function ManagePage() {
 
   const essays = ordered.map((e) => {
       const text = (e.html ? htmlToText(e.html) : e.body).replace(/\s+/g, " ").trim();
+      const queued = republish.get(e.id);
       return {
         id: e.id,
         title: e.title,
@@ -50,6 +53,8 @@ export default async function ManagePage() {
         edited: !!e.edited,
         hidden: !!e.hidden,
         emailed: e.emailedAt ? formatEssayDate(new Date(e.emailedAt)) : null,
+        republish: !!queued,
+        republished: queued?.lastSentAt ? formatEssayDate(new Date(queued.lastSentAt)) : null,
         words: text.split(" ").filter(Boolean).length,
         excerpt: text.slice(0, 220),
       };

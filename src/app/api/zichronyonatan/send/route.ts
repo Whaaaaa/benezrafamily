@@ -1,6 +1,7 @@
-import sql, { initZyDb } from "@/lib/db";
+import { initZyDb } from "@/lib/db";
 import { isZyAuthed, unauthorized } from "@/lib/zy-auth";
-import { getNextScheduled, logEmail, sendEssay, sendEssayToList, type ZyEssayRow } from "@/lib/zy-email";
+import { getNextScheduled, logEmail, sendEssay, sendEssayToList } from "@/lib/zy-email";
+import { getEmailEssay } from "@/lib/zy-republish";
 
 export const maxDuration = 300;
 
@@ -12,8 +13,8 @@ export async function POST(req: Request) {
   await initZyDb();
   const { essayId, mode, testEmail } = await req.json();
 
-  const rows = (await sql`SELECT * FROM zy_essays WHERE id = ${essayId}`) as ZyEssayRow[];
-  const essay = rows[0];
+  // Uploads or archive essays (the next scheduled email may be a republish).
+  const essay = await getEmailEssay(String(essayId || ""));
   if (!essay) return Response.json({ error: "Dvar Torah not found" }, { status: 404 });
 
   try {

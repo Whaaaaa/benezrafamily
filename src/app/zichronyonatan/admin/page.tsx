@@ -54,7 +54,7 @@ export default async function AdminPage() {
     author: e.author,
     parsha: parshaNames[e.parsha_slug] || e.parsha_slug,
     parshaSlug: e.parsha_slug,
-    uploaded: fmt(e.created_at),
+    uploaded: e.date_label ?? fmt(e.created_at),
     emailed: e.emailed_at ? fmt(e.emailed_at) : null,
   });
 
@@ -71,6 +71,7 @@ export default async function AdminPage() {
             label: next.label,
             parsha: next.parsha,
             cancelled: next.cancelled,
+            republished: next.republished,
             essay: next.essay ? toEssay(next.essay) : null,
           }}
           subscribers={subscribers.map((s) => ({ email: s.email, name: s.name, added: fmt(s.created_at) }))}
