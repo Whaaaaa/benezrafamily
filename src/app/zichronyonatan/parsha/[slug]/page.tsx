@@ -93,6 +93,19 @@ export default async function ParshaPage({
             <div className="zy-essay-meta">
               {e.date}
               {displayAuthor(e.author) ? ` · ${displayAuthor(e.author)}` : ""}
+              <a
+                href={`/zichronyonatan/print/${encodeURIComponent(e.id)}?auto=1`}
+                target="_blank"
+                rel="noopener"
+                className="zy-essay-print-link"
+                aria-label={`Print ${e.title}`}
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+                  <path d="M6 9V2h12v7M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" />
+                  <path d="M6 14h12v8H6z" />
+                </svg>
+                Print
+              </a>
             </div>
             {e.html ? (
               // Uploaded or edited on the site; sanitized against a strict

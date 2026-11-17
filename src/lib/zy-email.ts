@@ -66,6 +66,7 @@ export function unsubscribeUrl(token: string) {
 export function buildEssayEmail(essay: ZyEssayRow, token: string) {
   const parsha = parshaName(essay.parsha_slug);
   const essayUrl = `${SITE_URL}/zichronyonatan/parsha/${essay.parsha_slug}`;
+  const printUrl = `${SITE_URL}/zichronyonatan/print/${encodeURIComponent(essay.id)}?auto=1`;
   const unsubUrl = unsubscribeUrl(token);
   const date = essay.date_label ?? formatEssayDate(new Date(essay.created_at));
   const meta = [date, essay.author].filter(Boolean).join(" · ");
@@ -94,7 +95,7 @@ export function buildEssayEmail(essay: ZyEssayRow, token: string) {
   <tr><td style="background:#fffdf8;padding:32px 36px 12px;border-left:1px solid #e6dfcf;border-right:1px solid #e6dfcf;">
     <div style="font-family:${serif};font-size:12px;font-weight:bold;letter-spacing:0.08em;text-transform:uppercase;color:#6f7d5c;margin-bottom:6px;">This week&rsquo;s parsha &middot; ${esc(parsha)}</div>
     <h1 style="margin:0 0 8px;font-family:${serif};font-size:26px;line-height:1.3;font-weight:bold;color:#1c2a44;">${esc(essay.title)}</h1>
-    <div style="font-family:${serif};font-size:13px;letter-spacing:0.05em;text-transform:uppercase;color:#6c6252;padding-bottom:20px;margin-bottom:24px;border-bottom:1px solid #e6dfcf;">${esc(meta)}</div>
+    <div style="font-family:${serif};font-size:13px;letter-spacing:0.05em;text-transform:uppercase;color:#6c6252;padding-bottom:20px;margin-bottom:24px;border-bottom:1px solid #e6dfcf;">${esc(meta)}<span style="text-transform:none;letter-spacing:0;"> &nbsp;&middot;&nbsp; <a href="${printUrl}" style="color:#a3763f;font-weight:bold;">Print</a></span></div>
     ${emailifyHtml(essay.body_html)}
   </td></tr>
 
@@ -102,6 +103,7 @@ export function buildEssayEmail(essay: ZyEssayRow, token: string) {
     <table role="presentation" cellpadding="0" cellspacing="0"><tr><td style="background:#1c2a44;border-radius:4px;">
       <a href="${essayUrl}" style="display:inline-block;padding:12px 26px;font-family:${serif};font-size:15px;font-weight:bold;color:#faf5e8;text-decoration:none;">Read more Divrei Torah on ${esc(parsha)} &rarr;</a>
     </td></tr></table>
+    <div style="margin-top:14px;font-family:${serif};font-size:14px;"><a href="${printUrl}" style="color:#a3763f;">Print a printer-friendly copy of this Dvar Torah</a></div>
     <div style="margin-top:14px;font-family:${serif};font-size:14px;"><a href="${SITE_URL}/zichronyonatan" style="color:#a3763f;">Browse the full Zichron Yonatan archive</a></div>
   </td></tr>
 
@@ -125,6 +127,7 @@ export function buildEssayEmail(essay: ZyEssayRow, token: string) {
     htmlToText(essay.body_html),
     "",
     `Read more on the site: ${essayUrl}`,
+    `Print a printer-friendly copy: ${printUrl}`,
     "",
     "The learning on this site should be a merit for the neshama of Yonatan ben Avraham Avinu a\"h.",
     "",
