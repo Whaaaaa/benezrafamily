@@ -1,0 +1,30 @@
+/* Kindle / EPUB styles: kept light so readers can change font and size. */
+@font-face { font-family: "Noto Serif Hebrew"; src: url(../fonts/noto-serif-hebrew-hebrew-400-normal.woff); font-weight: normal; }
+@font-face { font-family: "Noto Serif Hebrew"; src: url(../fonts/noto-serif-hebrew-hebrew-700-normal.woff); font-weight: bold; }
+
+body { font-family: serif; line-height: 1.45; margin: 0 4%; }
+p { margin: 0; text-indent: 1.4em; text-align: justify; }
+p.he, p[dir="rtl"] { font-family: "Noto Serif Hebrew", serif; text-align: right; text-indent: 0; margin: 0.4em 0; }
+h1, h2, h3, h4 { font-weight: normal; text-align: center; page-break-after: avoid; }
+.fm-heading { font-size: 1.5em; margin: 1.5em 0 1em; }
+.visually-hidden { display: none; }
+.copyright-page p, .dedication p { text-indent: 0; text-align: center; margin-bottom: 0.8em; font-size: 0.9em; }
+.dedication p { font-style: italic; font-size: 1.1em; margin-top: 3em; }
+.part-title { font-size: 2em; margin-top: 30%; }
+.part-sub { text-align: center; font-style: italic; text-indent: 0; }
+.parsha-label { text-align: center; text-indent: 0; font-variant: small-caps; letter-spacing: 0.15em; margin-top: 2em; }
+.parsha-title { font-size: 1.7em; margin: 0.2em 0 1.2em; }
+.essay { margin-bottom: 2.5em; }
+.essay + .essay { page-break-before: always; }
+.essay-title { font-style: italic; font-size: 1.2em; margin: 1em 0 0.3em; }
+.byline { text-align: center; text-indent: 0; font-variant: small-caps; letter-spacing: 0.05em; margin-bottom: 1.2em; }
+.essay-title + p, .byline + p { text-indent: 0; }
+.ix-author { font-variant: small-caps; font-size: 1.15em; text-align: left; margin: 1.2em 0 0.3em; }
+ul.ix { list-style: none; padding-left: 1em; margin: 0; }
+ul.ix li { margin: 0.2em 0; }
+.title-page { text-align: center; margin-top: 25%; }
+.book-title { font-size: 2.2em; }
+.book-title-he { font-family: "Noto Serif Hebrew", serif; font-size: 1.6em; text-align: center; text-indent: 0; }
+.book-subtitle { font-style: italic; text-align: center; text-indent: 0; margin-top: 1.5em; }
+.book-credit { text-align: center; text-indent: 0; margin-top: 3em; font-variant: small-caps; }
+.author-index a { text-decoration: none; }
