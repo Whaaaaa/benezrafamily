@@ -32,7 +32,6 @@ export default async function ParshaPage({
   if (!meta) return notFound();
 
   const verified = essays.filter((e) => e.verbatim && !e.placeholder);
-  const pending = essays.filter((e) => e.placeholder);
 
   return (
     <>
@@ -44,12 +43,9 @@ export default async function ParshaPage({
         <h1 className="zy-parsha-h1">{meta.parsha}</h1>
         <span className="zy-parsha-book-tag">{meta.book}</span>
 
-        {pending.length > 0 && (
+        {verified.length === 0 && (
           <p className="zy-placeholder-note">
-            An essay for {meta.parsha} exists in the family archive but
-            hasn&apos;t been re-fetched and verified word-for-word yet in this
-            pass, so it&apos;s intentionally left off this page rather than
-            shown in a paraphrased form.
+            No Dvar Torah for {meta.parsha} has been added to the archive yet.
           </p>
         )}
 

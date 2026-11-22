@@ -1,5 +1,5 @@
 import sql from "@/lib/db";
-import { archiveBodyToHtml, getAllEssays, getManagedEssay, type Essay } from "@/lib/content-zichronyonatan";
+import { getAllEssays, getManagedEssay, type Essay } from "@/lib/content-zichronyonatan";
 
 // When nothing new is uploaded for a Shabbat, the weekly email re-sends a
 // Dvar Torah from that parsha -- but only ones marked "Republish" on the
@@ -64,7 +64,7 @@ export function essayToEmailRow(e: Essay) {
     parsha_slug: e.parshaSlug,
     title: e.title,
     author: e.author,
-    body_html: e.html ?? archiveBodyToHtml(e.body),
+    body_html: e.html ?? "",
     created_at: e.createdAt ?? new Date(0).toISOString(),
     emailed_at: e.emailedAt ?? null,
     // Archive essays carry a free-text date rather than an upload time.

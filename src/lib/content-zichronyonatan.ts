@@ -1,39 +1,6 @@
-import fs from "fs";
-import path from "path";
-import matter from "gray-matter";
 import sql from "@/lib/db";
-
-const CONTENT_DIR = path.join(process.cwd(), "content/zichronyonatan");
-
-const MONTHS = [
-  "January", "February", "March", "April", "May", "June",
-  "July", "August", "September", "October", "November", "December",
-];
-
-/** Best-effort chronological sort key for the free-text `date` field. */
-function parseDateForSort(date: string): number {
-  if (!date) return 0;
-
-  let m = date.match(/(\d{4})-(\d{2})-(\d{2})/);
-  if (m) return new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3])).getTime();
-
-  m = date.match(/^([A-Za-z]+)\s+(\d{1,2}),\s*(\d{4})$/);
-  if (m) {
-    const mi = MONTHS.indexOf(m[1]);
-    if (mi >= 0) return new Date(Number(m[3]), mi, Number(m[2])).getTime();
-  }
-
-  m = date.match(/^([A-Za-z]+)\s+(\d{4})$/);
-  if (m) {
-    const mi = MONTHS.indexOf(m[1]);
-    if (mi >= 0) return new Date(Number(m[2]), mi, 1).getTime();
-  }
-
-  m = date.match(/(\d{4})/);
-  if (m) return new Date(Number(m[1]), 0, 1).getTime();
-
-  return 0;
-}
+import { ensureArchiveImported } from "@/lib/zy-archive-import";
+import { PARSHIOT, getParshaDef } from "@/lib/zy-parshiot";
 
 /** Pulls just the year out of the free-text `date` field, for display. */
 function extractYear(date: string): string {
@@ -51,8 +18,8 @@ export function displayAuthor(author: string): string {
 }
 
 export type Essay = {
-  // Stable id used by the manage pages: the zy_essays id for uploads,
-  // archiveId(dir, slug) for markdown essays.
+  // zy_essays id: `up-…` for uploads, `a~<parsha>~<file>` for essays that
+  // came from the original family archive.
   id: string;
   slug: string;
   parsha: string;
@@ -67,10 +34,9 @@ export type Essay = {
   source: string;
   verbatim: boolean;
   placeholder: boolean;
+  // Every essay is stored as sanitized HTML (`html`); `body` is kept empty
+  // for older callers that fell back to plain text.
   body: string;
-  // `html` is set for Divrei Torah uploaded through the site and for archive
-  // essays whose text was edited there; it's sanitized on save and rendered
-  // as-is in place of `body`.
   uploaded?: boolean;
   html?: string;
   createdAt?: string;
@@ -90,62 +56,6 @@ export function isArchiveId(id: string) {
   return id.startsWith(ARCHIVE_PREFIX);
 }
 
-function escapeHtml(s: string) {
-  return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-}
-
-/** The markdown archive's plain paragraphs as HTML, for the editor. */
-export function archiveBodyToHtml(body: string): string {
-  return body
-    .split("\n\n")
-    .map((p) => p.trim())
-    .filter(Boolean)
-    .map((p) => `<p>${escapeHtml(p)}</p>`)
-    .join("");
-}
-
-function getArchiveEssays(): Essay[] {
-  try {
-    if (!fs.existsSync(CONTENT_DIR)) return [];
-    const essays: Essay[] = [];
-    const parshaDirs = fs
-      .readdirSync(CONTENT_DIR)
-      .filter((f) => fs.statSync(path.join(CONTENT_DIR, f)).isDirectory());
-    for (const dir of parshaDirs) {
-      const dirPath = path.join(CONTENT_DIR, dir);
-      const files = fs.readdirSync(dirPath).filter((f) => f.endsWith(".md"));
-      for (const file of files) {
-        const raw = fs.readFileSync(path.join(dirPath, file), "utf-8");
-        const { data, content } = matter(raw);
-        const date = data.date || "";
-        const slug = file.replace(/\.md$/, "");
-        essays.push({
-          id: archiveId(dir, slug),
-          slug,
-          parsha: data.parsha || dir,
-          parshaSlug: dir,
-          book: data.book || "",
-          bookOrder: typeof data.bookOrder === "number" ? data.bookOrder : 9,
-          order: typeof data.order === "number" ? data.order : 999,
-          date,
-          year: extractYear(date),
-          title: data.title || data.parsha || dir,
-          author: data.author || "",
-          source: data.source || "",
-          verbatim: !!data.verbatim,
-          placeholder: !!data.placeholder,
-          // Normalize CRLF (Windows checkouts) so paragraph splitting works.
-          body: content.replace(/\r\n?/g, "\n").trim(),
-        });
-      }
-    }
-    return essays;
-  } catch (error) {
-    console.error("Error loading essays from", CONTENT_DIR, error);
-    return [];
-  }
-}
-
 export function formatEssayDate(d: Date): string {
   return d.toLocaleDateString("en-US", {
     month: "long",
@@ -155,7 +65,9 @@ export function formatEssayDate(d: Date): string {
   });
 }
 
-type UploadedRow = {
+export type ArchiveOriginal = { parsha_slug: string; title: string; author: string; body_html: string };
+
+type EssayRow = {
   id: string;
   parsha_slug: string;
   title: string;
@@ -163,108 +75,75 @@ type UploadedRow = {
   body_html: string;
   created_at: string | Date;
   emailed_at: string | Date | null;
-};
-
-type OverrideRow = {
-  id: string;
-  parsha_slug: string | null;
-  title: string | null;
-  author: string | null;
-  body_html: string | null;
+  essay_date: string | null;
+  source: string;
   hidden: boolean;
+  original: ArchiveOriginal | null;
 };
 
-type ParshaInfo = { parsha: string; book: string; bookOrder: number; order: number };
+const squash = (s: string) => s.replace(/\s+/g, " ").trim();
 
-// Uploads and recategorized essays are always filed under a parsha that
-// exists in the archive, so they borrow its display name and ordering.
-function parshaInfo(archive: Essay[], slug: string): ParshaInfo | undefined {
-  const e = archive.find((a) => a.parshaSlug === slug);
-  return e && { parsha: e.parsha, book: e.book, bookOrder: e.bookOrder, order: e.order };
+/** True if an archive essay differs from its original in any field. */
+export function isEdited(r: Pick<EssayRow, "parsha_slug" | "title" | "author" | "body_html">, o: ArchiveOriginal | null) {
+  if (!o) return false;
+  return (
+    r.parsha_slug !== o.parsha_slug ||
+    r.title !== o.title ||
+    r.author !== o.author ||
+    // The editor re-serializes HTML with different whitespace, which
+    // doesn't change how it renders.
+    squash(r.body_html) !== squash(o.body_html)
+  );
 }
 
-async function getUploadedEssays(archive: Essay[]): Promise<Essay[]> {
-  if (!process.env.DATABASE_URL) return [];
-  let rows: UploadedRow[];
-  try {
-    rows = (await sql`
-      SELECT id, parsha_slug, title, author, body_html, created_at, emailed_at
-      FROM zy_essays ORDER BY created_at DESC
-    `) as UploadedRow[];
-  } catch {
-    // Table not created yet (no uploads so far) or DB unreachable — the
-    // archive still renders from the markdown files.
-    return [];
-  }
-  return rows.map((r) => {
-    const meta = parshaInfo(archive, r.parsha_slug);
-    const created = new Date(r.created_at);
-    const date = formatEssayDate(created);
-    return {
-      id: r.id,
-      slug: r.id,
-      parsha: meta?.parsha || r.parsha_slug,
-      parshaSlug: r.parsha_slug,
-      book: meta?.book || "",
-      bookOrder: meta?.bookOrder ?? 9,
-      order: meta?.order ?? 999,
-      date,
-      year: extractYear(date),
-      title: r.title,
-      author: r.author,
-      source: "Uploaded",
-      verbatim: true,
-      placeholder: false,
-      body: "",
-      uploaded: true,
-      html: r.body_html,
-      createdAt: created.toISOString(),
-      emailedAt: r.emailed_at ? new Date(r.emailed_at).toISOString() : undefined,
-    };
-  });
-}
-
-async function getOverrides(): Promise<Map<string, OverrideRow>> {
-  if (!process.env.DATABASE_URL) return new Map();
-  try {
-    const rows = (await sql`SELECT * FROM zy_archive_overrides`) as OverrideRow[];
-    return new Map(rows.map((r) => [r.id, r]));
-  } catch {
-    return new Map(); // table not created yet: nothing has been edited
-  }
-}
-
-function applyOverride(e: Essay, o: OverrideRow | undefined, archive: Essay[]): Essay {
-  if (!o) return e;
-  const moved = o.parsha_slug && o.parsha_slug !== e.parshaSlug ? parshaInfo(archive, o.parsha_slug) : undefined;
+function toEssay(r: EssayRow): Essay {
+  const archive = isArchiveId(r.id);
+  const meta = getParshaDef(r.parsha_slug);
+  const created = new Date(r.created_at);
+  const date = archive ? r.essay_date || "" : formatEssayDate(created);
   return {
-    ...e,
-    ...(moved && o.parsha_slug ? { ...moved, parshaSlug: o.parsha_slug } : {}),
-    title: o.title ?? e.title,
-    author: o.author ?? e.author,
-    html: o.body_html ?? undefined,
-    edited: o.parsha_slug !== null || o.title !== null || o.author !== null || o.body_html !== null,
-    hidden: o.hidden,
+    id: r.id,
+    // Archive essays keep their old anchor (the markdown file name).
+    slug: archive ? r.id.split("~").pop()! : r.id,
+    parsha: meta?.parsha || r.parsha_slug,
+    parshaSlug: r.parsha_slug,
+    book: meta?.book || "",
+    bookOrder: meta?.bookOrder ?? 9,
+    order: meta?.order ?? 999,
+    date,
+    year: extractYear(date),
+    title: r.title,
+    author: r.author,
+    source: archive ? r.source : "Uploaded",
+    verbatim: true,
+    placeholder: false,
+    body: "",
+    uploaded: !archive,
+    html: r.body_html,
+    createdAt: created.toISOString(),
+    emailedAt: r.emailed_at ? new Date(r.emailed_at).toISOString() : undefined,
+    edited: archive ? isEdited(r, r.original) : undefined,
+    hidden: r.hidden,
   };
 }
 
 /**
- * Every essay: uploads plus the markdown archive with any site edits applied.
- * Hidden archive essays are left out unless `includeHidden` (manage pages).
+ * Every essay in zy_essays: site uploads plus the original family archive.
+ * Hidden essays are left out unless `includeHidden` (manage pages).
  */
 export async function getAllEssays({ includeHidden = false } = {}): Promise<Essay[]> {
-  const archive = getArchiveEssays();
-  const [uploaded, overrides] = await Promise.all([getUploadedEssays(archive), getOverrides()]);
-  const merged = archive.map((e) => applyOverride(e, overrides.get(e.id), archive));
-  return [...uploaded, ...(includeHidden ? merged : merged.filter((e) => !e.hidden))];
+  if (!process.env.DATABASE_URL) return [];
+  await ensureArchiveImported();
+  const rows = (await sql`
+    SELECT id, parsha_slug, title, author, body_html, created_at, emailed_at,
+           essay_date, source, hidden, original
+    FROM zy_essays ORDER BY created_at DESC
+  `) as EssayRow[];
+  const essays = rows.map(toEssay);
+  return includeHidden ? essays : essays.filter((e) => !e.hidden);
 }
 
-/** The original (unedited) markdown essay for an archive id. */
-export function getOriginalArchiveEssay(id: string): Essay | undefined {
-  return getArchiveEssays().find((e) => e.id === id);
-}
-
-/** One essay by id (uploaded or archive, hidden included), for editing. */
+/** One essay by id (hidden included), for editing. */
 export async function getManagedEssay(id: string): Promise<Essay | undefined> {
   return (await getAllEssays({ includeHidden: true })).find((e) => e.id === id);
 }
@@ -281,33 +160,19 @@ export type ParshaSummary = {
   hasVerified: boolean;
 };
 
+/** Every parsha/holiday, with counts from `essays` (zero if none yet). */
 function summarize(essays: Essay[]): ParshaSummary[] {
-  const map = new Map<string, ParshaSummary>();
+  const map = new Map<string, ParshaSummary>(
+    PARSHIOT.map((p) => [p.slug, { ...p, count: 0, authors: [], years: [], hasVerified: false }])
+  );
   for (const e of essays) {
-    const existing = map.get(e.parshaSlug);
+    const s = map.get(e.parshaSlug);
+    if (!s) continue;
+    s.count += 1;
+    s.hasVerified = true;
     const displayed = displayAuthor(e.author);
-    if (existing) {
-      if (!e.placeholder) existing.count += 1;
-      if (displayed && !existing.authors.includes(displayed)) {
-        existing.authors.push(displayed);
-      }
-      if (e.year && !e.placeholder && !existing.years.includes(e.year)) {
-        existing.years.push(e.year);
-      }
-      if (e.verbatim) existing.hasVerified = true;
-    } else {
-      map.set(e.parshaSlug, {
-        slug: e.parshaSlug,
-        parsha: e.parsha,
-        book: e.book,
-        bookOrder: e.bookOrder,
-        order: e.order,
-        count: e.placeholder ? 0 : 1,
-        authors: displayed ? [displayed] : [],
-        years: e.year && !e.placeholder ? [e.year] : [],
-        hasVerified: e.verbatim,
-      });
-    }
+    if (displayed && !s.authors.includes(displayed)) s.authors.push(displayed);
+    if (e.year && !s.years.includes(e.year)) s.years.push(e.year);
   }
   return Array.from(map.values())
     .map((p) => ({ ...p, years: p.years.sort() }))
@@ -318,9 +183,9 @@ export async function getParshiot(): Promise<ParshaSummary[]> {
   return summarize(await getAllEssays());
 }
 
-/** Parsha list from the markdown archive only — no DB round trip. */
+/** The fixed parsha/holiday list — no DB round trip (counts are zero). */
 export function getArchiveParshiot(): ParshaSummary[] {
-  return summarize(getArchiveEssays());
+  return summarize([]);
 }
 
 export async function getBooks(): Promise<
@@ -338,8 +203,9 @@ export async function getBooks(): Promise<
 
 export type EssaySort = "date" | "author";
 
+// Archive essays were stored with their original date as created_at.
 function essayTime(e: Essay): number {
-  return e.createdAt ? Date.parse(e.createdAt) : parseDateForSort(e.date);
+  return e.createdAt ? Date.parse(e.createdAt) : 0;
 }
 
 export async function getEssaysForParsha(slug: string, sort: EssaySort = "date"): Promise<Essay[]> {
@@ -360,24 +226,23 @@ export async function getParshaMeta(slug: string): Promise<ParshaSummary | undef
 export async function getAuthors(): Promise<string[]> {
   const authors = new Set<string>();
   for (const e of await getAllEssays()) {
-    if (e.author && !e.placeholder) authors.add(e.author);
+    if (e.author) authors.add(e.author);
   }
   return Array.from(authors).sort((a, b) => a.localeCompare(b));
 }
 
 export async function totalStats() {
-  const all = await getAllEssays();
-  const essays = all.filter((e) => !e.placeholder);
+  const essays = await getAllEssays();
+  const parshiot = summarize(essays);
   const authors = new Set<string>();
   essays.forEach((e) => {
     const displayed = displayAuthor(e.author);
     if (displayed) authors.add(displayed);
   });
-  const pendingCount = all.filter((e) => e.placeholder).length;
   return {
     essayCount: essays.length,
     parshaCount: new Set(essays.map((e) => e.parshaSlug)).size,
     authorCount: authors.size,
-    pendingCount,
+    pendingCount: parshiot.filter((p) => p.count === 0).length,
   };
 }

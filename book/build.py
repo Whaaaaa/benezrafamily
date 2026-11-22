@@ -25,6 +25,7 @@ ROOT = Path(__file__).resolve().parent.parent
 BOOK = ROOT / "book"
 CONTENT = ROOT / "content" / "zichronyonatan"
 OUT = BOOK / "output"
+DATA = BOOK / "data" / "essays.json"   # from "Download book data" on the site's admin page
 
 MONTHS = ["January", "February", "March", "April", "May", "June", "July",
           "August", "September", "October", "November", "December"]
@@ -90,6 +91,10 @@ def display_author(a):
 
 
 def load_essays():
+    """Essays from the site export (book/data/essays.json) if present, else the markdown archive."""
+    if DATA.exists():
+        return load_export()
+    print(f"note: {DATA.relative_to(ROOT)} not found -- using the markdown files instead")
     essays = []
     for f in sorted(CONTENT.glob("*/*.md")):
         text = f.read_text(encoding="utf-8")
@@ -117,6 +122,35 @@ def load_essays():
             "date": date_disp,
             "body": body,
         })
+    return essays
+
+
+def load_export():
+    """The JSON saved by "Download book data" on the Zichron Yonatan admin page."""
+    import json
+    data = json.loads(DATA.read_text(encoding="utf-8"))
+    parshiot = {p["slug"]: p for p in data["parshiot"]}
+    essays = []
+    for x in data["essays"]:
+        p = parshiot.get(x["parshaSlug"])
+        if not p:
+            print(f"skipping {x['id']}: unknown parsha {x['parshaSlug']}")
+            continue
+        sort_key, date_disp = parse_date(x.get("date") or "")
+        essays.append({
+            "id": "e-" + re.sub(r"[^A-Za-z0-9_-]", "-", x["id"]),
+            "file": x["id"],
+            "slug": x["parshaSlug"],
+            "parsha": p["parsha"],
+            "book": p["book"],
+            "order": p["order"],
+            "title": (x.get("title") or "").strip(),
+            "author": display_author(x.get("author")),
+            "date_key": sort_key,
+            "date": date_disp,
+            "html": x.get("html") or "",
+        })
+    print(f"read {len(essays)} essays from {DATA.relative_to(ROOT)} (exported {data.get('exportedAt', '?')})")
     return essays
 
 
@@ -171,9 +205,12 @@ LATIN = re.compile(r"[A-Za-z]")
 
 
 def body_html(md_text):
+    return mark_rtl(markdown.markdown(md_text, extensions=["sane_lists"], output_format="html"))
+
+
+def mark_rtl(out):
     # U+2011 (non-breaking hyphen) is missing from the fonts; it looks identical to "-".
-    md_text = md_text.replace("‑", "-")
-    out = markdown.markdown(md_text, extensions=["sane_lists"], output_format="html")
+    out = out.replace("\u2011", "-")
     # Paragraphs that begin with Hebrew (ignoring punctuation) read right-to-left.
     def fix(m):
         inner = m.group(1)
@@ -199,7 +236,7 @@ def essay_html(e, sec):
              f'<h3 class="essay-title">{esc(head)}</h3>']
     if e["shown_title"] and byline_text(e):
         parts.append(f'<p class="byline">{esc(byline_text(e))}</p>')
-    parts.append(body_html(e["body"]))
+    parts.append(mark_rtl(e["html"]) if "html" in e else body_html(e["body"]))
     parts.append("</section>")
     return "\n".join(parts)
 

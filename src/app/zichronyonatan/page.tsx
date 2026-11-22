@@ -106,7 +106,7 @@ export default async function ZichryonYonatanHome() {
                           {p.authors.length ? ` · ${p.authors.join(", ")}` : ""}
                         </span>
                       ) : (
-                        <span className="zy-placeholder-tag">Pending re-verification</span>
+                        <span className="zy-placeholder-tag">None yet</span>
                       )}
                     </Link>
                     {parshaEssays.length > 0 && (

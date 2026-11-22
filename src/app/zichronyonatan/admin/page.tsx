@@ -1,6 +1,6 @@
 import sql, { initZyDb } from "@/lib/db";
 import { isZyAuthed } from "@/lib/zy-auth";
-import { getArchiveParshiot, formatEssayDate } from "@/lib/content-zichronyonatan";
+import { getAllEssays, getArchiveParshiot, formatEssayDate } from "@/lib/content-zichronyonatan";
 import { emailConfigured, getNextScheduled, type ZyEssayRow } from "@/lib/zy-email";
 import TopBar from "../TopBar";
 import ZyLogin from "../ZyLogin";
@@ -23,7 +23,7 @@ export default async function AdminPage() {
   await initZyDb();
   const [subRows, essayRows, logRows, next] = await Promise.all([
     sql`SELECT email, name, created_at FROM zy_subscribers ORDER BY created_at DESC, email`,
-    sql`SELECT * FROM zy_essays ORDER BY created_at DESC LIMIT 25`,
+    sql`SELECT * FROM zy_essays WHERE id NOT LIKE 'a~%' ORDER BY created_at DESC LIMIT 25`,
     sql`
       SELECT l.id, l.sent_at, l.kind, l.recipients, l.failures, l.failed_list, l.note, l.send_date,
              COALESCE(NULLIF(l.title, ''), e.title) AS title
@@ -32,6 +32,10 @@ export default async function AdminPage() {
     `,
     getNextScheduled(),
   ]);
+  // Also triggers the one-time import of the old archive into the database.
+  const allEssays = await getAllEssays({ includeHidden: true });
+  const archiveCount = allEssays.filter((e) => !e.uploaded).length;
+  const hiddenCount = allEssays.filter((e) => e.hidden).length;
   const subscribers = subRows as { email: string; name: string; created_at: string }[];
   const essays = essayRows as ZyEssayRow[];
   const log = logRows as {
@@ -96,6 +100,22 @@ export default async function AdminPage() {
             note: l.note,
           }))}
         />
+        <section className="zy-admin-section">
+          <h2>Archive &amp; book</h2>
+          <p className="zy-form-hint">
+            {allEssays.length} Divrei Torah in the database: {archiveCount} from the original family
+            archive, {allEssays.length - archiveCount} uploaded on the site
+            {hiddenCount ? `, ${hiddenCount} hidden` : ""}.
+          </p>
+          <p>
+            <a className="zy-button" href="/api/zichronyonatan/export" download>
+              Download book data
+            </a>
+          </p>
+          <p className="zy-form-hint">
+            Saves essays.json with every Dvar Torah shown on the site, for building the printed book.
+          </p>
+        </section>
       </main>
     </>
   );

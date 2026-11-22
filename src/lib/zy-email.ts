@@ -311,7 +311,7 @@ export async function getWeeklyEssay(sendDate?: string): Promise<{
   const since = new Date(friday.getTime() - WEEKLY_WINDOW_DAYS * 86400000);
   const rows = (await sql`
     SELECT * FROM zy_essays
-    WHERE parsha_slug = ${slug} AND created_at >= ${since.toISOString()}
+    WHERE parsha_slug = ${slug} AND created_at >= ${since.toISOString()} AND id NOT LIKE 'a~%'
     ORDER BY created_at DESC LIMIT 1
   `) as ZyEssayRow[];
   const parsha = parshaName(slug);

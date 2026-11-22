@@ -8,6 +8,15 @@ These files turn the website archive (`content/zichronyonatan/`) into files you 
 | `output/Zichron-Yonatan.epub` | KDP **Kindle eBook** manuscript. |
 | `output/Zichron-Yonatan.html` | Proofreading copy you can open in any browser. |
 
+## Getting the latest essays
+
+The essays live in the website's database. To rebuild the book with everything that's on the site now:
+
+1. Sign in to the Zichron Yonatan admin page and click **Download book data**.
+2. Save the file as `book/data/essays.json` (or send it to Claude), then rebuild.
+
+Without that file, the build falls back to the old markdown files in `content/zichronyonatan/`.
+
 ## Before you publish
 
 1. Edit `front-matter.md`. Replace the **[DEDICATION]** and **[INTRODUCTION]** placeholders, and check the title, subtitle, credit line and copyright holder.
@@ -25,7 +34,7 @@ These files turn the website archive (`content/zichronyonatan/`) into files you 
 - Essays are reproduced word for word. Auto-generated titles like "Bo (2021)" are dropped, and essays marked "Unsigned" are shown without a byline.
 - Not included:
   - The placeholder pages for Ha'azinu, Vezot HaBerakhah and Tu B'Shvat, which have no essay yet.
-  - Anything uploaded, edited or hidden through the website's admin pages. That lives in the database, not in this repo.
+  - Hidden essays (when built from `essays.json`).
 
 ## KDP settings
 

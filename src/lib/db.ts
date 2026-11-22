@@ -248,6 +248,13 @@ export async function initZyDb() {
       emailed_at TIMESTAMPTZ
     )
   `
+  // Essays moved over from the markdown archive (ids `a~...`) also carry
+  // their free-text date, where they came from, a hidden flag and a copy of
+  // the original so site edits can be reverted.
+  await sql`ALTER TABLE zy_essays ADD COLUMN IF NOT EXISTS essay_date TEXT`
+  await sql`ALTER TABLE zy_essays ADD COLUMN IF NOT EXISTS source TEXT NOT NULL DEFAULT ''`
+  await sql`ALTER TABLE zy_essays ADD COLUMN IF NOT EXISTS hidden BOOLEAN NOT NULL DEFAULT FALSE`
+  await sql`ALTER TABLE zy_essays ADD COLUMN IF NOT EXISTS original JSONB`
   await sql`
     CREATE TABLE IF NOT EXISTS zy_subscribers (
       email TEXT PRIMARY KEY,

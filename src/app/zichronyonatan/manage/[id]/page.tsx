@@ -1,12 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { isZyAuthed } from "@/lib/zy-auth";
-import {
-  archiveBodyToHtml,
-  formatEssayDate,
-  getManagedEssay,
-  getOriginalArchiveEssay,
-} from "@/lib/content-zichronyonatan";
+import { formatEssayDate, getManagedEssay } from "@/lib/content-zichronyonatan";
 import { getCurrentParshaSlug } from "@/lib/current-parsha";
 import { getEssayFormOptions } from "@/lib/zy-essays";
 import TopBar from "../../TopBar";
@@ -33,8 +28,7 @@ export default async function EditEssayPage({ params }: { params: Promise<{ id: 
   const essay = await getManagedEssay(decodeURIComponent(id));
   if (!essay || essay.placeholder) notFound();
 
-  const original = essay.uploaded ? undefined : getOriginalArchiveEssay(essay.id);
-  const html = essay.html ?? archiveBodyToHtml(original?.body ?? essay.body);
+  const html = essay.html ?? "";
   const { parshaGroups, authors } = await getEssayFormOptions();
 
   return (
@@ -56,7 +50,7 @@ export default async function EditEssayPage({ params }: { params: Promise<{ id: 
         ) : (
           <p className="zy-form-hint zy-form-intro">
             From the family archive{essay.date ? `, ${essay.date}` : ""}
-            {original?.source ? ` (${original.source})` : ""}. Changes go live as soon as you save; the
+            {essay.source ? ` (${essay.source})` : ""}. Changes go live as soon as you save; the
             original is kept, so you can always revert.
             {essay.hidden && <strong> This Dvar Torah is currently hidden from the site.</strong>}
           </p>
