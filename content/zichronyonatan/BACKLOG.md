@@ -213,3 +213,18 @@ it generic enough that the subject's calendar date is the better signal?).
   saved to Drive (the Friday before that Shabbat).
 - The 2017 Simchat Torah essay (047, "unsigned") is owned in Drive by
   adiccicco@gmail.com, so it is probably Adam's.
+- A sweep of all ~205 threads from freedmanyosef@gmail.com (bodies and
+  attachments, checked against the archive by text) found ten more essays,
+  added as 280-289: Yosef's Pesach "The Time of our Freedom" (#31, 2018),
+  Balak "The King's Treasury" (2018), Rosh Hashanah "The Desperate Beggar"
+  (#159, 2020), Pesach "The Broken Portraits" (#236, 2022), Noach "Who
+  Knows?" (#256, 2022); Adam's Balak (2021) and Pinchas "With God on Either
+  Side" (2018); Shira's Nitzavim (2019, unsigned in the email -- attributed
+  from Yosef's reply "Thank you Shira"); Avi's Acharei Mot-Kedoshim "Room for
+  Improvement" (2018) and Devarim "Lessons on Leadership" (2018, rebuilt from
+  the copy quoted in Yosef's reply).
+- Still not text: Yosef's audio (three "Chumash Shiur" recordings, a 2023
+  kollel drasha). The Nov 2026 Chayei Sarah 5787 talk was transcribed by Noah
+  by email and is meant to be uploaded through the site.
+- `shelach/255-yosef.md` is titled "Count Your Blessings" but its text is
+  #267 "The Timeless Challenge of the Spies" -- fix the title on the site.
