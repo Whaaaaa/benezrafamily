@@ -5,13 +5,15 @@ import sql, { initZyDb } from "@/lib/db";
 import { sanitizeEssayHtml } from "@/lib/zy-html";
 
 /**
- * One-time move of the markdown archive (content/zichronyonatan) into
- * zy_essays. Runs on the first request after deploy if no archive essay is in
- * the database yet, folding in any site edits from zy_archive_overrides. Ids
- * stay `a~<dir>~<file>` so email logs, republish marks and links keep working.
+ * Moves the markdown archive (content/zichronyonatan) into zy_essays. On the
+ * first request after each deploy it inserts any archive essay that isn't in
+ * the database yet: the whole archive the first time (folding in site edits
+ * from zy_archive_overrides), and afterwards only newly found essays added
+ * as markdown files. Ids stay `a~<dir>~<file>` so email logs, republish marks
+ * and links keep working. Existing rows are never touched, and archive essays
+ * can't be deleted on the site (only hidden), so nothing comes back unbidden.
  *
- * Once the import has run in production, the markdown files and this module
- * can be deleted: with no CONTENT_DIR it does nothing.
+ * With no CONTENT_DIR (once the markdown files are removed) it does nothing.
  */
 
 const CONTENT_DIR = path.join(process.cwd(), "content/zichronyonatan");
@@ -69,8 +71,9 @@ type OverrideRow = {
 async function runImport(): Promise<void> {
   if (!fs.existsSync(CONTENT_DIR)) return;
   await initZyDb();
-  const done = await sql`SELECT 1 FROM zy_essays WHERE id LIKE 'a~%' LIMIT 1`;
-  if (done.length) return;
+  const existing = new Set(
+    ((await sql`SELECT id FROM zy_essays WHERE id LIKE 'a~%'`) as { id: string }[]).map((r) => r.id)
+  );
 
   const overrides = new Map(
     ((await sql`SELECT * FROM zy_archive_overrides`) as OverrideRow[]).map((o) => [o.id, o])
@@ -84,6 +87,7 @@ async function runImport(): Promise<void> {
       const { data, content } = matter(fs.readFileSync(path.join(dirPath, file), "utf-8"));
       if (data.placeholder) continue;
       const id = `a~${dir}~${file.replace(/\.md$/, "")}`;
+      if (existing.has(id)) continue;
       const original = {
         parsha_slug: dir,
         title: String(data.title || data.parsha || dir),
@@ -109,7 +113,7 @@ async function runImport(): Promise<void> {
   }
   if (!rows.length) return;
 
-  // A single statement, so the import is all-or-nothing.
+  // A single statement, so each import is all-or-nothing.
   await sql`
     INSERT INTO zy_essays
       (id, parsha_slug, title, author, body_html, hidden, essay_date, source, created_at, original)
@@ -120,7 +124,7 @@ async function runImport(): Promise<void> {
     )
     ON CONFLICT (id) DO NOTHING
   `;
-  console.log(`Imported ${rows.length} archive essays into zy_essays`);
+  console.log(`Imported ${rows.length} archive essay(s) into zy_essays`);
 }
 
 let importing: Promise<void> | null = null;

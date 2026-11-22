@@ -194,3 +194,22 @@ don't assume the body always wins -- check for corroborating evidence
 (does the adjoining week already have this parsha covered? does the
 content actually reference anything specific to the claimed parsha, or is
 it generic enough that the subject's calendar date is the better signal?).
+
+## November 2026 pass: Ha'azinu, and six missing Yosef essays
+
+- **Ha'azinu** was searched for the first time: the Ha'azinu week of every
+  year 2017-2025 in Gmail (all family senders, any subject), plus Drive titles
+  and full text, and Gmail attachment filenames. Nothing. Ha'azinu always
+  falls between Rosh Hashanah and Sukkot, and the essays sent those weeks were
+  for Yom Kippur or Sukkot (already archived).
+- **Vezot HaBerakhah / Tu B'Shvat**: re-checked with attachment-filename and
+  Drive-title searches (new angles). Nothing from the family. The only Tu
+  B'Shvat hit is from shrozy@gmail.com, a separate mailing list.
+- Yosef's numbered Drive files turned up six essays that were never archived,
+  added as 274-279: Vayishlach "The Miracle of Nature" (#121), Vayechi
+  "Winning Before the Fight" (#125), 17 Tammuz "Wake Up" (#150), Va'eira
+  "Hidden Salvation" (#176), Kedoshim "The Self-Imposed Masters" (#238),
+  Tisha B'Av "Our Father's Lashes" (#272). Dates are the day each file was
+  saved to Drive (the Friday before that Shabbat).
+- The 2017 Simchat Torah essay (047, "unsigned") is owned in Drive by
+  adiccicco@gmail.com, so it is probably Adam's.
