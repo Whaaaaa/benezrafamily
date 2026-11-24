@@ -15,6 +15,7 @@ type Essay = {
   uploaded: boolean;
   edited: boolean;
   hidden: boolean;
+  inBook: boolean;
   emailed: string | null;
   republish: boolean;
   republished: string | null;
@@ -22,7 +23,7 @@ type Essay = {
   excerpt: string;
 };
 
-type Show = "all" | "uploaded" | "archive" | "edited" | "hidden" | "republish";
+type Show = "all" | "uploaded" | "archive" | "edited" | "hidden" | "republish" | "book" | "notbook";
 const PAGE = 30;
 
 export default function ManageList({ essays, parshaGroups }: { essays: Essay[]; parshaGroups: ParshaGroup[] }) {
@@ -52,7 +53,9 @@ export default function ManageList({ essays, parshaGroups }: { essays: Essay[]; 
           (show === "archive" && !e.uploaded) ||
           (show === "edited" && e.edited) ||
           (show === "hidden" && e.hidden) ||
-          (show === "republish" && e.republish)) &&
+          (show === "republish" && e.republish) ||
+          (show === "book" && e.inBook) ||
+          (show === "notbook" && !e.inBook)) &&
         (!parshaFilter || e.parshaSlug === parshaFilter) &&
         (!authorFilter || e.author === authorFilter) &&
         (!q || e.title.toLowerCase().includes(q) || e.excerpt.toLowerCase().includes(q))
@@ -124,6 +127,15 @@ export default function ManageList({ essays, parshaGroups }: { essays: Essay[]; 
     }
   }
 
+  async function setInBook(e: Essay, inBook: boolean) {
+    if (await request(`book-${e.id}`, essayUrl(e), "PATCH", { inBook })) {
+      setNotice({
+        kind: "ok",
+        text: inBook ? `“${e.title}” will be in the book.` : `“${e.title}” is left out of the book.`,
+      });
+    }
+  }
+
   return (
     <div className="zy-admin">
       {notice && (
@@ -180,6 +192,8 @@ export default function ManageList({ essays, parshaGroups }: { essays: Essay[]; 
             <option value="edited">Edited on the site</option>
             <option value="hidden">Hidden</option>
             <option value="republish">Marked to republish</option>
+            <option value="book">In the book</option>
+            <option value="notbook">Not in the book</option>
           </select>
         </label>
       </div>
@@ -209,6 +223,11 @@ export default function ManageList({ essays, parshaGroups }: { essays: Essay[]; 
                   <span className="zy-tag">{e.uploaded ? "Uploaded on the site" : "Family archive"}</span>
                   {e.edited && <span className="zy-tag zy-tag-gold">Edited</span>}
                   {e.hidden && <span className="zy-tag zy-tag-muted">Hidden from the site</span>}
+                  {e.inBook ? (
+                    <span className="zy-tag zy-tag-gold">In the book</span>
+                  ) : (
+                    <span className="zy-tag zy-tag-muted">Not in the book</span>
+                  )}
                   {e.republish && (
                     <span className="zy-tag zy-tag-sage">
                       Republish{e.republished ? ` · last re-sent ${e.republished}` : ""}
@@ -264,6 +283,15 @@ export default function ManageList({ essays, parshaGroups }: { essays: Essay[]; 
                     title="Lets the weekly email re-send this when nothing new is uploaded for its parsha"
                   >
                     {busy === `rep-${e.id}` ? "Saving…" : e.republish ? "Don't republish" : "Republish"}
+                  </button>
+                  <button
+                    type="button"
+                    className="zy-link-button"
+                    disabled={!!busy}
+                    onClick={() => setInBook(e, !e.inBook)}
+                    title="Whether this goes in the printed book"
+                  >
+                    {busy === `book-${e.id}` ? "Saving…" : e.inBook ? "Remove from book" : "Add to book"}
                   </button>
                   {e.uploaded ? (
                     <button

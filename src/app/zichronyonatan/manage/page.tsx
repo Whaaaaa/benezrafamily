@@ -52,6 +52,7 @@ export default async function ManagePage() {
         uploaded: !!e.uploaded,
         edited: !!e.edited,
         hidden: !!e.hidden,
+        inBook: !!e.inBook,
         emailed: e.emailedAt ? formatEssayDate(new Date(e.emailedAt)) : null,
         republish: !!queued,
         republished: queued?.lastSentAt ? formatEssayDate(new Date(queued.lastSentAt)) : null,
@@ -61,6 +62,7 @@ export default async function ManagePage() {
     });
 
   const uploadedCount = essays.filter((e) => e.uploaded).length;
+  const bookCount = essays.filter((e) => e.inBook).length;
 
   return (
     <>
@@ -68,7 +70,8 @@ export default async function ManagePage() {
       <main className="zy-main" id="zy-content">
         <h1 className="zy-parsha-h1">Manage Divrei Torah</h1>
         <span className="zy-parsha-book-tag">
-          {essays.length} Divrei Torah &middot; {uploadedCount} uploaded on the site &middot;{" "}
+          {essays.length} Divrei Torah &middot; {uploadedCount} uploaded on the site &middot; {bookCount} in
+          the book &middot;{" "}
           <Link href="/zichronyonatan/upload">Upload a new one</Link>
         </span>
         <ManageList essays={essays} parshaGroups={parshaGroups} />

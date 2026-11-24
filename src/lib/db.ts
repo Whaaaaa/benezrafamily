@@ -255,6 +255,25 @@ export async function initZyDb() {
   await sql`ALTER TABLE zy_essays ADD COLUMN IF NOT EXISTS source TEXT NOT NULL DEFAULT ''`
   await sql`ALTER TABLE zy_essays ADD COLUMN IF NOT EXISTS hidden BOOLEAN NOT NULL DEFAULT FALSE`
   await sql`ALTER TABLE zy_essays ADD COLUMN IF NOT EXISTS original JSONB`
+  // Which essays go in the printed book. Added with every essay selected
+  // except those already hidden from the site.
+  const hasInBook = await sql`
+    SELECT 1 FROM information_schema.columns
+    WHERE table_name = 'zy_essays' AND column_name = 'in_book'
+  `
+  if (!hasInBook.length) {
+    await sql`ALTER TABLE zy_essays ADD COLUMN IF NOT EXISTS in_book BOOLEAN NOT NULL DEFAULT TRUE`
+    await sql`UPDATE zy_essays SET in_book = FALSE WHERE hidden`
+  }
+  // The book's title page, copyright page, dedication and introduction
+  // (a single row, edited on the admin page).
+  await sql`
+    CREATE TABLE IF NOT EXISTS zy_book (
+      id INTEGER PRIMARY KEY DEFAULT 1 CHECK (id = 1),
+      settings JSONB NOT NULL,
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    )
+  `
   await sql`
     CREATE TABLE IF NOT EXISTS zy_subscribers (
       email TEXT PRIMARY KEY,

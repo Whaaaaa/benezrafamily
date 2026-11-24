@@ -30,6 +30,13 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
     return Response.json({ ok: true });
   }
 
+  // `{ inBook }` alone adds it to / removes it from the printed book.
+  if (typeof patch.inBook === "boolean") {
+    const updated = await sql`UPDATE zy_essays SET in_book = ${patch.inBook} WHERE id = ${id} RETURNING id`;
+    if (!updated.length) return Response.json({ error: "Dvar Torah not found" }, { status: 404 });
+    return Response.json({ ok: true });
+  }
+
   const rows = (await sql`SELECT * FROM zy_essays WHERE id = ${id}`) as Row[];
   const existing = rows[0];
   if (!existing) return Response.json({ error: "Dvar Torah not found" }, { status: 404 });

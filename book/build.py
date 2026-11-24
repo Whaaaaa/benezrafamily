@@ -242,6 +242,17 @@ def essay_html(e, sec):
 
 
 def front_matter():
+    """Title page, copyright and dedication/introduction: from the site export
+    ("Book details" on the admin page) if present, else book/front-matter.md."""
+    if DATA.exists():
+        import json
+        b = json.loads(DATA.read_text(encoding="utf-8")).get("book")
+        if b:
+            meta = {"title": b.get("title") or "Zichron Yonatan", "subtitle": b.get("subtitle", ""),
+                    "credit": b.get("credit", ""), "copyright_holder": b.get("copyrightHolder", ""),
+                    "copyright_year": b.get("copyrightYear", ""), "isbn": b.get("isbn", "")}
+            chunks = {k: b[k].strip() for k in ("dedication", "introduction") if (b.get(k) or "").strip()}
+            return meta, chunks
     text = (BOOK / "front-matter.md").read_text(encoding="utf-8")
     m = re.match(r"---\n(.*?)\n---\n?(.*)", text, re.S)
     meta = yaml.safe_load(m.group(1))
@@ -281,7 +292,8 @@ def build_html(parts, meta, fm, mode):
              "All rights reserved.</p>")
     o.append("<p>No part of this book may be reproduced in any form without written permission "
              "from the copyright holder, except for brief quotations.</p>")
-    o.append(f'<p>ISBN: {esc(str(meta.get("isbn", "")))}</p>')
+    if meta.get("isbn"):
+        o.append(f'<p>ISBN: {esc(str(meta["isbn"]))}</p>')
     o.append("<p>The essays in this collection are reproduced as originally written.</p>")
     o.append("</section>")
 
@@ -396,8 +408,8 @@ def build_epub(parts, meta, fm):
                       f'<p>Copyright © {meta.get("copyright_year")} {esc(meta.get("copyright_holder", ""))}. '
                       "All rights reserved.</p><p>No part of this book may be reproduced in any form without "
                       "written permission from the copyright holder, except for brief quotations.</p>"
-                      f'<p>ISBN: {esc(str(meta.get("isbn", "")))}</p>'
-                      "<p>The essays in this collection are reproduced as originally written.</p></section>")
+                      + (f'<p>ISBN: {esc(str(meta["isbn"]))}</p>' if meta.get("isbn") else "")
+                      + "<p>The essays in this collection are reproduced as originally written.</p></section>")
     spine.append(page("copyright.xhtml", "Copyright", copyright_body))
     for key in ("dedication", "introduction"):
         if fm.get(key):

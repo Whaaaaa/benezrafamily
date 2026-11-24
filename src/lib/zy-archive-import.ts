@@ -69,8 +69,9 @@ type OverrideRow = {
 };
 
 async function runImport(): Promise<void> {
-  if (!fs.existsSync(CONTENT_DIR)) return;
+  // Also brings the schema up to date (new columns) on the first request.
   await initZyDb();
+  if (!fs.existsSync(CONTENT_DIR)) return;
   const existing = new Set(
     ((await sql`SELECT id FROM zy_essays WHERE id LIKE 'a~%'`) as { id: string }[]).map((r) => r.id)
   );

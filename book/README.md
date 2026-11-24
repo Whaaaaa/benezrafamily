@@ -12,8 +12,11 @@ These files turn the website archive (`content/zichronyonatan/`) into files you 
 
 The essays live in the website's database. To rebuild the book with everything that's on the site now:
 
-1. Sign in to the Zichron Yonatan admin page and click **Download book data**.
-2. Save the file as `book/data/essays.json` (or send it to Claude), then rebuild.
+1. Choose the essays on the site's manage page: **Add to book** / **Remove from book** on each one, and Show → "In the book" to review the selection. Edit an essay's text with its **Edit** button; the same text is used on the site, in emails and in the book.
+2. Fill in the title, dedication, introduction and ISBN under **Book details** on the admin page.
+3. Click **Download book data** on the admin page. Save the file as `book/data/essays.json` (or send it to Claude), then rebuild.
+
+The export holds only the essays selected for the book, plus the book details. When it's present, `front-matter.md` is ignored.
 
 Without that file, the build falls back to the old markdown files in `content/zichronyonatan/`.
 

@@ -44,6 +44,8 @@ export type Essay = {
   // Archive essays only: edited through the site / hidden from the site.
   edited?: boolean;
   hidden?: boolean;
+  // Selected for the printed book.
+  inBook?: boolean;
 };
 
 const ARCHIVE_PREFIX = "a~";
@@ -78,6 +80,7 @@ type EssayRow = {
   essay_date: string | null;
   source: string;
   hidden: boolean;
+  in_book: boolean;
   original: ArchiveOriginal | null;
 };
 
@@ -124,6 +127,7 @@ function toEssay(r: EssayRow): Essay {
     emailedAt: r.emailed_at ? new Date(r.emailed_at).toISOString() : undefined,
     edited: archive ? isEdited(r, r.original) : undefined,
     hidden: r.hidden,
+    inBook: r.in_book,
   };
 }
 
@@ -136,7 +140,7 @@ export async function getAllEssays({ includeHidden = false } = {}): Promise<Essa
   await ensureArchiveImported();
   const rows = (await sql`
     SELECT id, parsha_slug, title, author, body_html, created_at, emailed_at,
-           essay_date, source, hidden, original
+           essay_date, source, hidden, in_book, original
     FROM zy_essays ORDER BY created_at DESC
   `) as EssayRow[];
   const essays = rows.map(toEssay);

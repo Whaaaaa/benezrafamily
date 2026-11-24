@@ -1,3 +1,4 @@
+import Link from "next/link";
 import sql, { initZyDb } from "@/lib/db";
 import { isZyAuthed } from "@/lib/zy-auth";
 import { getAllEssays, getArchiveParshiot, formatEssayDate } from "@/lib/content-zichronyonatan";
@@ -5,6 +6,8 @@ import { emailConfigured, getNextScheduled, type ZyEssayRow } from "@/lib/zy-ema
 import TopBar from "../TopBar";
 import ZyLogin from "../ZyLogin";
 import AdminPanel from "./AdminPanel";
+import BookSettingsForm from "./BookSettingsForm";
+import { getBookSettings } from "@/lib/zy-book";
 
 export const metadata = { title: "Mailing List | Zichron Yonatan" };
 
@@ -36,6 +39,8 @@ export default async function AdminPage() {
   const allEssays = await getAllEssays({ includeHidden: true });
   const archiveCount = allEssays.filter((e) => !e.uploaded).length;
   const hiddenCount = allEssays.filter((e) => e.hidden).length;
+  const bookCount = allEssays.filter((e) => e.inBook).length;
+  const book = await getBookSettings();
   const subscribers = subRows as { email: string; name: string; created_at: string }[];
   const essays = essayRows as ZyEssayRow[];
   const log = logRows as {
@@ -107,14 +112,25 @@ export default async function AdminPage() {
             archive, {allEssays.length - archiveCount} uploaded on the site
             {hiddenCount ? `, ${hiddenCount} hidden` : ""}.
           </p>
+          <p className="zy-form-hint">
+            <strong>{bookCount}</strong> selected for the book. Choose which ones on the{" "}
+            <Link href="/zichronyonatan/manage">manage page</Link> (Add to book / Remove from book, or
+            Show &ldquo;In the book&rdquo;). Edits you make to an essay there are used in the book too.
+          </p>
           <p>
             <a className="zy-button" href="/api/zichronyonatan/export" download>
               Download book data
             </a>
           </p>
           <p className="zy-form-hint">
-            Saves essays.json with every Dvar Torah shown on the site, for building the printed book.
+            Saves essays.json with the book details below and every Dvar Torah selected for the book,
+            for building the PDF and Kindle files.
           </p>
+        </section>
+        <section className="zy-admin-section">
+          <h2>Book details</h2>
+          <p className="zy-form-hint">The title page, copyright page, dedication and introduction.</p>
+          <BookSettingsForm initial={book} />
         </section>
       </main>
     </>
