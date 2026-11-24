@@ -2,7 +2,7 @@ import { revalidatePath } from "next/cache";
 import sql, { initZyDb } from "@/lib/db";
 import { isZyAuthed, unauthorized } from "@/lib/zy-auth";
 import { validateEssayInput } from "@/lib/zy-essays";
-import { getManagedEssay, isArchiveId, type ArchiveOriginal } from "@/lib/content-zichronyonatan";
+import { getManagedEssay, isArchiveId, isEdited, type ArchiveOriginal } from "@/lib/content-zichronyonatan";
 import type { ZyEssayRow } from "@/lib/zy-email";
 import { setRepublish } from "@/lib/zy-republish";
 
@@ -12,6 +12,18 @@ function revalidate(...slugs: string[]) {
 }
 
 type Row = ZyEssayRow & { hidden: boolean; original: ArchiveOriginal | null };
+
+// One essay's editable fields, for the inline editor on the manage page.
+export async function GET(_req: Request, { params }: { params: Promise<{ id: string }> }) {
+  if (!(await isZyAuthed())) return unauthorized();
+  const { id } = await params;
+  const rows = (await sql`
+    SELECT id, title, author, parsha_slug, body_html FROM zy_essays WHERE id = ${id}
+  `) as Pick<Row, "id" | "title" | "author" | "parsha_slug" | "body_html">[];
+  const r = rows[0];
+  if (!r) return Response.json({ error: "Dvar Torah not found" }, { status: 404 });
+  return Response.json({ id: r.id, title: r.title, author: r.author, parshaSlug: r.parsha_slug, html: r.body_html });
+}
 
 // Accepts any subset of { title, author, parshaSlug, html, hidden } — the
 // manage list recategorizes with just { parshaSlug } or hides with
@@ -51,7 +63,11 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
       WHERE id = ${id}
     `;
     revalidate(existing.parsha_slug, o.parsha_slug);
-    return Response.json({ ok: true, url: `/zichronyonatan/parsha/${o.parsha_slug}` });
+    return Response.json({
+      ok: true,
+      url: `/zichronyonatan/parsha/${o.parsha_slug}`,
+      essay: { title: o.title, author: o.author, parshaSlug: o.parsha_slug, html: o.body_html, edited: false },
+    });
   }
 
   const result = validateEssayInput(
@@ -77,7 +93,13 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
   `;
   revalidate(existing.parsha_slug, parshaSlug);
 
-  return Response.json({ ok: true, url: `/zichronyonatan/parsha/${parshaSlug}` });
+  // What was saved, so the manage page can update its row without a reload.
+  const edited = archive && isEdited({ parsha_slug: parshaSlug, title, author, body_html: html }, existing.original);
+  return Response.json({
+    ok: true,
+    url: `/zichronyonatan/parsha/${parshaSlug}`,
+    essay: { title, author, parshaSlug, html, edited, hidden },
+  });
 }
 
 export async function DELETE(_req: Request, { params }: { params: Promise<{ id: string }> }) {

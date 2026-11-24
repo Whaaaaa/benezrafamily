@@ -1572,3 +1572,24 @@ a.zy-list-main:hover {
     padding: 1.4rem 1.25rem;
   }
 }
+
+/* Manage page: the editor opened inside an essay's row */
+.zy-inline-editor {
+  margin: 0.75rem 0 0.25rem;
+  padding: 1rem;
+  border: 1px solid var(--zy-border);
+  border-radius: 10px;
+  background: var(--zy-cream);
+}
+.zy-manage-title.zy-link-button {
+  font-family: "Fraunces", serif;
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: var(--zy-navy);
+  text-decoration: none;
+  text-align: left;
+  padding: 0;
+}
+.zy-manage-title.zy-link-button:hover {
+  text-decoration: underline;
+}

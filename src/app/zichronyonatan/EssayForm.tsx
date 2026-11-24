@@ -14,6 +14,19 @@ type Props = {
   initial?: { id: string; title: string; author: string; parshaSlug: string; html: string };
   // Archive essays may be unsigned; new uploads always need an author.
   requireAuthor?: boolean;
+  // Inline editing on the manage page: called with what was saved instead
+  // of refreshing the page, and a Cancel button is shown.
+  onSaved?: (essay: SavedEssay) => void;
+  onCancel?: () => void;
+};
+
+export type SavedEssay = {
+  title: string;
+  author: string;
+  parshaSlug: string;
+  html: string;
+  edited: boolean;
+  hidden?: boolean;
 };
 
 const OTHER = "__other__";
@@ -34,7 +47,15 @@ function exec(command: string, value?: string) {
   document.execCommand(command, false, value);
 }
 
-export default function EssayForm({ parshaGroups, authors, defaultParsha, initial, requireAuthor = true }: Props) {
+export default function EssayForm({
+  parshaGroups,
+  authors,
+  defaultParsha,
+  initial,
+  requireAuthor = true,
+  onSaved,
+  onCancel,
+}: Props) {
   const router = useRouter();
   const editing = !!initial;
   const editorRef = useRef<HTMLDivElement>(null);
@@ -112,6 +133,7 @@ export default function EssayForm({ parshaGroups, authors, defaultParsha, initia
       return;
     }
     if (editing) {
+      if (onSaved) return onSaved(data.essay);
       setSaved(data.url);
       router.refresh();
       return;
@@ -262,6 +284,11 @@ export default function EssayForm({ parshaGroups, authors, defaultParsha, initia
         <button className="zy-button" disabled={busy}>
           {busy ? (editing ? "Saving…" : "Publishing…") : editing ? "Save changes" : "Publish"}
         </button>
+        {onCancel && (
+          <button type="button" className="zy-button zy-button-quiet" onClick={onCancel} disabled={busy}>
+            Cancel
+          </button>
+        )}
       </div>
     </form>
   );

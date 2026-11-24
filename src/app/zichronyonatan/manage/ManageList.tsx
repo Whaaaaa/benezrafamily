@@ -1,9 +1,9 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import type { ParshaGroup } from "@/lib/zy-essays";
+import EssayForm, { type SavedEssay } from "../EssayForm";
 
 type Essay = {
   id: string;
@@ -24,31 +24,73 @@ type Essay = {
 };
 
 type Show = "all" | "uploaded" | "archive" | "edited" | "hidden" | "republish" | "book" | "notbook";
-const PAGE = 30;
+const SHOWS: Show[] = ["all", "uploaded", "archive", "edited", "hidden", "republish", "book", "notbook"];
+type Filters = { q: string; parsha: string; author: string; show: string };
+type Notice = { kind: "ok" | "error"; text: string };
 
-export default function ManageList({ essays, parshaGroups }: { essays: Essay[]; parshaGroups: ParshaGroup[] }) {
-  const router = useRouter();
-  const [query, setQuery] = useState("");
-  const [parshaFilter, setParshaFilter] = useState("");
-  const [authorFilter, setAuthorFilter] = useState("");
-  const [show, setShow] = useState<Show>("all");
+const PAGE = 30;
+const EXCERPT = 220;
+
+// Mirrors displayAuthor() on the server: sourcing notes collapse to "Unsigned".
+const shownAuthor = (a: string) => a.replace(/^(Unsigned)\s*\(.*\)$/, "$1") || "Unsigned";
+
+function textOf(html: string) {
+  const doc = new DOMParser().parseFromString(html, "text/html");
+  return (doc.body.textContent || "").replace(/\s+/g, " ").trim();
+}
+
+type Props = {
+  essays: Essay[];
+  parshaGroups: ParshaGroup[];
+  authors: string[];
+  defaultParsha: string;
+  initialFilters: Filters;
+};
+
+export default function ManageList({ essays: initialEssays, parshaGroups, authors, defaultParsha, initialFilters }: Props) {
+  // The list is kept here and updated in place after each change, so
+  // nothing reloads and the filters and scroll position stay put.
+  const [essays, setEssays] = useState(initialEssays);
+  const [query, setQuery] = useState(initialFilters.q);
+  const [parshaFilter, setParshaFilter] = useState(initialFilters.parsha);
+  const [authorFilter, setAuthorFilter] = useState(initialFilters.author);
+  const [show, setShow] = useState<Show>(
+    SHOWS.includes(initialFilters.show as Show) ? (initialFilters.show as Show) : "all"
+  );
   const [limit, setLimit] = useState(PAGE);
   const [busy, setBusy] = useState<string | null>(null);
   const [confirming, setConfirming] = useState<string | null>(null);
-  const [notice, setNotice] = useState<{ kind: "ok" | "error"; text: string } | null>(null);
+  const [editing, setEditing] = useState<string | null>(null);
+  const [notices, setNotices] = useState<Record<string, Notice>>({});
+  // Essays changed since the filters were last touched stay visible even if
+  // they no longer match (e.g. "Remove from book" while showing "In the book").
+  const [pinned, setPinned] = useState<Set<string>>(new Set());
+
+  // Keep the filters in the address bar, so a reload or the back button
+  // brings them back. replaceState doesn't trigger a server round trip.
+  useEffect(() => {
+    const params = new URLSearchParams();
+    if (query.trim()) params.set("q", query.trim());
+    if (parshaFilter) params.set("parsha", parshaFilter);
+    if (authorFilter) params.set("author", authorFilter);
+    if (show !== "all") params.set("show", show);
+    const qs = params.toString();
+    window.history.replaceState(window.history.state, "", qs ? `?${qs}` : window.location.pathname);
+  }, [query, parshaFilter, authorFilter, show]);
 
   const parshaName = useMemo(
     () => Object.fromEntries(parshaGroups.flatMap((g) => g.parshiot.map((p) => [p.slug, p.parsha]))),
     [parshaGroups]
   );
-  const authors = useMemo(() => Array.from(new Set(essays.map((e) => e.author))).sort(), [essays]);
+  const authorOptions = useMemo(() => Array.from(new Set(essays.map((e) => e.author))).sort(), [essays]);
   const usedParshiot = useMemo(() => new Set(essays.map((e) => e.parshaSlug)), [essays]);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
     return essays.filter(
       (e) =>
-        (show === "all" ||
+        pinned.has(e.id) ||
+        ((show === "all" ||
           (show === "uploaded" && e.uploaded) ||
           (show === "archive" && !e.uploaded) ||
           (show === "edited" && e.edited) ||
@@ -56,26 +98,56 @@ export default function ManageList({ essays, parshaGroups }: { essays: Essay[]; 
           (show === "republish" && e.republish) ||
           (show === "book" && e.inBook) ||
           (show === "notbook" && !e.inBook)) &&
-        (!parshaFilter || e.parshaSlug === parshaFilter) &&
-        (!authorFilter || e.author === authorFilter) &&
-        (!q || e.title.toLowerCase().includes(q) || e.excerpt.toLowerCase().includes(q))
+          (!parshaFilter || e.parshaSlug === parshaFilter) &&
+          (!authorFilter || e.author === authorFilter) &&
+          (!q || e.title.toLowerCase().includes(q) || e.excerpt.toLowerCase().includes(q)))
     );
-  }, [essays, query, parshaFilter, authorFilter, show]);
+  }, [essays, query, parshaFilter, authorFilter, show, pinned]);
   const shown = filtered.slice(0, limit);
 
-  // Changing a filter starts the list from the top again.
+  const counts = useMemo(
+    () => ({
+      uploaded: essays.filter((e) => e.uploaded).length,
+      book: essays.filter((e) => e.inBook).length,
+      hidden: essays.filter((e) => e.hidden).length,
+    }),
+    [essays]
+  );
+
+  // Changing a filter starts the list from the top again and drops pins.
   function filterSetter<T>(set: (v: T) => void) {
     return (v: T) => {
       set(v);
       setLimit(PAGE);
+      setPinned(new Set());
     };
   }
 
-  async function request(key: string, url: string, method: string, body?: unknown) {
-    setBusy(key);
-    setNotice(null);
+  function clearFilters() {
+    setQuery("");
+    setParshaFilter("");
+    setAuthorFilter("");
+    setShow("all");
+    setLimit(PAGE);
+    setPinned(new Set());
+  }
+
+  const update = (id: string, patch: Partial<Essay>) =>
+    setEssays((list) => list.map((e) => (e.id === id ? { ...e, ...patch } : e)));
+  const notify = (id: string, notice: Notice | null) =>
+    setNotices((n) => {
+      const next = { ...n };
+      if (notice) next[id] = notice;
+      else delete next[id];
+      return next;
+    });
+  const pin = (id: string) => setPinned((p) => new Set(p).add(id));
+
+  async function request(e: Essay, key: string, method: string, body?: unknown) {
+    setBusy(`${key}-${e.id}`);
     setConfirming(null);
-    const res = await fetch(url, {
+    notify(e.id, null);
+    const res = await fetch(`/api/zichronyonatan/essays/${encodeURIComponent(e.id)}`, {
       method,
       headers: { "Content-Type": "application/json" },
       body: body ? JSON.stringify(body) : undefined,
@@ -83,67 +155,74 @@ export default function ManageList({ essays, parshaGroups }: { essays: Essay[]; 
     const data = await res.json().catch(() => ({}));
     setBusy(null);
     if (!res.ok) {
-      setNotice({ kind: "error", text: data.error || "Something went wrong." });
-      return false;
+      notify(e.id, {
+        kind: "error",
+        text: res.status === 401 ? "Your session expired. Reload the page and sign in again." : data.error || "Something went wrong.",
+      });
+      return null;
     }
-    router.refresh();
-    return true;
+    pin(e.id);
+    return data;
   }
-
-  const essayUrl = (e: Essay) => `/api/zichronyonatan/essays/${encodeURIComponent(e.id)}`;
 
   async function recategorize(e: Essay, slug: string) {
     if (slug === e.parshaSlug) return;
-    if (await request(`move-${e.id}`, essayUrl(e), "PATCH", { parshaSlug: slug })) {
-      setNotice({ kind: "ok", text: `“${e.title}” moved from ${e.parsha} to ${parshaName[slug]}.` });
-    }
+    const data = await request(e, "move", "PATCH", { parshaSlug: slug });
+    if (!data) return;
+    update(e.id, { parshaSlug: slug, parsha: parshaName[slug], edited: !!data.essay?.edited });
+    notify(e.id, { kind: "ok", text: `Moved from ${e.parsha} to ${parshaName[slug]}.` });
   }
 
   async function remove(e: Essay) {
     if (confirming !== e.id) return setConfirming(e.id);
-    if (await request(`del-${e.id}`, essayUrl(e), "DELETE")) {
-      setNotice({ kind: "ok", text: `“${e.title}” was deleted.` });
-    }
+    if (!(await request(e, "del", "DELETE"))) return;
+    setEssays((list) => list.filter((x) => x.id !== e.id));
   }
 
   async function setHidden(e: Essay, hidden: boolean) {
     if (hidden && confirming !== e.id) return setConfirming(e.id);
-    if (await request(`hide-${e.id}`, essayUrl(e), "PATCH", { hidden })) {
-      setNotice({
-        kind: "ok",
-        text: hidden ? `“${e.title}” is hidden from the site.` : `“${e.title}” is back on the site.`,
-      });
-    }
+    if (!(await request(e, "hide", "PATCH", { hidden }))) return;
+    update(e.id, { hidden });
+    notify(e.id, { kind: "ok", text: hidden ? "Hidden from the site." : "Back on the site." });
   }
 
   async function setRepublish(e: Essay, republish: boolean) {
-    if (await request(`rep-${e.id}`, essayUrl(e), "PATCH", { republish })) {
-      setNotice({
-        kind: "ok",
-        text: republish
-          ? `“${e.title}” can now be re-sent by the weekly email when nothing new is uploaded for ${e.parsha}.`
-          : `“${e.title}” won't be re-sent by the weekly email.`,
-      });
-    }
+    if (!(await request(e, "rep", "PATCH", { republish }))) return;
+    update(e.id, { republish, republished: republish ? e.republished : null });
+    notify(e.id, {
+      kind: "ok",
+      text: republish
+        ? `The weekly email can re-send this when nothing new is uploaded for ${e.parsha}.`
+        : "Won't be re-sent by the weekly email.",
+    });
   }
 
   async function setInBook(e: Essay, inBook: boolean) {
-    if (await request(`book-${e.id}`, essayUrl(e), "PATCH", { inBook })) {
-      setNotice({
-        kind: "ok",
-        text: inBook ? `“${e.title}” will be in the book.` : `“${e.title}” is left out of the book.`,
-      });
-    }
+    if (!(await request(e, "book", "PATCH", { inBook }))) return;
+    update(e.id, { inBook });
+    notify(e.id, { kind: "ok", text: inBook ? "Added to the book." : "Left out of the book." });
   }
+
+  function onSaved(e: Essay, saved: SavedEssay) {
+    const text = textOf(saved.html);
+    update(e.id, {
+      title: saved.title,
+      author: shownAuthor(saved.author),
+      parshaSlug: saved.parshaSlug,
+      parsha: parshaName[saved.parshaSlug] || saved.parshaSlug,
+      edited: saved.edited,
+      words: text.split(" ").filter(Boolean).length,
+      excerpt: text.slice(0, EXCERPT),
+    });
+    pin(e.id);
+    setEditing(null);
+    notify(e.id, { kind: "ok", text: "Saved. The site is updated." });
+  }
+
+  const filtering = !!(query || parshaFilter || authorFilter || show !== "all");
 
   return (
     <div className="zy-admin">
-      {notice && (
-        <p className={notice.kind === "ok" ? "zy-notice" : "zy-form-error"} role="status">
-          {notice.text}
-        </p>
-      )}
-
       <div className="zy-field-row zy-manage-filters">
         <label className="zy-field">
           <span>Search</span>
@@ -176,7 +255,7 @@ export default function ManageList({ essays, parshaGroups }: { essays: Essay[]; 
           <span>Author</span>
           <select value={authorFilter} onChange={(e) => filterSetter(setAuthorFilter)(e.target.value)}>
             <option value="">All</option>
-            {authors.map((a) => (
+            {authorOptions.map((a) => (
               <option key={a} value={a}>
                 {a}
               </option>
@@ -199,9 +278,18 @@ export default function ManageList({ essays, parshaGroups }: { essays: Essay[]; 
       </div>
 
       <p className="zy-form-hint">
-        {filtered.length === essays.length
-          ? `${essays.length} Divrei Torah`
-          : `${filtered.length} of ${essays.length} Divrei Torah match`}
+        {filtering ? `${filtered.length} of ${essays.length} match` : `${essays.length} Divrei Torah`} &middot;{" "}
+        {counts.uploaded} uploaded on the site &middot; {counts.book} in the book
+        {counts.hidden ? ` · ${counts.hidden} hidden` : ""}
+        {filtering && (
+          <>
+            {" "}
+            &middot;{" "}
+            <button type="button" className="zy-link-button" onClick={clearFilters}>
+              Clear filters
+            </button>
+          </>
+        )}
       </p>
 
       {filtered.length === 0 ? (
@@ -211,11 +299,16 @@ export default function ManageList({ essays, parshaGroups }: { essays: Essay[]; 
           {shown.map((e) => (
             <li key={e.id} className={"zy-manage-item" + (e.hidden ? " zy-is-hidden" : "")}>
               <div className="zy-manage-head">
-                <Link href={`/zichronyonatan/manage/${encodeURIComponent(e.id)}`} className="zy-manage-title">
+                <button
+                  type="button"
+                  className="zy-link-button zy-manage-title"
+                  onClick={() => setEditing(editing === e.id ? null : e.id)}
+                  aria-expanded={editing === e.id}
+                >
                   {e.title}
-                </Link>
+                </button>
                 <span className="zy-list-sub">
-                  {[e.author, e.date, `${e.words.toLocaleString()} words`, e.emailed && `emailed ${e.emailed}`]
+                  {[e.author, e.parsha, e.date, `${e.words.toLocaleString()} words`, e.emailed && `emailed ${e.emailed}`]
                     .filter(Boolean)
                     .join(" · ")}
                 </span>
@@ -235,16 +328,35 @@ export default function ManageList({ essays, parshaGroups }: { essays: Essay[]; 
                   )}
                 </span>
               </div>
-              <p className="zy-manage-excerpt">
-                {e.excerpt}
-                {e.excerpt.length >= 220 ? "…" : ""}
-              </p>
+
+              {editing === e.id ? (
+                <InlineEditor
+                  essay={e}
+                  parshaGroups={parshaGroups}
+                  authors={authors}
+                  defaultParsha={defaultParsha}
+                  onSaved={(saved) => onSaved(e, saved)}
+                  onCancel={() => setEditing(null)}
+                />
+              ) : (
+                <p className="zy-manage-excerpt">
+                  {e.excerpt}
+                  {e.excerpt.length >= EXCERPT ? "…" : ""}
+                </p>
+              )}
+
+              {notices[e.id] && (
+                <p className={notices[e.id].kind === "ok" ? "zy-notice" : "zy-form-error"} role="status">
+                  {notices[e.id].text}
+                </p>
+              )}
+
               <div className="zy-manage-controls">
                 <label className="zy-inline-select">
                   <span>Filed under</span>
                   <select
                     value={e.parshaSlug}
-                    disabled={!!busy}
+                    disabled={!!busy || editing === e.id}
                     onChange={(ev) => recategorize(e, ev.target.value)}
                     aria-label={`Parsha for ${e.title}`}
                   >
@@ -261,16 +373,18 @@ export default function ManageList({ essays, parshaGroups }: { essays: Essay[]; 
                   {busy === `move-${e.id}` && <em className="zy-list-sub">Saving…</em>}
                 </label>
                 <div className="zy-actions zy-actions-tight">
-                  <Link
-                    href={`/zichronyonatan/manage/${encodeURIComponent(e.id)}`}
+                  <button
+                    type="button"
                     className="zy-button zy-button-small"
+                    onClick={() => setEditing(editing === e.id ? null : e.id)}
                   >
-                    Edit
-                  </Link>
+                    {editing === e.id ? "Close editor" : "Edit"}
+                  </button>
                   {!e.hidden && (
                     <Link
                       href={`/zichronyonatan/parsha/${e.parshaSlug}`}
                       className="zy-button zy-button-quiet zy-button-small"
+                      target="_blank"
                     >
                       View
                     </Link>
@@ -279,19 +393,19 @@ export default function ManageList({ essays, parshaGroups }: { essays: Essay[]; 
                     type="button"
                     className="zy-link-button"
                     disabled={!!busy}
-                    onClick={() => setRepublish(e, !e.republish)}
-                    title="Lets the weekly email re-send this when nothing new is uploaded for its parsha"
+                    onClick={() => setInBook(e, !e.inBook)}
+                    title="Whether this goes in the printed book"
                   >
-                    {busy === `rep-${e.id}` ? "Saving…" : e.republish ? "Don't republish" : "Republish"}
+                    {busy === `book-${e.id}` ? "Saving…" : e.inBook ? "Remove from book" : "Add to book"}
                   </button>
                   <button
                     type="button"
                     className="zy-link-button"
                     disabled={!!busy}
-                    onClick={() => setInBook(e, !e.inBook)}
-                    title="Whether this goes in the printed book"
+                    onClick={() => setRepublish(e, !e.republish)}
+                    title="Lets the weekly email re-send this when nothing new is uploaded for its parsha"
                   >
-                    {busy === `book-${e.id}` ? "Saving…" : e.inBook ? "Remove from book" : "Add to book"}
+                    {busy === `rep-${e.id}` ? "Saving…" : e.republish ? "Don't republish" : "Republish"}
                   </button>
                   {e.uploaded ? (
                     <button
@@ -331,6 +445,66 @@ export default function ManageList({ essays, parshaGroups }: { essays: Essay[]; 
             Show more ({filtered.length - limit} left)
           </button>
         </div>
+      )}
+    </div>
+  );
+}
+
+type Loaded = { id: string; title: string; author: string; parshaSlug: string; html: string };
+
+/** The full editor, opened inside an essay's row; loads the essay's text on open. */
+function InlineEditor({
+  essay,
+  parshaGroups,
+  authors,
+  defaultParsha,
+  onSaved,
+  onCancel,
+}: {
+  essay: Essay;
+  parshaGroups: ParshaGroup[];
+  authors: string[];
+  defaultParsha: string;
+  onSaved: (saved: SavedEssay) => void;
+  onCancel: () => void;
+}) {
+  const [loaded, setLoaded] = useState<Loaded | null>(null);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    let live = true;
+    fetch(`/api/zichronyonatan/essays/${encodeURIComponent(essay.id)}`)
+      .then(async (res) => {
+        const data = await res.json().catch(() => ({}));
+        if (!live) return;
+        if (!res.ok) setError(res.status === 401 ? "Your session expired. Reload the page and sign in again." : data.error || "Couldn't load it.");
+        else setLoaded(data);
+      })
+      .catch(() => live && setError("Couldn't load it. Check your connection."));
+    return () => {
+      live = false;
+    };
+  }, [essay.id]);
+
+  if (error) return <p className="zy-form-error">{error}</p>;
+  if (!loaded) return <p className="zy-form-hint">Loading…</p>;
+
+  return (
+    <div className="zy-inline-editor">
+      <EssayForm
+        parshaGroups={parshaGroups}
+        authors={authors}
+        defaultParsha={defaultParsha}
+        requireAuthor={essay.uploaded}
+        initial={loaded}
+        onSaved={onSaved}
+        onCancel={onCancel}
+      />
+      {!essay.uploaded && essay.edited && (
+        <p className="zy-form-hint">
+          To undo every change and go back to the archive original, use{" "}
+          <Link href={`/zichronyonatan/manage/${encodeURIComponent(essay.id)}`}>Revert on the full edit page</Link>.
+        </p>
       )}
     </div>
   );

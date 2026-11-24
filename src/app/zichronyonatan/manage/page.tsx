@@ -7,10 +7,15 @@ import { htmlToText } from "@/lib/zy-html";
 import TopBar from "../TopBar";
 import ZyLogin from "../ZyLogin";
 import ManageList from "./ManageList";
+import { getCurrentParshaSlug } from "@/lib/current-parsha";
 
 export const metadata = { title: "Manage Divrei Torah | Zichron Yonatan" };
 
-export default async function ManagePage() {
+export default async function ManagePage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
   if (!(await isZyAuthed())) {
     return (
       <>
@@ -22,7 +27,11 @@ export default async function ManagePage() {
     );
   }
 
-  const [all, { parshaGroups }, republish] = await Promise.all([
+  const params = await searchParams;
+  const one = (k: string) => (typeof params[k] === "string" ? (params[k] as string) : "");
+  const initialFilters = { q: one("q"), parsha: one("parsha"), author: one("author"), show: one("show") };
+
+  const [all, { parshaGroups, authors }, republish] = await Promise.all([
     getAllEssays({ includeHidden: true }),
     getEssayFormOptions(),
     getRepublishMap(),
@@ -61,8 +70,6 @@ export default async function ManagePage() {
       };
     });
 
-  const uploadedCount = essays.filter((e) => e.uploaded).length;
-  const bookCount = essays.filter((e) => e.inBook).length;
 
   return (
     <>
@@ -70,11 +77,15 @@ export default async function ManagePage() {
       <main className="zy-main" id="zy-content">
         <h1 className="zy-parsha-h1">Manage Divrei Torah</h1>
         <span className="zy-parsha-book-tag">
-          {essays.length} Divrei Torah &middot; {uploadedCount} uploaded on the site &middot; {bookCount} in
-          the book &middot;{" "}
           <Link href="/zichronyonatan/upload">Upload a new one</Link>
         </span>
-        <ManageList essays={essays} parshaGroups={parshaGroups} />
+        <ManageList
+          essays={essays}
+          parshaGroups={parshaGroups}
+          authors={authors}
+          defaultParsha={getCurrentParshaSlug() || ""}
+          initialFilters={initialFilters}
+        />
       </main>
     </>
   );
