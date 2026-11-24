@@ -21,7 +21,8 @@ export async function POST(req: Request) {
     if (mode === "test") {
       const to = String(testEmail || "").trim();
       if (!to.includes("@")) return Response.json({ error: "Enter an email address for the test." }, { status: 400 });
-      const { sent, failed } = await sendEssay(essay, [{ email: to, name: "", token: "test-preview" }]);
+      // Just the test address, in the same format the list gets.
+      const { sent, failed } = await sendEssay(essay, [{ email: to, name: "", token: "" }]);
       await logEmail({ kind: "test", essay, recipients: sent, failed, note: `Test to ${to}` });
       if (failed.length) return Response.json({ error: `Sending to ${to} failed` }, { status: 500 });
       return Response.json({ ok: true, sent });

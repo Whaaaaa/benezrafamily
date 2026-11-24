@@ -1,6 +1,7 @@
 import sql, { initZyDb } from "@/lib/db";
 import TopBar from "../TopBar";
 import UnsubscribeButton from "./UnsubscribeButton";
+import UnsubscribeRequest from "./UnsubscribeRequest";
 
 export const metadata = { title: "Unsubscribe | Zichron Yonatan" };
 
@@ -11,7 +12,9 @@ export default async function UnsubscribePage({
 }) {
   const { token = "" } = await searchParams;
   await initZyDb();
-  const rows = (await sql`SELECT email FROM zy_subscribers WHERE token = ${token}`) as { email: string }[];
+  const rows = token
+    ? ((await sql`SELECT email FROM zy_subscribers WHERE token = ${token}`) as { email: string }[])
+    : [];
   const email = rows[0]?.email;
 
   return (
@@ -20,7 +23,10 @@ export default async function UnsubscribePage({
       <main className="zy-main" id="zy-content">
         <div className="zy-panel zy-login">
           <h1 className="zy-parsha-h1">Unsubscribe</h1>
-          {email ? (
+          {!token ? (
+            // From the weekly email, which is shared by the whole list.
+            <UnsubscribeRequest />
+          ) : email ? (
             <>
               <p>
                 Stop sending the weekly Zichron Yonatan email to <strong>{email}</strong>?

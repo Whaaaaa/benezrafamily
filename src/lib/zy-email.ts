@@ -63,10 +63,14 @@ export function unsubscribeUrl(token: string) {
   return `${SITE_URL}/zichronyonatan/unsubscribe?token=${encodeURIComponent(token)}`;
 }
 
-export function buildEssayEmail(essay: ZyEssayRow, token: string) {
+// The weekly email is one message shared by the whole list, so its
+// unsubscribe link goes to a page where people enter their own address.
+const LIST_UNSUBSCRIBE_URL = `${SITE_URL}/zichronyonatan/unsubscribe`;
+
+export function buildEssayEmail(essay: ZyEssayRow) {
   const parsha = parshaName(essay.parsha_slug);
   const essayUrl = `${SITE_URL}/zichronyonatan/parsha/${essay.parsha_slug}`;
-  const unsubUrl = unsubscribeUrl(token);
+  const unsubUrl = LIST_UNSUBSCRIBE_URL;
   const date = essay.date_label ?? formatEssayDate(new Date(essay.created_at));
   const meta = [date, essay.author].filter(Boolean).join(" · ");
   const serif = "Georgia, 'Times New Roman', serif";
@@ -107,7 +111,7 @@ export function buildEssayEmail(essay: ZyEssayRow, token: string) {
 
   <tr><td align="center" style="background:#1c2a44;border-top:3px solid #a3763f;padding:26px 28px;border-radius:0 0 6px 6px;">
     <div style="font-family:${serif};font-size:14px;line-height:1.6;color:#b7c3d8;">The learning on this site should be a merit for the neshama of Yonatan ben Avraham Avinu a&quot;h.</div>
-    <div style="font-family:${serif};font-size:12px;line-height:1.6;color:#8796ad;margin-top:14px;">You&rsquo;re receiving this because you&rsquo;re on the Zichron Yonatan mailing list.<br><a href="${unsubUrl}" style="color:#b7c3d8;">Unsubscribe</a></div>
+    <div style="font-family:${serif};font-size:12px;line-height:1.6;color:#8796ad;margin-top:14px;">You&rsquo;re receiving this because you&rsquo;re on the Zichron Yonatan mailing list. Reply all to share your thoughts with everyone on it.<br><a href="${unsubUrl}" style="color:#b7c3d8;">Unsubscribe</a></div>
   </td></tr>
 
 </table>
@@ -128,6 +132,7 @@ export function buildEssayEmail(essay: ZyEssayRow, token: string) {
     "",
     "The learning on this site should be a merit for the neshama of Yonatan ben Avraham Avinu a\"h.",
     "",
+    "Reply all to share your thoughts with everyone on the list.",
     `Unsubscribe: ${unsubUrl}`,
   ].join("\n");
 
@@ -135,42 +140,45 @@ export function buildEssayEmail(essay: ZyEssayRow, token: string) {
     subject: `${essay.title} · Zichron Yonatan`,
     html,
     text,
-    headers: {
-      "List-Unsubscribe": `<${SITE_URL}/api/zichronyonatan/unsubscribe?token=${encodeURIComponent(token)}>`,
-      "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
-    },
+    headers: { "List-Unsubscribe": `<${LIST_UNSUBSCRIBE_URL}>` },
   };
 }
 
+// Gmail accepts at most 100 recipients on one message sent over SMTP.
+const MAX_RECIPIENTS = 100;
+
+/**
+ * Sends the essay as a single email: To the sending address, every recipient
+ * in CC, so replying all reaches the whole list.
+ */
 export async function sendEssay(
   essay: ZyEssayRow,
   recipients: Subscriber[]
 ): Promise<{ sent: number; failed: string[] }> {
   if (!emailConfigured()) throw new Error("Email is not configured (SMTP_USER / SMTP_PASS)");
+  if (!recipients.length) return { sent: 0, failed: [] };
+  if (recipients.length > MAX_RECIPIENTS) {
+    throw new Error(
+      `The list has ${recipients.length} addresses, but one email can go to at most ${MAX_RECIPIENTS}.`
+    );
+  }
+  const cc = recipients.map((r) => (r.name ? { name: r.name.replace(/"/g, ""), address: r.email } : r.email));
   const t = transport();
-  let sent = 0;
-  const failed: string[] = [];
   try {
-    // One message per subscriber so nobody sees the list and each gets a
-    // personal unsubscribe link.
-    for (const r of recipients) {
-      const msg = buildEssayEmail(essay, r.token);
-      try {
-        await t.sendMail({
-          from: fromAddress(),
-          to: r.name ? `"${r.name.replace(/"/g, "")}" <${r.email}>` : r.email,
-          ...msg,
-        });
-        sent++;
-      } catch (err) {
-        console.error("zy email failed", r.email, err);
-        failed.push(r.email);
-      }
-    }
+    const info = await t.sendMail({ from: fromAddress(), to: fromAddress(), cc, ...buildEssayEmail(essay) });
+    const rejected = new Set(
+      (info.rejected as (string | { address: string })[]).map((a) =>
+        (typeof a === "string" ? a : a.address).toLowerCase()
+      )
+    );
+    const failed = recipients.map((r) => r.email).filter((e) => rejected.has(e.toLowerCase()));
+    return { sent: recipients.length - failed.length, failed };
+  } catch (err) {
+    console.error("zy list email failed", err);
+    return { sent: 0, failed: recipients.map((r) => r.email) };
   } finally {
     t.close();
   }
-  return { sent, failed };
 }
 
 export type LogKind = "scheduled" | "manual" | "test" | "skipped" | "cancelled";
@@ -397,6 +405,36 @@ export async function sendConfirmationEmail(email: string, name: string, token: 
       html,
       text,
     });
+  } finally {
+    t.close();
+  }
+}
+
+// ---- Unsubscribe: someone enters their address, we email them their link ----
+
+export async function sendUnsubscribeLink(email: string, token: string) {
+  if (!emailConfigured()) throw new Error("Email is not configured (SMTP_USER / SMTP_PASS)");
+  const url = unsubscribeUrl(token);
+  const serif = "Georgia, 'Times New Roman', serif";
+  const html = `<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Unsubscribe</title></head>
+<body style="margin:0;padding:24px 12px;background:#faf5e8;font-family:${serif};font-size:17px;line-height:1.7;color:#23304a;">
+<div style="max-width:520px;margin:0 auto;background:#fffdf8;border:1px solid #e6dfcf;border-radius:6px;padding:28px 32px;">
+  <p style="margin:0 0 16px;">Someone (hopefully you) asked to stop the weekly Zichron Yonatan email to ${esc(email)}.</p>
+  <p style="margin:0 0 22px;"><a href="${url}" style="display:inline-block;padding:12px 26px;background:#1c2a44;border-radius:4px;color:#faf5e8;font-weight:bold;text-decoration:none;">Unsubscribe ${esc(email)}</a></p>
+  <p style="margin:0;font-size:14px;color:#6c6252;">If you didn&rsquo;t ask, just ignore this email &mdash; you&rsquo;ll stay on the list.</p>
+</div>
+</body></html>`;
+  const text = [
+    `Someone (hopefully you) asked to stop the weekly Zichron Yonatan email to ${email}.`,
+    "",
+    `To unsubscribe, open: ${url}`,
+    "",
+    "If you didn't ask, just ignore this email - you'll stay on the list.",
+  ].join("\n");
+  const t = transport();
+  try {
+    await t.sendMail({ from: fromAddress(), to: email, subject: "Unsubscribe from Zichron Yonatan", html, text });
   } finally {
     t.close();
   }
